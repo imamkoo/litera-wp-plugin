@@ -24,7 +24,7 @@ export const CONTRACT_VERSION = "amoy-litetoken-rbac-v1.0.0";
 // ----------------------------------------------------
 // FEATURE TOGGLES
 // ----------------------------------------------------
-export const ENABLE_ECONOMY_V2_ANALYTICS = true;
+export const ENABLE_ECONOMY_V2_ANALYTICS = false;
 
 // Export standard constants for the rest of the app to use
 export const contractAddress = activeConfig.contractAddress as `0x${string}`;
