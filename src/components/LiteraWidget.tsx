@@ -267,6 +267,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
             <span className="relative z-10">View Your NFT</span>
             <svg className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </a>
+          {externalURI && externalURI.length > 5 && (
+            <a href={externalURI} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:text-blue-600 underline mt-4" onClick={() => { setTimeout(() => setHasVisitedSponsor(true), 1000); }}>
+              Visit Sponsor
+            </a>
+          )}
         </div>
       );
     }
@@ -304,6 +309,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
             <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="w-5 h-5 opacity-80" />
             <span>View NFT on OpenSea</span>
           </a>
+          {externalURI && externalURI.length > 5 && (
+            <a href={externalURI} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-slate-700 underline mt-1 mb-2">
+              Visit Sponsor
+            </a>
+          )}
           {/* @ts-ignore */}
           <div className="mt-4 flex justify-center w-full"><w3m-button /></div>
         </div>
@@ -372,6 +382,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="w-5 h-5 opacity-80" />
           <span>View NFT on OpenSea</span>
         </a>
+        {externalURI && externalURI.length > 5 && (
+          <a href={externalURI} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-slate-700 underline mt-1 mb-2">
+            Visit Sponsor
+          </a>
+        )}
         {/* @ts-ignore */}
         <div className="mt-4 flex justify-center w-full"><w3m-button /></div>
       </div>
