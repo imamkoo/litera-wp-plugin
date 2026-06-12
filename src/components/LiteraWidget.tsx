@@ -10,7 +10,8 @@ import {
   UnlockableAddress,
   unlockableABI,
   Erc1155Adress,
-  erc1155ABI
+  erc1155ABI,
+  activeNetworkName
 } from '../shared/contracts/ContractConfig';
 import { useSafeGas } from '../shared/hooks/useSafeGas';
 
@@ -23,6 +24,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
   const [hasVisitedSponsor, setHasVisitedSponsor] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
+
+  const getOpenSeaUrl = () => {
+    const baseUrl = activeNetworkName === 'MAINNET' ? 'https://opensea.io/assets/matic' : 'https://testnets.opensea.io/assets/amoy';
+    return `${baseUrl}/${Erc1155Adress}/${tokenId}`;
+  };
 
   useEffect(() => {
     setUnlockedContent(null);
@@ -56,10 +62,14 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   // 5: price, 6: _MaxMinted, 7: _Minted
   const externalURI = articleArray ? articleArray[2] : "";
   const isFeeEnabled = articleArray ? articleArray[3] : false;
+  const creatorAddress = articleArray ? articleArray[4] : "0x0";
   const price = articleArray ? articleArray[5] : BigInt(0);
   const maxMinted = articleArray ? Number(articleArray[6]) : 0;
   const totalMinted = articleArray ? Number(articleArray[7]) : 0;
   const isSoldOut = maxMinted > 0 && totalMinted >= maxMinted;
+
+  const isCreator = address && creatorAddress && address.toLowerCase() === creatorAddress.toLowerCase();
+  const hasAccess = ownsNFT || isCreator;
 
   // 3. Unlockable Check
   const { data: cidUnlockable } = useReadContract({
@@ -69,7 +79,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     args: [BigInt(tokenId)],
     account: address as `0x${string}`, // Simulate call as user
     chainId: 80002,
-    query: { enabled: !!address && ownsNFT }
+    query: { enabled: !!address && hasAccess }
   });
 
   // 4. Allowance Check
@@ -79,7 +89,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     functionName: 'allowance',
     args: [address as `0x${string}`, contractAddress],
     chainId: 80002,
-    query: { enabled: !!address && !ownsNFT }
+    query: { enabled: !!address && !hasAccess }
   });
 
   // 4.5. Balance Check
@@ -89,7 +99,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     functionName: 'balanceOf',
     args: [address as `0x${string}`],
     chainId: 80002,
-    query: { enabled: !!address && !ownsNFT }
+    query: { enabled: !!address && !hasAccess }
   });
 
   // 5. Unlockable Existence Check
@@ -223,7 +233,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     );
   }
 
-  if (ownsNFT) {
+  if (hasAccess) {
     // Skenario: Require Visit Sponsor first if externalURI exists
     const sponsorRequired = externalURI && externalURI.length > 5 && !hasVisitedSponsor;
 
@@ -239,11 +249,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           <h3 className="text-xl font-bold text-slate-900 mb-2 tracking-tight">Complete Task to Unlock</h3>
           <p className="text-sm text-slate-600 mb-8 max-w-sm leading-relaxed">
             {hasUnlockableContent
-              ? "You own this NFT! To access the hidden premium content, please visit our sponsor first."
-              : "You own this NFT! To complete this campaign and verify your reward, please visit our sponsor first."}
+              ? (isCreator ? "Welcome back, Creator! To access the hidden premium content, please view your NFT." : "You own this NFT! To access the hidden premium content, please view your NFT.")
+              : (isCreator ? "Welcome back, Creator! To complete this campaign, please view your NFT." : "You own this NFT! To complete this campaign and verify your reward, please view your NFT.")}
           </p>
           <a
-            href={externalURI}
+            href={getOpenSeaUrl()}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => {
@@ -253,7 +263,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
             className="group relative flex items-center justify-center gap-3 w-full py-4 text-center rounded-2xl bg-slate-900 text-white font-bold hover:bg-slate-800 hover:scale-[1.02] transition-all duration-300 shadow-xl shadow-slate-300 overflow-hidden"
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <span className="relative z-10">Visit Sponsor</span>
+            <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="relative z-10 w-5 h-5 invert" />
+            <span className="relative z-10">View Your NFT</span>
             <svg className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </a>
         </div>
@@ -283,6 +294,15 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           >
             <span>Open Premium Content</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+          </a>
+          <a
+            href={getOpenSeaUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3 text-center rounded-2xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-all duration-300 mb-2 border border-slate-200"
+          >
+            <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="w-5 h-5 opacity-80" />
+            <span>View NFT on OpenSea</span>
           </a>
           {/* @ts-ignore */}
           <div className="mt-4 flex justify-center w-full"><w3m-button /></div>
@@ -315,8 +335,10 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           <div className="w-14 h-14 mb-4 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg">
             <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path></svg>
           </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-2 tracking-tight">NFT Owned!</h3>
-          <p className="text-sm text-slate-500 mb-8 max-w-xs leading-relaxed">You have collected this article. Reveal the hidden content now.</p>
+          <h3 className="text-xl font-bold text-slate-900 mb-2 tracking-tight">{isCreator ? "Creator Access Granted" : "NFT Owned!"}</h3>
+          <p className="text-sm text-slate-500 mb-8 max-w-xs leading-relaxed">
+            {isCreator ? "You created this article. Reveal the hidden content now." : "You have collected this article. Reveal the hidden content now."}
+          </p>
           <button
             onClick={handleReveal}
             disabled={isRevealingReq || isRevealingTx}
@@ -340,17 +362,16 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           <p>Campaign Completed</p>
           <p className="text-emerald-600">Reward Verified</p>
         </div>
-        <p className="text-sm text-slate-500 mb-8 max-w-xs leading-relaxed">Terima kasih telah berpartisipasi dan mengunjungi sponsor kami!</p>
-        {externalURI && externalURI.length > 5 && (
-          <a
-            href={externalURI}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 text-center rounded-2xl bg-slate-100 text-slate-600 font-medium hover:bg-slate-200 transition-all duration-300"
-          >
-            <span>Visit Sponsor</span>
-          </a>
-        )}
+        <p className="text-sm text-slate-500 mb-8 max-w-xs leading-relaxed">Terima kasih telah berpartisipasi!</p>
+        <a
+          href={getOpenSeaUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 w-full py-3 text-center rounded-2xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-all duration-300 mb-2 border border-slate-200"
+        >
+          <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="w-5 h-5 opacity-80" />
+          <span>View NFT on OpenSea</span>
+        </a>
         {/* @ts-ignore */}
         <div className="mt-4 flex justify-center w-full"><w3m-button /></div>
       </div>
