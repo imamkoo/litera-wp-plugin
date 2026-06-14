@@ -25,6 +25,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   const { address, isConnected } = useAccount();
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
   const [hasVisitedSponsor, setHasVisitedSponsor] = useState(false);
+  const [sponsorUrl, setSponsorUrl] = useState<string | null>(null);
   const { open } = useWeb3Modal();
   const [isRevealing, setIsRevealing] = useState(false);
 
@@ -171,6 +172,16 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   });
   const hasUnlockableContent = Boolean(isContentUnlockableData);
 
+  // 6. Token URI for metadata (to get true external_url)
+  const { data: tokenURI } = useReadContract({
+    address: Erc1155Adress,
+    abi: erc1155ABI,
+    functionName: 'uri',
+    args: [BigInt(tokenId)],
+    chainId: activeChainId,
+    query: { enabled: tokenId > 0 }
+  });
+
   // --- Effects ---
 
   // Auto-mint after approve
@@ -208,6 +219,27 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
       fetchHiddenContent();
     }
   }, [cidUnlockable]);
+
+  // Fetch true sponsor URL from IPFS metadata
+  useEffect(() => {
+    if (tokenURI && typeof tokenURI === 'string') {
+      const fetchMetadata = async () => {
+        try {
+          const cid = tokenURI.replace('ipfs://', '');
+          const res = await axios.get(`https://ipfs.io/ipfs/${cid}`, { timeout: 8000 });
+          const extUrl = res.data?.properties?.external_url;
+          if (extUrl && extUrl.length > 5) {
+            setSponsorUrl(extUrl);
+          } else {
+            setSponsorUrl(null);
+          }
+        } catch (e) {
+          console.warn("Failed to fetch NFT metadata", e);
+        }
+      };
+      fetchMetadata();
+    }
+  }, [tokenURI]);
 
   // --- Handlers ---
   const handleMintAction = async () => {
@@ -301,22 +333,20 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     // Skenario A.1: Unlockable EXIST and already decrypted & fetched
     if (hasUnlockableContent && isValidCid && unlockedContent) {
       return (
-        <div className="litera-widget-container relative flex flex-col items-center p-10 bg-white/70 dark:bg-[#0a0a0a]/80 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(16,185,129,0.15)] border border-emerald-500/10 dark:border-emerald-500/20 my-10 transition-all duration-500 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent dark:from-emerald-500/10 pointer-events-none"></div>
-          <div className="absolute -top-32 -left-32 w-64 h-64 bg-emerald-500/20 dark:bg-emerald-600/10 rounded-full blur-[80px] pointer-events-none"></div>
+        <div className="litera-widget-container relative flex flex-col items-center p-10 bg-white/70 dark:bg-[#0a0a0a]/80 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(249,115,22,0.15)] border border-orange-500/10 dark:border-orange-500/20 my-10 transition-all duration-500 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 to-transparent dark:from-orange-500/10 pointer-events-none"></div>
+          <div className="absolute -top-32 -left-32 w-64 h-64 bg-orange-500/20 dark:bg-orange-600/10 rounded-full blur-[80px] pointer-events-none"></div>
 
-          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold mb-6 tracking-[0.15em] text-xs bg-emerald-50 dark:bg-emerald-950/50 px-4 py-1.5 rounded-full border border-emerald-200/50 dark:border-emerald-800/50 relative z-10">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 font-bold mb-6 tracking-[0.15em] text-xs bg-orange-50 dark:bg-orange-950/50 px-4 py-1.5 rounded-full border border-orange-200/50 dark:border-orange-800/50 relative z-10">
+            <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
             <span>ACCESS GRANTED</span>
           </div>
           
           <div className="w-full bg-slate-50/50 dark:bg-black/50 p-6 rounded-2xl border border-slate-200/50 dark:border-white/5 mb-6 relative overflow-hidden backdrop-blur-sm z-10 group">
-            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-emerald-400 to-emerald-600"></div>
-            <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <p className="text-slate-800 dark:text-slate-200 font-mono text-sm text-center leading-relaxed relative z-10">
-              <span className="text-emerald-500 dark:text-emerald-400 mr-2">&gt;</span>
+            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-orange-400 to-orange-600"></div>
+            <div className="absolute inset-0 bg-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <p className="text-slate-800 dark:text-slate-200 font-mono text-sm text-left leading-relaxed relative z-10">
               {unlockedContent.description}
-              <span className="animate-pulse ml-1">_</span>
             </p>
           </div>
           
@@ -324,7 +354,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
             href={unlockedContent.content}
             target="_blank"
             rel="noopener noreferrer"
-            className="relative flex items-center justify-center gap-2 w-full py-4 text-center rounded-2xl bg-emerald-500 dark:bg-emerald-500/20 text-white dark:text-emerald-400 font-bold hover:bg-emerald-600 dark:hover:bg-emerald-500/30 hover:scale-[1.02] transition-all duration-300 shadow-xl dark:shadow-none shadow-emerald-200/50 border border-transparent dark:border-emerald-500/30 mb-4 z-10"
+            className="relative flex items-center justify-center gap-2 w-full py-4 text-center rounded-2xl bg-orange-500 dark:bg-orange-500/20 text-white dark:text-orange-400 font-bold hover:bg-orange-600 dark:hover:bg-orange-500/30 hover:scale-[1.02] transition-all duration-300 shadow-xl dark:shadow-none shadow-orange-200/50 border border-transparent dark:border-orange-500/30 mb-4 z-10"
           >
             <span className="tracking-wide">Open Premium Content</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
@@ -340,8 +370,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
               <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="w-4 h-4 opacity-80 invert-0 dark:invert" />
               <span>View NFT</span>
             </a>
-            {externalURI && externalURI.length > 5 && (
-              <a href={externalURI} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3 text-center rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all duration-300 border border-blue-100 dark:border-blue-800/50 text-sm">
+            {sponsorUrl && sponsorUrl.length > 5 && (
+              <a href={sponsorUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3 text-center rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all duration-300 border border-blue-100 dark:border-blue-800/50 text-sm">
                 <span>Visit Sponsor</span>
               </a>
             )}
