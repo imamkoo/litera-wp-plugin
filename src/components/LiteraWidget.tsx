@@ -221,14 +221,15 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
 
   if (!isConnected) {
     return (
-      <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-200/50 border border-white/50 text-center my-8 transition-all duration-500 hover:shadow-slate-300/50">
-        <div className="w-12 h-12 mb-4 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl flex items-center justify-center shadow-lg">
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+      <div className="litera-widget-container relative flex flex-col items-center justify-center p-10 bg-white/60 dark:bg-slate-950/60 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(0,0,0,0.7)] border border-slate-200/50 dark:border-white/5 text-center my-10 transition-all duration-500 overflow-hidden group hover:dark:border-white/10">
+        <div className="absolute inset-0 bg-gradient-to-tr from-slate-200/20 via-transparent to-slate-200/20 dark:from-white/5 dark:to-transparent opacity-50"></div>
+        <div className="w-14 h-14 mb-5 bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-black rounded-2xl flex items-center justify-center shadow-xl border border-slate-700/50 relative z-10 group-hover:scale-105 transition-transform duration-500">
+          <svg className="w-6 h-6 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
-        <h3 className="text-xl font-bold text-slate-900 mb-2 tracking-tight">Exclusive Campaign</h3>
-        <p className="text-sm text-slate-500 mb-6 max-w-xs leading-relaxed">Connect your wallet to collect this article and participate in the campaign.</p>
+        <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Exclusive Campaign</h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-xs leading-relaxed relative z-10">Connect your Web3 wallet to collect this article and unlock premium perks.</p>
         {/* @ts-ignore */}
-        <w3m-button />
+        <div className="relative z-10"><w3m-button /></div>
       </div>
     );
   }
@@ -239,15 +240,18 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
 
     if (sponsorRequired) {
       return (
-        <div className="litera-widget-container flex flex-col items-center p-8 bg-gradient-to-b from-white/80 to-blue-50/50 backdrop-blur-xl rounded-3xl shadow-2xl shadow-blue-200/50 border border-blue-100 my-8 text-center transition-all duration-500">
-          <div className="w-16 h-16 mb-5 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-200 animate-bounce-slow">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        <div className="litera-widget-container relative flex flex-col items-center p-10 bg-white/60 dark:bg-slate-950/60 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(59,130,246,0.15)] border border-blue-100/50 dark:border-blue-900/30 my-10 text-center transition-all duration-500 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent dark:from-blue-500/10 pointer-events-none"></div>
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/20 dark:bg-blue-600/20 rounded-full blur-[60px] pointer-events-none"></div>
+          
+          <div className="w-16 h-16 mb-6 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 relative z-10 animate-[bounce_3s_infinite]">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
           </div>
-          <div className="flex items-center gap-2 text-indigo-600 font-bold mb-3 tracking-wide text-sm bg-indigo-50 px-4 py-1.5 rounded-full border border-indigo-100">
+          <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold mb-3 tracking-[0.15em] text-xs bg-indigo-50 dark:bg-indigo-950/50 px-4 py-1.5 rounded-full border border-indigo-100 dark:border-indigo-900/50 relative z-10">
             <span>ONE MORE STEP</span>
           </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-2 tracking-tight">Complete Task to Unlock</h3>
-          <p className="text-sm text-slate-600 mb-8 max-w-sm leading-relaxed">
+          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight relative z-10">Complete Task to Unlock</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-8 max-w-sm leading-relaxed relative z-10">
             {hasUnlockableContent
               ? (isCreator ? "Welcome back, Creator! To access the hidden premium content, please view your NFT." : "You own this NFT! To access the hidden premium content, please view your NFT.")
               : (isCreator ? "Welcome back, Creator! To complete this campaign, please view your NFT." : "You own this NFT! To complete this campaign and verify your reward, please view your NFT.")}
@@ -257,18 +261,17 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => {
-              // Beri sedikit delay agar UX terasa natural
               setTimeout(() => setHasVisitedSponsor(true), 1000);
             }}
-            className="group relative flex items-center justify-center gap-3 w-full py-4 text-center rounded-2xl bg-slate-900 text-white font-bold hover:bg-slate-800 hover:scale-[1.02] transition-all duration-300 shadow-xl shadow-slate-300 overflow-hidden"
+            className="group relative flex items-center justify-center gap-3 w-full py-4 text-center rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:scale-[1.02] transition-all duration-300 shadow-xl overflow-hidden z-10"
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="relative z-10 w-5 h-5 invert" />
+            <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="relative z-10 w-5 h-5 invert dark:invert-0" />
             <span className="relative z-10">View Your NFT</span>
             <svg className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </a>
           {externalURI && externalURI.length > 5 && (
-            <a href={externalURI} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:text-blue-600 underline mt-4" onClick={() => { setTimeout(() => setHasVisitedSponsor(true), 1000); }}>
+            <a href={externalURI} target="_blank" rel="noopener noreferrer" className="relative z-10 text-xs text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 underline mt-5 tracking-wide" onClick={() => { setTimeout(() => setHasVisitedSponsor(true), 1000); }}>
               Visit Sponsor
             </a>
           )}
@@ -282,40 +285,54 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     // Skenario A.1: Unlockable EXIST and already decrypted & fetched
     if (hasUnlockableContent && isValidCid && unlockedContent) {
       return (
-        <div className="litera-widget-container flex flex-col items-center p-8 bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-emerald-100/50 border border-emerald-500/10 my-8 transition-all duration-500">
-          <div className="flex items-center gap-2 text-emerald-600 font-bold mb-5 tracking-wide text-sm bg-emerald-50 px-4 py-1.5 rounded-full">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
+        <div className="litera-widget-container relative flex flex-col items-center p-10 bg-white/70 dark:bg-[#0a0a0a]/80 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(16,185,129,0.15)] border border-emerald-500/10 dark:border-emerald-500/20 my-10 transition-all duration-500 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent dark:from-emerald-500/10 pointer-events-none"></div>
+          <div className="absolute -top-32 -left-32 w-64 h-64 bg-emerald-500/20 dark:bg-emerald-600/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold mb-6 tracking-[0.15em] text-xs bg-emerald-50 dark:bg-emerald-950/50 px-4 py-1.5 rounded-full border border-emerald-200/50 dark:border-emerald-800/50 relative z-10">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span>ACCESS GRANTED</span>
           </div>
-          <div className="w-full bg-slate-50/50 p-5 rounded-2xl border border-slate-100 mb-5 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-emerald-400"></div>
-            <p className="text-slate-700 font-medium text-center leading-relaxed">"{unlockedContent.description}"</p>
+          
+          <div className="w-full bg-slate-50/50 dark:bg-black/50 p-6 rounded-2xl border border-slate-200/50 dark:border-white/5 mb-6 relative overflow-hidden backdrop-blur-sm z-10 group">
+            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-emerald-400 to-emerald-600"></div>
+            <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <p className="text-slate-800 dark:text-slate-200 font-mono text-sm text-center leading-relaxed relative z-10">
+              <span className="text-emerald-500 dark:text-emerald-400 mr-2">&gt;</span>
+              {unlockedContent.description}
+              <span className="animate-pulse ml-1">_</span>
+            </p>
           </div>
+          
           <a
             href={unlockedContent.content}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-4 text-center rounded-2xl bg-emerald-500 text-white font-bold hover:bg-emerald-600 hover:scale-[1.02] transition-all duration-300 shadow-xl shadow-emerald-200 mb-3"
+            className="relative flex items-center justify-center gap-2 w-full py-4 text-center rounded-2xl bg-emerald-500 dark:bg-emerald-500/20 text-white dark:text-emerald-400 font-bold hover:bg-emerald-600 dark:hover:bg-emerald-500/30 hover:scale-[1.02] transition-all duration-300 shadow-xl dark:shadow-none shadow-emerald-200/50 border border-transparent dark:border-emerald-500/30 mb-4 z-10"
           >
-            <span>Open Premium Content</span>
+            <span className="tracking-wide">Open Premium Content</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
           </a>
-          <a
-            href={getOpenSeaUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 text-center rounded-2xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-all duration-300 mb-2 border border-slate-200"
-          >
-            <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="w-5 h-5 opacity-80" />
-            <span>View NFT on OpenSea</span>
-          </a>
-          {externalURI && externalURI.length > 5 && (
-            <a href={externalURI} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-slate-700 underline mt-1 mb-2">
-              Visit Sponsor
+          
+          <div className="flex w-full gap-3 z-10">
+            <a
+              href={getOpenSeaUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 py-3 text-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-200 dark:hover:bg-white/10 transition-all duration-300 border border-slate-200/80 dark:border-white/10 text-sm"
+            >
+              <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="w-4 h-4 opacity-80 invert-0 dark:invert" />
+              <span>View NFT</span>
             </a>
-          )}
+            {externalURI && externalURI.length > 5 && (
+              <a href={externalURI} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3 text-center rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all duration-300 border border-blue-100 dark:border-blue-800/50 text-sm">
+                <span>Visit Sponsor</span>
+              </a>
+            )}
+          </div>
+          
           {/* @ts-ignore */}
-          <div className="mt-4 flex justify-center w-full"><w3m-button /></div>
+          <div className="mt-6 flex justify-center w-full relative z-10"><w3m-button /></div>
         </div>
       );
     }
@@ -341,23 +358,45 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     // Skenario A.3: Unlockable EXIST but not yet revealed
     if (hasUnlockableContent) {
       return (
-        <div className="litera-widget-container flex flex-col items-center p-8 bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-200/50 border border-white/50 my-8 text-center transition-all duration-500">
-          <div className="w-14 h-14 mb-4 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg">
-            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path></svg>
+        <div className="litera-widget-container relative flex flex-col items-center p-10 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(0,0,0,0.7)] border border-slate-200/50 dark:border-white/5 my-10 text-center transition-all duration-500 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 via-transparent to-purple-500/5 dark:from-indigo-500/10 dark:to-purple-500/10 pointer-events-none"></div>
+          
+          <div className="w-16 h-16 mb-5 bg-gradient-to-br from-slate-900 to-black dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center shadow-2xl border border-slate-700/50 relative z-10">
+            <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path></svg>
           </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-2 tracking-tight">{isCreator ? "Creator Access Granted" : "NFT Owned!"}</h3>
-          <p className="text-sm text-slate-500 mb-8 max-w-xs leading-relaxed">
-            {isCreator ? "You created this article. Reveal the hidden content now." : "You have collected this article. Reveal the hidden content now."}
+          
+          <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold mb-3 tracking-[0.15em] text-xs bg-indigo-50 dark:bg-indigo-950/50 px-4 py-1.5 rounded-full border border-indigo-100 dark:border-indigo-900/50 relative z-10">
+             <span>{isCreator ? "CREATOR VERIFIED" : "OWNERSHIP VERIFIED"}</span>
+          </div>
+
+          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight relative z-10">Premium Content Locked</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-8 max-w-sm leading-relaxed relative z-10">
+            {isCreator ? "You are the creator of this article. Reveal the hidden content securely." : "You have collected this article. Decrypt and reveal the hidden content securely on-chain."}
           </p>
+          
           <button
             onClick={handleReveal}
             disabled={isRevealingReq || isRevealingTx}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 shadow-xl shadow-indigo-200"
+            className="group relative w-full py-4 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 shadow-xl overflow-hidden z-10"
           >
-            {isRevealingTx ? "Decrypting..." : "Reveal Content"}
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <span className="relative z-10 flex items-center justify-center gap-2">
+              {isRevealingTx ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  Decrypting on-chain...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                  Decrypt & Reveal
+                </>
+              )}
+            </span>
           </button>
+          
           {/* @ts-ignore */}
-          <div className="mt-4 flex justify-center w-full"><w3m-button /></div>
+          <div className="mt-5 flex justify-center w-full relative z-10"><w3m-button /></div>
         </div>
       );
     }
@@ -408,37 +447,70 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   }
 
   return (
-    <div className="litera-widget-container flex flex-col items-center p-8 bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-200/50 border border-white/50 text-center my-8 transition-all duration-500 hover:shadow-slate-300/50">
-      <div className="flex items-center justify-between w-full mb-6">
+    <div className="litera-widget-container relative flex flex-col items-center p-10 bg-white/70 dark:bg-[#0a0a0a]/90 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(255,255,255,0.05)] border border-slate-200/50 dark:border-white/10 text-center my-10 transition-all duration-700 overflow-hidden group hover:dark:border-white/20">
+      
+      {/* Premium Web3 Glow Effects */}
+      <div className="absolute -top-32 -right-32 w-64 h-64 bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-500/20 transition-colors duration-700"></div>
+      <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-600/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-indigo-500/20 transition-colors duration-700"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent dark:from-white/5 dark:to-transparent opacity-50 pointer-events-none"></div>
+
+      <div className="flex items-start justify-between w-full mb-8 relative z-10">
         <div className="flex flex-col items-start text-left">
-          <h3 className="text-xl font-bold text-slate-900 tracking-tight">Litera Campaign</h3>
-          <p className="text-sm text-slate-500">Collect & earn rewards</p>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+            <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">Live Campaign</span>
+          </div>
+          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Litera Mint</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Collect & earn rewards</p>
         </div>
-        <div className="flex flex-col items-end text-right">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">MINTED</span>
-          <span className="text-sm font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full">{totalMinted} <span className="text-slate-400 font-normal">/ {maxMinted}</span></span>
+        <div className="flex flex-col items-end text-right bg-slate-50/80 dark:bg-white/5 px-4 py-2.5 rounded-2xl border border-slate-200/50 dark:border-white/10 backdrop-blur-sm">
+          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">MINTED</span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-lg font-extrabold text-slate-800 dark:text-white">{totalMinted}</span>
+            <span className="text-sm font-medium text-slate-400 dark:text-slate-500">/ {maxMinted}</span>
+          </div>
         </div>
       </div>
 
       <button
         onClick={handleBuy}
         disabled={isApprovingReq || isApprovingTx || isMintingReq || isMintingTx || isMintSuccess || (userBalance !== undefined && BigInt(userBalance as any) < BigInt(price))}
-        className="relative group w-full py-4 rounded-2xl bg-slate-900 text-white font-semibold overflow-hidden hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 shadow-xl shadow-slate-300"
+        className="relative group w-full p-[2px] rounded-2xl overflow-hidden disabled:opacity-50 transition-all duration-300 z-10 hover:scale-[1.02] disabled:hover:scale-100"
       >
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <span className="relative z-10 flex items-center justify-center gap-2">
-          {userBalance !== undefined && BigInt(userBalance as any) < BigInt(price) ? "Insufficient LITE Balance" :
-            isApprovingTx || isApprovingReq ? "Approving LITE..." :
-              isMintingTx || isMintingReq ? "Minting..." :
-                isMintSuccess ? "Success!" :
-                  `Mint NFT${price && price > BigInt(0) ? ` - ${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : ' - Free'}`}
-          {!(userBalance !== undefined && BigInt(userBalance as any) < BigInt(price)) && !isApprovingTx && !isApprovingReq && !isMintingTx && !isMintingReq && !isMintSuccess && (
-            <svg className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
-          )}
-        </span>
+        {/* Animated Gradient Border */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-70 group-hover:opacity-100 dark:opacity-100 transition-opacity duration-300"></div>
+        
+        {/* Button Inner */}
+        <div className="relative w-full h-full py-4 bg-slate-900 dark:bg-[#0a0a0a] rounded-[14px] flex items-center justify-center gap-3 transition-colors duration-300">
+          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          
+          <span className="relative z-10 flex items-center justify-center gap-2 text-white font-bold tracking-wide">
+            {userBalance !== undefined && BigInt(userBalance as any) < BigInt(price) ? (
+              <span className="text-red-400">Insufficient LITE Balance</span>
+            ) : isApprovingTx || isApprovingReq ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white/70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Approving LITE...
+              </>
+            ) : isMintingTx || isMintingReq ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white/70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Minting NFT...
+              </>
+            ) : isMintSuccess ? (
+               "Success!"
+            ) : (
+              <>
+                Mint NFT <span className="opacity-50">|</span> <span className="text-blue-300 dark:text-blue-400">{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
+                <svg className="w-4 h-4 ml-1 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </>
+            )}
+          </span>
+        </div>
       </button>
+
       {/* @ts-ignore */}
-      <div className="mt-6 flex justify-center w-full"><w3m-button /></div>
+      <div className="mt-6 flex justify-center w-full relative z-10"><w3m-button /></div>
     </div>
   );
 };
