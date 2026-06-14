@@ -423,7 +423,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     // Skenario A.3: Unlockable EXIST but not yet revealed
     if (hasUnlockableContent) {
       return (
-        <div className="litera-widget-container relative flex flex-col p-6 sm:p-8 bg-slate-50 dark:bg-slate-900 rounded-[2rem] shadow-sm border border-slate-200/60 dark:border-white/5 my-6 overflow-hidden text-left">
+        <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-slate-50 dark:bg-slate-900 rounded-[2rem] shadow-sm border border-slate-200/60 dark:border-white/5 my-6 overflow-hidden text-center">
           
           {/* Watermark Lock Icon */}
           <div className="absolute -bottom-12 -right-12 text-slate-200/80 dark:text-slate-800/80 pointer-events-none">
@@ -449,7 +449,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           <button
             onClick={handleReveal}
             disabled={isRevealingReq || isRevealingTx}
-            className="w-full sm:w-auto self-start py-3.5 px-6 rounded-2xl bg-blue-600 text-white font-bold transition-all duration-200 shadow-[0_4px_0_0_#1d4ed8,0_10px_20px_rgba(37,99,235,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#1d4ed8,0_15px_25px_rgba(37,99,235,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#1d4ed8,0_5px_10px_rgba(37,99,235,0.5)] disabled:opacity-50 disabled:transform-none disabled:shadow-none relative z-10 flex items-center justify-center gap-2 text-sm"
+            className="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-blue-600 text-white font-bold transition-all duration-200 shadow-[0_4px_0_0_#1d4ed8,0_10px_20px_rgba(37,99,235,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#1d4ed8,0_15px_25px_rgba(37,99,235,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#1d4ed8,0_5px_10px_rgba(37,99,235,0.5)] disabled:opacity-50 disabled:transform-none disabled:shadow-none relative z-10 flex items-center justify-center gap-2 text-sm"
           >
             {isRevealingTx ? (
               <>
