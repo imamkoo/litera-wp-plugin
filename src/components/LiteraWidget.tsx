@@ -12,7 +12,8 @@ import {
   unlockableABI,
   Erc1155Adress,
   erc1155ABI,
-  activeNetworkName
+  activeNetworkName,
+  activeChainId
 } from '../shared/contracts/ContractConfig';
 import { useSafeGas } from '../shared/hooks/useSafeGas';
 
@@ -76,7 +77,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     abi: erc1155ABI,
     functionName: 'balanceOf',
     args: [address as `0x${string}`, BigInt(tokenId)],
-    chainId: 80002,
+    chainId: activeChainId,
     query: { enabled: !!address && tokenId > 0 }
   });
   const ownsNFT = balanceData ? Number(balanceData) > 0 : false;
@@ -87,7 +88,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     abi: contractABI,
     functionName: 'articleInfo',
     args: [BigInt(tokenId)],
-    chainId: 80002,
+    chainId: activeChainId,
     query: { enabled: tokenId > 0 }
   });
   const articleArray = articleInfo as any[];
@@ -112,7 +113,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     functionName: 'getUnlockedContent',
     args: [BigInt(tokenId)],
     account: address as `0x${string}`, // Simulate call as user
-    chainId: 80002,
+    chainId: activeChainId,
     query: { enabled: !!address && hasAccess }
   });
 
@@ -122,7 +123,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     abi: erc20ABI,
     functionName: 'allowance',
     args: [address as `0x${string}`, contractAddress],
-    chainId: 80002,
+    chainId: activeChainId,
     query: { enabled: !!address && !hasAccess }
   });
 
@@ -132,8 +133,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     abi: erc20ABI,
     functionName: 'balanceOf',
     args: [address as `0x${string}`],
-    chainId: 80002,
-    query: { enabled: !!address && !hasAccess }
+    chainId: activeChainId,
+    query: { 
+      enabled: !!address && !hasAccess,
+      refetchInterval: 5000 
+    }
   });
 
   // 5. Unlockable Existence Check
@@ -142,7 +146,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     abi: unlockableABI,
     functionName: 'isContentUnlockable',
     args: [BigInt(tokenId)],
-    chainId: 80002,
+    chainId: activeChainId,
     query: { enabled: tokenId > 0 }
   });
   const hasUnlockableContent = Boolean(isContentUnlockableData);
