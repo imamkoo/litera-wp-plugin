@@ -2,15 +2,15 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import LiteraWidget from './components/LiteraWidget';
 import { useReadContract, useAccount } from 'wagmi';
-import { contractABI, contractAddress } from './shared/contracts/ContractConfig';
+import { contractABI, contractAddress, activeChainId, activeNetworkName } from './shared/contracts/ContractConfig';
 import { normalizeUrl } from './shared/utils/urlNormalizer';
 
 function App() {
   const { chainId, isConnected } = useAccount();
   const [permalink, setPermalink] = useState<string>('');
 
-  // Expected Chain ID (Amoy = 80002)
-  const EXPECTED_CHAIN_ID = 80002;
+  // Use dynamic chain ID from config instead of hardcoded Amoy
+  const EXPECTED_CHAIN_ID = activeChainId;
 
   useEffect(() => {
     // Ambil URL dari injeksi plugin WordPress
@@ -46,7 +46,7 @@ function App() {
     return (
       <div className="App flex flex-col items-center p-4 border border-red-200 bg-red-50 rounded-xl">
         <p className="text-red-600 font-bold mb-2">Wrong Network Detected</p>
-        <p className="text-sm text-red-500 mb-4">Please switch to Polygon Amoy Testnet to use Litera.</p>
+        <p className="text-sm text-red-500 mb-4">Please switch to {activeNetworkName} to use Litera.</p>
         {/* @ts-ignore */}
         <w3m-button />
       </div>
