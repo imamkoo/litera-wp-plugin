@@ -50,6 +50,8 @@ function litera_widget_shortcode() {
     return '';
 }
 add_shortcode('litera_widget', 'litera_widget_shortcode');
+add_shortcode('litera', 'litera_widget_shortcode'); // UX Improvement alias
+add_shortcode('litera_premium', 'litera_widget_shortcode'); // UX Improvement alias
 
 // Automatically append to content if shortcode is not used
 function my_react_plugin_add_button_after_post_content($content) {
