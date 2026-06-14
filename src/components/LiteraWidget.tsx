@@ -26,6 +26,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
   const [hasVisitedSponsor, setHasVisitedSponsor] = useState(false);
   const [sponsorUrl, setSponsorUrl] = useState<string | null>(null);
+  const [nftMedia, setNftMedia] = useState<{ url: string, type: 'image' | 'video' } | null>(null);
   const { open } = useWeb3Modal();
   const [isRevealing, setIsRevealing] = useState(false);
 
@@ -233,6 +234,14 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           } else {
             setSponsorUrl(null);
           }
+          
+          if (res.data?.animation_url) {
+            setNftMedia({ url: res.data.animation_url, type: 'video' });
+          } else if (res.data?.image) {
+            setNftMedia({ url: res.data.image, type: 'image' });
+          } else {
+            setNftMedia(null);
+          }
         } catch (e) {
           console.warn("Failed to fetch NFT metadata", e);
         }
@@ -341,6 +350,17 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
             <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
             <span>ACCESS GRANTED</span>
           </div>
+
+          {nftMedia && nftMedia.type === 'image' && (
+            <div className="w-full h-48 sm:h-64 mb-6 rounded-2xl overflow-hidden shadow-inner relative z-10 border border-slate-200/50 dark:border-white/5 bg-slate-100 dark:bg-slate-900">
+              <img src={nftMedia.url} alt="NFT Media" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+            </div>
+          )}
+          {nftMedia && nftMedia.type === 'video' && (
+            <div className="w-full h-48 sm:h-64 mb-6 rounded-2xl overflow-hidden shadow-inner relative z-10 border border-slate-200/50 dark:border-white/5 bg-slate-100 dark:bg-slate-900">
+              <video src={nftMedia.url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+            </div>
+          )}
           
           <div className="w-full bg-slate-50/50 dark:bg-black/50 p-6 rounded-2xl border border-slate-200/50 dark:border-white/5 mb-6 relative overflow-hidden backdrop-blur-sm z-10 group">
             <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-orange-400 to-orange-600"></div>
