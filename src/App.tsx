@@ -53,7 +53,7 @@ function App() {
           <p className="text-red-600 dark:text-red-400 font-bold mb-2 uppercase tracking-[0.15em] text-sm">Wrong Network Detected</p>
           <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 text-center max-w-xs leading-relaxed">Please switch to <span className="font-bold text-slate-800 dark:text-slate-200">{activeNetworkName}</span> to use the Litera widget.</p>
           {/* @ts-ignore */}
-          <w3m-button />
+          <w3m-button balance="hide" />
         </div>
       </div>
     );

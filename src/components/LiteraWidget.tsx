@@ -221,15 +221,19 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
 
   if (!isConnected) {
     return (
-      <div className="litera-widget-container relative flex flex-col items-center justify-center p-10 bg-white/60 dark:bg-slate-950/60 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(0,0,0,0.7)] border border-slate-200/50 dark:border-white/5 text-center my-10 transition-all duration-500 overflow-hidden group hover:dark:border-white/10">
-        <div className="absolute inset-0 bg-gradient-to-tr from-slate-200/20 via-transparent to-slate-200/20 dark:from-white/5 dark:to-transparent opacity-50"></div>
-        <div className="w-14 h-14 mb-5 bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-black rounded-2xl flex items-center justify-center shadow-xl border border-slate-700/50 relative z-10 group-hover:scale-105 transition-transform duration-500">
-          <svg className="w-6 h-6 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+      <div className="litera-widget-container relative flex flex-col items-center justify-center p-10 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(0,0,0,0.7)] border border-slate-200/50 dark:border-white/5 text-center my-10 transition-all duration-500 overflow-hidden group hover:dark:border-white/10">
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-slate-300/30 dark:bg-slate-700/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-slate-300/40 transition-colors duration-700"></div>
+        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-500/20 transition-colors duration-700"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-slate-200/20 via-transparent to-slate-200/20 dark:from-white/5 dark:to-transparent opacity-50 pointer-events-none"></div>
+
+        <div className="w-16 h-16 mb-5 bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-black rounded-2xl flex items-center justify-center shadow-2xl border border-slate-700/50 relative z-10 group-hover:scale-105 transition-transform duration-500">
+          <svg className="w-8 h-8 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
-        <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Exclusive Campaign</h3>
+        <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Exclusive Campaign</h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-xs leading-relaxed relative z-10">Connect your Web3 wallet to collect this article and unlock premium perks.</p>
+        
         {/* @ts-ignore */}
-        <div className="relative z-10"><w3m-button /></div>
+        <div className="relative z-10"><w3m-button balance="hide" /></div>
       </div>
     );
   }
@@ -332,7 +336,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           </div>
           
           {/* @ts-ignore */}
-          <div className="mt-6 flex justify-center w-full relative z-10"><w3m-button /></div>
+          <div className="mt-6 flex justify-center w-full relative z-10"><w3m-button balance="hide" /></div>
         </div>
       );
     }
@@ -396,52 +400,56 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           </button>
           
           {/* @ts-ignore */}
-          <div className="mt-5 flex justify-center w-full relative z-10"><w3m-button /></div>
+          <div className="mt-5 flex justify-center w-full relative z-10"><w3m-button balance="hide" /></div>
         </div>
       );
     }
 
     // Skenario B/C: No Unlockable Content! Pure Gamification / Sponsor Campaign
     return (
-      <div className="litera-widget-container flex flex-col items-center p-8 bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-200/50 border border-white/50 my-8 text-center transition-all duration-500">
-        <div className="w-16 h-16 mb-5 bg-gradient-to-tr from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-200">
+      <div className="litera-widget-container relative flex flex-col items-center p-10 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(16,185,129,0.15)] border border-emerald-100/50 dark:border-emerald-900/30 my-10 text-center transition-all duration-500 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent dark:from-emerald-500/10 pointer-events-none"></div>
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-emerald-500/10 dark:bg-emerald-600/10 rounded-full blur-[80px] pointer-events-none"></div>
+        
+        <div className="w-16 h-16 mb-5 bg-gradient-to-tr from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 relative z-10">
           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
         </div>
-        <div className="flex flex-col items-center justify-center gap-1 mb-6 text-slate-800 font-semibold text-lg tracking-tight">
+        <div className="flex flex-col items-center justify-center gap-1 mb-6 text-slate-900 dark:text-white font-extrabold text-2xl tracking-tight relative z-10">
           <p>Campaign Completed</p>
-          <p className="text-emerald-600">Reward Verified</p>
+          <p className="text-emerald-500 dark:text-emerald-400 text-lg">Reward Verified</p>
         </div>
-        <p className="text-sm text-slate-500 mb-8 max-w-xs leading-relaxed">Terima kasih telah berpartisipasi!</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-xs leading-relaxed relative z-10">Terima kasih telah berpartisipasi!</p>
         <a
           href={getOpenSeaUrl()}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-3 text-center rounded-2xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-all duration-300 mb-2 border border-slate-200"
+          className="relative z-10 flex items-center justify-center gap-2 w-full py-4 text-center rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-white/10 transition-all duration-300 mb-2 border border-slate-200/50 dark:border-white/10 shadow-sm"
         >
-          <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="w-5 h-5 opacity-80" />
-          <span>View NFT on OpenSea</span>
+          <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="w-5 h-5 opacity-80 invert-0 dark:invert" />
+          <span>View NFT</span>
         </a>
         {externalURI && externalURI.length > 5 && (
-          <a href={externalURI} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-slate-700 underline mt-1 mb-2">
+          <a href={externalURI} target="_blank" rel="noopener noreferrer" className="relative z-10 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 underline mt-3 mb-2 tracking-wide">
             Visit Sponsor
           </a>
         )}
         {/* @ts-ignore */}
-        <div className="mt-4 flex justify-center w-full"><w3m-button /></div>
+        <div className="mt-5 flex justify-center w-full relative z-10"><w3m-button balance="hide" /></div>
       </div>
     );
   }
 
   if (isSoldOut) {
     return (
-      <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/50 backdrop-blur-md rounded-3xl border border-slate-200/50 text-center my-8">
-        <div className="w-12 h-12 mb-4 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+      <div className="litera-widget-container relative flex flex-col items-center justify-center p-10 bg-white/50 dark:bg-[#0a0a0a]/50 backdrop-blur-2xl rounded-3xl border border-slate-200/50 dark:border-white/5 text-center my-10 overflow-hidden">
+        <div className="absolute inset-0 bg-slate-900/5 dark:bg-black/20 pointer-events-none"></div>
+        <div className="w-16 h-16 mb-5 bg-slate-200 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-500 dark:text-slate-400 shadow-inner relative z-10">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
         </div>
-        <h3 className="text-lg font-bold text-slate-700 mb-1 tracking-tight">Campaign Sold Out</h3>
-        <p className="text-sm text-slate-500">{totalMinted} / {maxMinted} Minted</p>
+        <h3 className="text-2xl font-extrabold text-slate-700 dark:text-slate-300 mb-2 tracking-tight relative z-10">Campaign Sold Out</h3>
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-500 relative z-10 bg-slate-100 dark:bg-white/5 px-4 py-1.5 rounded-full">{totalMinted} / {maxMinted} Minted</p>
         {/* @ts-ignore */}
-        <div className="mt-4 flex justify-center w-full"><w3m-button /></div>
+        <div className="mt-6 flex justify-center w-full relative z-10"><w3m-button balance="hide" /></div>
       </div>
     );
   }
@@ -510,7 +518,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
       </button>
 
       {/* @ts-ignore */}
-      <div className="mt-6 flex justify-center w-full relative z-10"><w3m-button /></div>
+      <div className="mt-6 flex justify-center w-full relative z-10"><w3m-button balance="hide" /></div>
     </div>
   );
 };
