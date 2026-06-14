@@ -292,49 +292,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   }
 
   if (hasAccess) {
-    // Skenario: Require Visit Sponsor first if externalURI exists
-    const sponsorRequired = externalURI && externalURI.length > 5 && !hasVisitedSponsor;
-
-    if (sponsorRequired) {
-      return (
-        <div className="litera-widget-container relative flex flex-col items-center p-10 bg-white/60 dark:bg-slate-950/60 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(59,130,246,0.15)] border border-blue-100/50 dark:border-blue-900/30 my-10 text-center transition-all duration-500 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent dark:from-blue-500/10 pointer-events-none"></div>
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/20 dark:bg-blue-600/20 rounded-full blur-[60px] pointer-events-none"></div>
-          
-          <div className="w-16 h-16 mb-6 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 relative z-10 animate-[bounce_3s_infinite]">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-          </div>
-          <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold mb-3 tracking-[0.15em] text-xs bg-indigo-50 dark:bg-indigo-950/50 px-4 py-1.5 rounded-full border border-indigo-100 dark:border-indigo-900/50 relative z-10">
-            <span>ONE MORE STEP</span>
-          </div>
-          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight relative z-10">Complete Task to Unlock</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mb-8 max-w-sm leading-relaxed relative z-10">
-            {hasUnlockableContent
-              ? (isCreator ? "Welcome back, Creator! To access the hidden premium content, please view your NFT." : "You own this NFT! To access the hidden premium content, please view your NFT.")
-              : (isCreator ? "Welcome back, Creator! To complete this campaign, please view your NFT." : "You own this NFT! To complete this campaign and verify your reward, please view your NFT.")}
-          </p>
-          <a
-            href={getOpenSeaUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => {
-              setTimeout(() => setHasVisitedSponsor(true), 1000);
-            }}
-            className="group relative flex items-center justify-center gap-3 w-full py-4 text-center rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:scale-[1.02] transition-all duration-300 shadow-xl overflow-hidden z-10"
-          >
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <img src="https://opensea.io/static/images/logos/opensea-logo.svg" alt="OpenSea" className="relative z-10 w-5 h-5 invert dark:invert-0" />
-            <span className="relative z-10">View Your NFT</span>
-            <svg className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-          </a>
-          {externalURI && externalURI.length > 5 && (
-            <a href={externalURI} target="_blank" rel="noopener noreferrer" className="relative z-10 text-xs text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 underline mt-5 tracking-wide" onClick={() => { setTimeout(() => setHasVisitedSponsor(true), 1000); }}>
-              Visit Sponsor
-            </a>
-          )}
-        </div>
-      );
-    }
+    // Skenario sponsor dihilangkan karena `externalURI` di sini adalah articleLink, bukan external_url sebenarnya dari IPFS JSON.
+    // Menghapus interstitial ini memberikan UX yang jauh lebih baik: pengguna langsung masuk ke Reveal / Unlock state.
 
     // Helper untuk memvalidasi apakah cidUnlockable benar-benar sebuah CID yang valid
     const isValidCid = cidUnlockable && typeof cidUnlockable === 'string' && cidUnlockable.length > 10;
@@ -414,44 +373,49 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     // Skenario A.3: Unlockable EXIST but not yet revealed
     if (hasUnlockableContent) {
       return (
-        <div className="litera-widget-container relative flex flex-col items-center p-10 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(0,0,0,0.7)] border border-slate-200/50 dark:border-white/5 my-10 text-center transition-all duration-500 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 via-transparent to-purple-500/5 dark:from-indigo-500/10 dark:to-purple-500/10 pointer-events-none"></div>
+        <div className="litera-widget-container relative flex flex-col p-10 bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-200/60 dark:border-white/5 my-10 overflow-hidden text-left">
           
-          <div className="w-16 h-16 mb-5 bg-gradient-to-br from-slate-900 to-black dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center shadow-2xl border border-slate-700/50 relative z-10">
-            <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path></svg>
-          </div>
-          
-          <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold mb-3 tracking-[0.15em] text-xs bg-indigo-50 dark:bg-indigo-950/50 px-4 py-1.5 rounded-full border border-indigo-100 dark:border-indigo-900/50 relative z-10">
-             <span>{isCreator ? "CREATOR VERIFIED" : "OWNERSHIP VERIFIED"}</span>
+          {/* Watermark Lock Icon */}
+          <div className="absolute -bottom-12 -right-12 text-slate-200/80 dark:text-slate-800/80 pointer-events-none">
+            <svg className="w-72 h-72" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
           </div>
 
-          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight relative z-10">Premium Content Locked</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mb-8 max-w-sm leading-relaxed relative z-10">
-            {isCreator ? "You are the creator of this article. Reveal the hidden content securely." : "You have collected this article. Decrypt and reveal the hidden content securely on-chain."}
-          </p>
+          <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20 mb-6 relative z-10">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+          </div>
+
+          <h3 className="text-[28px] font-black text-slate-900 dark:text-white mb-3 relative z-10 tracking-tight">Unlock Exclusive Content</h3>
           
+          <p className="text-[15px] text-slate-500 dark:text-slate-400 mb-8 max-w-sm leading-relaxed relative z-10">
+            {isCreator 
+              ? "You are the creator of this asset. This asset contains exclusive encrypted data. Click the button below to decrypt and reveal the hidden content." 
+              : "This asset contains exclusive encrypted data. You own this NFT. Click the button below to decrypt and reveal the hidden content."}
+          </p>
+
           <button
             onClick={handleReveal}
             disabled={isRevealingReq || isRevealingTx}
-            className="group relative w-full py-4 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300 shadow-xl overflow-hidden z-10"
+            className="w-full sm:w-auto self-start py-4 px-8 rounded-2xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-extrabold hover:scale-[1.02] transition-all duration-300 shadow-sm border border-slate-200 dark:border-slate-700 relative z-10 flex items-center justify-center gap-2"
           >
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <span className="relative z-10 flex items-center justify-center gap-2">
-              {isRevealingTx ? (
-                <>
-                  <svg className="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                  Decrypting on-chain...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
-                  Decrypt & Reveal
-                </>
-              )}
-            </span>
+            {isRevealingTx ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Decrypting...
+              </>
+            ) : (
+              "Reveal Hidden Content"
+            )}
           </button>
-          
-          {renderCustomWeb3Button()}
+
+          {/* Wrapper for Web3 Button with margin top so it doesn't collide */}
+          <div className="mt-8 relative z-10 self-start hidden">
+             {/* Web3 button is usually not needed here because user is already connected and has access, 
+                 but if needed we can render it. The image doesn't show it, so let's hide it to match design. */}
+          </div>
         </div>
       );
     }
