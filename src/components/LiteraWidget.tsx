@@ -74,8 +74,23 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
 
   // --- Contracts Read ---
 
+  // --- Contracts Write ---
+  const { getSafeGasParams } = useSafeGas();
+
+  // Approve
+  const { writeContract: approveWrite, data: approveHash, isPending: isApprovingReq } = useWriteContract();
+  const { isLoading: isApprovingTx, isSuccess: isApproveSuccess } = useWaitForTransactionReceipt({ hash: approveHash });
+
+  // Mint
+  const { writeContract: mintWrite, data: mintHash, isPending: isMintingReq } = useWriteContract();
+  const { isLoading: isMintingTx, isSuccess: isMintSuccess } = useWaitForTransactionReceipt({ hash: mintHash });
+
+  // Reveal (Decrypt via smart contract)
+  const { writeContract: revealWrite, data: revealHash, isPending: isRevealingReq } = useWriteContract();
+  const { isLoading: isRevealingTx, isSuccess: isRevealSuccess } = useWaitForTransactionReceipt({ hash: revealHash });
+
   // 1. Ownership Check (balanceOf)
-  const { data: balanceData } = useReadContract({
+  const { data: balanceData, refetch: refetchBalance } = useReadContract({
     address: Erc1155Adress,
     abi: erc1155ABI,
     functionName: 'balanceOf',
@@ -83,10 +98,12 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     chainId: activeChainId,
     query: { enabled: !!address && tokenId > 0 }
   });
-  const ownsNFT = balanceData ? Number(balanceData) > 0 : false;
+  
+  // Optimistic UI: If the mint transaction just succeeded, assume ownership immediately without waiting for RPC poll
+  const ownsNFT = (balanceData ? Number(balanceData) > 0 : false) || isMintSuccess;
 
   // 2. Article Info Check (price, maxMint, totalMint)
-  const { data: articleInfo } = useReadContract({
+  const { data: articleInfo, refetch: refetchArticleInfo } = useReadContract({
     address: contractAddress,
     abi: contractABI,
     functionName: 'articleInfo',
@@ -154,21 +171,6 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   });
   const hasUnlockableContent = Boolean(isContentUnlockableData);
 
-  // --- Contracts Write ---
-  const { getSafeGasParams } = useSafeGas();
-
-  // Approve
-  const { writeContract: approveWrite, data: approveHash, isPending: isApprovingReq } = useWriteContract();
-  const { isLoading: isApprovingTx, isSuccess: isApproveSuccess } = useWaitForTransactionReceipt({ hash: approveHash });
-
-  // Mint
-  const { writeContract: mintWrite, data: mintHash, isPending: isMintingReq } = useWriteContract();
-  const { isLoading: isMintingTx, isSuccess: isMintSuccess } = useWaitForTransactionReceipt({ hash: mintHash });
-
-  // Reveal (Decrypt via smart contract)
-  const { writeContract: revealWrite, data: revealHash, isPending: isRevealingReq } = useWriteContract();
-  const { isLoading: isRevealingTx, isSuccess: isRevealSuccess } = useWaitForTransactionReceipt({ hash: revealHash });
-
   // --- Effects ---
 
   // Auto-mint after approve
@@ -177,6 +179,17 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
       handleMintAction();
     }
   }, [isApproveSuccess]);
+
+  // Fast RPC Sync: Trigger refetch immediately after successful mint
+  useEffect(() => {
+    if (isMintSuccess) {
+      // Small delay to allow the RPC node to index the new block
+      setTimeout(() => {
+        refetchBalance();
+        refetchArticleInfo();
+      }, 2000);
+    }
+  }, [isMintSuccess]);
 
   // Fetch IPFS content if CID is present
   useEffect(() => {
