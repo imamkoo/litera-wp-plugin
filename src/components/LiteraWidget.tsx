@@ -42,7 +42,10 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           {isConnected ? (
             <>
               <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 dark:bg-slate-100 rounded-xl shadow-inner">
-                <img src="https://literaa-v2.vercel.app/logo192.png" alt="LITE" className="w-5 h-5 object-contain" />
+                <svg viewBox="0 0 200 200" className="w-5 h-5 drop-shadow-sm">
+                  <circle cx="100" cy="100" r="100" fill="#F04E37" />
+                  <text x="100" y="125" fill="#FFFFFF" fontSize="75" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="bold" textAnchor="middle" letterSpacing="-2">Lite</text>
+                </svg>
                 <span className="text-sm font-extrabold text-blue-400 dark:text-blue-600">
                   {userBalance !== undefined ? parseFloat(formatUnits(userBalance as any, 18)).toLocaleString('en-US', { maximumFractionDigits: 2 }) : "0"} LITE
                 </span>
