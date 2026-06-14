@@ -1,19 +1,16 @@
 import { localConfig } from './networks/config.local';
-import { amoyConfig } from './networks/config.amoy';
 import { mainnetConfig } from './networks/config.mainnet';
 
 // ----------------------------------------------------
 // ENVIRONMENT ROUTER
 // ----------------------------------------------------
-const envNetwork = process.env.REACT_APP_NETWORK || 'local';
+const envNetwork = process.env.REACT_APP_NETWORK || 'mainnet';
 
 let activeConfig;
-if (envNetwork === 'mainnet') {
-  activeConfig = mainnetConfig;
-} else if (envNetwork === 'amoy') {
-  activeConfig = amoyConfig;
-} else {
+if (envNetwork === 'local') {
   activeConfig = localConfig;
+} else {
+  activeConfig = mainnetConfig;
 }
 
 // ----------------------------------------------------

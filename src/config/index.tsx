@@ -1,5 +1,5 @@
 import { defaultWagmiConfig } from '@web3modal/wagmi/react/config'
-import { polygon, polygonMumbai, polygonAmoy, polygonZkEvm } from 'wagmi/chains'
+import { polygon } from 'wagmi/chains'
 
 export const projectId = "3b80ae67f7bf7baa0d65ddfdebe61662"
 
@@ -14,7 +14,7 @@ export const metadata = {
     icons: ['https://avatars.githubusercontent.com/u/179229932']
 }
 
-export const chains = [polygonAmoy, polygon, polygonMumbai, polygonZkEvm] as const
+export const chains = [polygon] as const
 
 export const config = defaultWagmiConfig({
   chains,
