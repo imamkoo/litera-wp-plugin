@@ -3,10 +3,12 @@ import './App.css';
 import LiteraWidget from './components/LiteraWidget';
 import { useReadContract, useAccount } from 'wagmi';
 import { contractABI, contractAddress, activeChainId, activeNetworkName } from './shared/contracts/ContractConfig';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { normalizeUrl } from './shared/utils/urlNormalizer';
 
 function App() {
-  const { chainId, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
+  const { open } = useWeb3Modal();
   const [permalink, setPermalink] = useState<string>('');
 
   // Use dynamic chain ID from config instead of hardcoded Amoy
@@ -52,8 +54,16 @@ function App() {
           </div>
           <p className="text-red-600 dark:text-red-400 font-bold mb-2 uppercase tracking-[0.15em] text-sm">Wrong Network Detected</p>
           <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 text-center max-w-xs leading-relaxed">Please switch to <span className="font-bold text-slate-800 dark:text-slate-200">{activeNetworkName}</span> to use the Litera widget.</p>
-          {/* @ts-ignore */}
-          <w3m-button balance="hide" />
+          <button
+            onClick={() => open({ view: 'Networks' })}
+            className="group relative flex items-center justify-center py-3 px-6 rounded-2xl bg-red-600 dark:bg-red-500/20 text-white dark:text-red-400 font-bold hover:scale-[1.02] transition-all duration-300 shadow-xl overflow-hidden mt-2 z-10 border border-transparent dark:border-red-500/30"
+          >
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-red-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <span className="relative z-10 flex items-center gap-2">
+              <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+              Switch Network
+            </span>
+          </button>
         </div>
       </div>
     );

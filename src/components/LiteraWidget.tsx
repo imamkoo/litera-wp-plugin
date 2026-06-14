@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { formatUnits } from 'viem';
+import { parseUnits, formatUnits } from 'viem';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
 import axios from 'axios';
 import {
   contractAddress,
@@ -23,7 +24,40 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   const { address, isConnected } = useAccount();
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
   const [hasVisitedSponsor, setHasVisitedSponsor] = useState(false);
+  const { open } = useWeb3Modal();
   const [isRevealing, setIsRevealing] = useState(false);
+
+  // ============================
+  // CUSTOM PREMIUM WEB3 BUTTON
+  // ============================
+  const renderCustomWeb3Button = () => {
+    return (
+      <button
+        onClick={() => open()}
+        className="group relative flex items-center justify-center py-3 px-6 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:scale-[1.02] transition-all duration-300 shadow-xl overflow-hidden mt-6 z-10 border border-slate-700 dark:border-white/20"
+      >
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <span className="relative z-10 flex items-center gap-3">
+          {isConnected ? (
+            <>
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 dark:bg-slate-100 rounded-xl shadow-inner">
+                <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500"></div>
+                <span className="text-sm font-extrabold text-blue-400 dark:text-blue-600">
+                  {userBalance !== undefined ? parseFloat(formatUnits(userBalance as any, 18)).toLocaleString('en-US', { maximumFractionDigits: 2 }) : "0"} LITE
+                </span>
+              </div>
+              <span className="text-sm tracking-wide opacity-90">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+              Connect Wallet
+            </>
+          )}
+        </span>
+      </button>
+    );
+  };
 
   const getOpenSeaUrl = () => {
     const baseUrl = activeNetworkName === 'MAINNET' ? 'https://opensea.io/assets/matic' : 'https://testnets.opensea.io/assets/amoy';
@@ -232,8 +266,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
         <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Exclusive Campaign</h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-xs leading-relaxed relative z-10">Connect your Web3 wallet to collect this article and unlock premium perks.</p>
         
-        {/* @ts-ignore */}
-        <div className="relative z-10"><w3m-button balance="hide" /></div>
+        {renderCustomWeb3Button()}
       </div>
     );
   }
@@ -335,8 +368,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
             )}
           </div>
           
-          {/* @ts-ignore */}
-          <div className="mt-6 flex justify-center w-full relative z-10"><w3m-button balance="hide" /></div>
+          {renderCustomWeb3Button()}
         </div>
       );
     }
@@ -399,8 +431,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
             </span>
           </button>
           
-          {/* @ts-ignore */}
-          <div className="mt-5 flex justify-center w-full relative z-10"><w3m-button balance="hide" /></div>
+          {renderCustomWeb3Button()}
         </div>
       );
     }
@@ -433,8 +464,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
             Visit Sponsor
           </a>
         )}
-        {/* @ts-ignore */}
-        <div className="mt-5 flex justify-center w-full relative z-10"><w3m-button balance="hide" /></div>
+        {renderCustomWeb3Button()}
       </div>
     );
   }
@@ -448,8 +478,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
         </div>
         <h3 className="text-2xl font-extrabold text-slate-700 dark:text-slate-300 mb-2 tracking-tight relative z-10">Campaign Sold Out</h3>
         <p className="text-sm font-medium text-slate-500 dark:text-slate-500 relative z-10 bg-slate-100 dark:bg-white/5 px-4 py-1.5 rounded-full">{totalMinted} / {maxMinted} Minted</p>
-        {/* @ts-ignore */}
-        <div className="mt-6 flex justify-center w-full relative z-10"><w3m-button balance="hide" /></div>
+        {renderCustomWeb3Button()}
       </div>
     );
   }
@@ -517,8 +546,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
         </div>
       </button>
 
-      {/* @ts-ignore */}
-      <div className="mt-6 flex justify-center w-full relative z-10"><w3m-button balance="hide" /></div>
+      {renderCustomWeb3Button()}
     </div>
   );
 };
