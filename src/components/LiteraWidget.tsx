@@ -324,7 +324,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
         <div className="w-14 h-14 mb-4 bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-black rounded-2xl flex items-center justify-center shadow-2xl border border-slate-700/50 relative z-10 group-hover:scale-105 transition-transform duration-500">
           <svg className="w-7 h-7 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
-        <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Exclusive Campaign</h3>
+        <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Exclusive Collectible</h3>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs leading-relaxed relative z-10">Connect your Web3 wallet to collect this article and unlock premium perks.</p>
         
         {renderCustomWeb3Button()}
@@ -523,7 +523,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
 
         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-bold mb-3 tracking-[0.15em] text-[9px] sm:text-[10px] bg-slate-100 dark:bg-slate-800/50 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 relative z-10">
           <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-          <span>CAMPAIGN ENDED</span>
+          <span>MINTING ENDED</span>
         </div>
 
         <h3 className="text-2xl sm:text-[28px] font-black text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Sold Out</h3>
@@ -557,7 +557,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
       <div className="flex flex-col items-center w-full mb-6 relative z-10">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-          <span className="text-[9px] sm:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">Live Campaign</span>
+          <span className="text-[9px] sm:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">Digital Collectible</span>
         </div>
         <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Litera Mint</h3>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Collect & earn rewards</p>
@@ -566,16 +566,10 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
       <button
         onClick={handleBuy}
         disabled={isApprovingReq || isApprovingTx || isMintingReq || isMintingTx || isMintSuccess || (userBalance !== undefined && BigInt(userBalance as any) < BigInt(price))}
-        className={`w-full py-3.5 rounded-2xl text-white font-black transition-all duration-200 relative z-10 flex items-center justify-center gap-3 text-sm ${
-          userBalance !== undefined && BigInt(userBalance as any) < BigInt(price)
-            ? 'bg-slate-800/80 text-rose-400 shadow-inner border border-rose-900/30 backdrop-blur-sm cursor-not-allowed'
-            : 'bg-blue-600 shadow-[0_4px_0_0_#1d4ed8,0_10px_20px_rgba(37,99,235,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#1d4ed8,0_15px_25px_rgba(37,99,235,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#1d4ed8,0_5px_10px_rgba(37,99,235,0.5)] disabled:opacity-50 disabled:transform-none disabled:shadow-none'
-        }`}
+        className="w-full py-3.5 rounded-2xl text-white font-black transition-all duration-200 relative z-10 flex items-center justify-center gap-3 text-sm bg-blue-600 shadow-[0_4px_0_0_#1d4ed8,0_10px_20px_rgba(37,99,235,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#1d4ed8,0_15px_25px_rgba(37,99,235,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#1d4ed8,0_5px_10px_rgba(37,99,235,0.5)] disabled:opacity-50 disabled:transform-none disabled:shadow-none disabled:cursor-not-allowed"
       >
         <span className="relative z-10 flex items-center justify-center gap-2 font-bold tracking-wide">
-          {userBalance !== undefined && BigInt(userBalance as any) < BigInt(price) ? (
-            <span className="text-rose-400">Insufficient LITE Balance</span>
-          ) : isApprovingTx || isApprovingReq ? (
+          {isApprovingTx || isApprovingReq ? (
             <>
               <svg className="animate-spin h-5 w-5 text-white/70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
               Approving LITE...
@@ -595,6 +589,13 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           )}
         </span>
       </button>
+
+      {userBalance !== undefined && BigInt(userBalance as any) < BigInt(price) && (
+        <p className="text-xs text-rose-400 mt-3 font-semibold tracking-wide relative z-10 flex items-center justify-center gap-1.5 opacity-90">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          Insufficient LITE Balance
+        </p>
+      )}
 
       {renderCustomWeb3Button()}
     </div>
