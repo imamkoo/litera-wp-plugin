@@ -391,7 +391,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
             </a>
             {sponsorUrl && sponsorUrl.length > 5 && (
               <a href={sponsorUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3 text-center rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all duration-300 border border-blue-100 dark:border-blue-800/50 text-sm">
-                <span>Visit Sponsor</span>
+                <span>Learn More</span>
               </a>
             )}
           </div>
@@ -493,7 +493,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
         </a>
         {externalURI && externalURI.length > 5 && (
           <a href={externalURI} target="_blank" rel="noopener noreferrer" className="relative z-10 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 underline mt-3 mb-2 tracking-wide">
-            Visit Sponsor
+            Learn More
           </a>
         )}
         {renderCustomWeb3Button()}
