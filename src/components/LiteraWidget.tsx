@@ -92,7 +92,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   const { isLoading: isRevealingTx, isSuccess: isRevealSuccess } = useWaitForTransactionReceipt({ hash: revealHash });
 
   // 1. Ownership Check (balanceOf)
-  const { data: balanceData, refetch: refetchBalance } = useReadContract({
+  const { data: balanceData, refetch: refetchBalance, isLoading: isBalanceLoading } = useReadContract({
     address: Erc1155Adress,
     abi: erc1155ABI,
     functionName: 'balanceOf',
@@ -105,7 +105,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   const ownsNFT = (balanceData ? Number(balanceData) > 0 : false) || isMintSuccess;
 
   // 2. Article Info Check (price, maxMint, totalMint)
-  const { data: articleInfo, refetch: refetchArticleInfo } = useReadContract({
+  const { data: articleInfo, refetch: refetchArticleInfo, isLoading: isArticleLoading } = useReadContract({
     address: contractAddress,
     abi: contractABI,
     functionName: 'articleInfo',
@@ -129,7 +129,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   const hasAccess = ownsNFT || isCreator;
 
   // 3. Unlockable Check
-  const { data: cidUnlockable } = useReadContract({
+  const { data: cidUnlockable, isLoading: isUnlockableLoading } = useReadContract({
     address: UnlockableAddress,
     abi: unlockableABI,
     functionName: 'getUnlockedContent',
@@ -328,6 +328,25 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs leading-relaxed relative z-10">Connect your Web3 wallet to collect this article and unlock premium perks.</p>
         
         {renderCustomWeb3Button()}
+      </div>
+    );
+  }
+
+  const isDataLoading = isBalanceLoading || isArticleLoading || (hasAccess && isUnlockableLoading);
+
+  if (isConnected && isDataLoading) {
+    return (
+      <div className="litera-widget-container flex flex-col items-center p-6 sm:p-8 bg-white/80 dark:bg-[#0a0a0a]/90 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-200/50 dark:shadow-[0_0_60px_-15px_rgba(255,255,255,0.05)] border border-white/50 dark:border-white/10 my-6 text-center transition-all duration-500">
+        <div className="w-14 h-14 mb-4 bg-gradient-to-tr from-blue-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-blue-900/50">
+          <svg className="w-7 h-7 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        </div>
+        <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold mb-3 tracking-wide text-xs bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full border border-blue-100 dark:border-blue-800/50">
+          <span>VERIFYING ACCESS</span>
+        </div>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs leading-relaxed">Checking your wallet for Litera Access License...</p>
+        <div className="mt-2 flex justify-center w-full">
+          {renderCustomWeb3Button()}
+        </div>
       </div>
     );
   }
