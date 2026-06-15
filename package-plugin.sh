@@ -40,13 +40,13 @@ cp -r includes/ "${TEMP_DIR}/includes/"
 
 # Step 4: Create .zip
 echo ""
-echo "[4/4] Creating ${PLUGIN_SLUG}-v${VERSION}.zip..."
+echo "[4/4] Creating ${PLUGIN_SLUG}.zip..."
 cd /tmp
-rm -f "${PLUGIN_SLUG}-v${VERSION}.zip"
-zip -r "${PLUGIN_SLUG}-v${VERSION}.zip" "${PLUGIN_SLUG}/" -x "*.DS_Store"
+rm -f "${PLUGIN_SLUG}.zip"
+zip -r "${PLUGIN_SLUG}.zip" "${PLUGIN_SLUG}/" -x "*.DS_Store"
 
 # Move zip back to project root
-mv "${PLUGIN_SLUG}-v${VERSION}.zip" "$OLDPWD/"
+mv "${PLUGIN_SLUG}.zip" "$OLDPWD/"
 
 # Cleanup
 rm -rf "${TEMP_DIR}"
@@ -56,8 +56,8 @@ cd "$OLDPWD"
 echo ""
 echo "========================================"
 echo "  ✅ Package created successfully!"
-echo "  📦 ${PLUGIN_SLUG}-v${VERSION}.zip"
-echo "  📏 Size: $(du -h ${PLUGIN_SLUG}-v${VERSION}.zip | cut -f1)"
+echo "  📦 ${PLUGIN_SLUG}.zip"
+echo "  📏 Size: $(du -h ${PLUGIN_SLUG}.zip | cut -f1)"
 echo "========================================"
 echo ""
 echo "Next steps:"
