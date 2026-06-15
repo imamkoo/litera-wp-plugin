@@ -81,7 +81,6 @@ function App() {
                  <div className="h-6 w-6 bg-blue-500 rounded-full animate-ping"></div>
                </div>
             </div>
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-[0.2em] uppercase">Syncing Blockchain...</p>
          </div>
       </div>
     );
