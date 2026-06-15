@@ -40,5 +40,5 @@ config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({
 }));
 
 // 4. Output harus konsisten namanya di root directory agar sesuai dengan litera.php
-config.output.filename = '../bundle.js';
-config.output.chunkFilename = '../[name].chunk.js';
+config.output.filename = 'bundle.js';
+config.output.chunkFilename = '[name].chunk.js';

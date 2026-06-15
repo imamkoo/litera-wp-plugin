@@ -8,7 +8,7 @@ echo "🚀 Building Litera Plugin V2..."
 # Tambahkan variable agar CSS masuk ke JS
 export INLINE_RUNTIME_CHUNK=true
 export GENERATE_SOURCEMAP=false
-export PUBLIC_URL=https://cdn.literaa.xyz
+export PUBLIC_URL=./
 
 yarn build
 
