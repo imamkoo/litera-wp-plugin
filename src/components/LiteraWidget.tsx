@@ -493,7 +493,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           <p>Campaign Completed</p>
           <p className="text-emerald-500 dark:text-emerald-400 text-sm sm:text-lg">Reward Verified</p>
         </div>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs leading-relaxed relative z-10">Terima kasih telah berpartisipasi!</p>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs leading-relaxed relative z-10">Thank you for participating!</p>
         
         <a
           href={getOpenSeaUrl()}
@@ -504,8 +504,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
           <span>View NFT</span>
         </a>
         
-        {externalURI && externalURI.length > 5 && (
-          <a href={externalURI} target="_blank" rel="noopener noreferrer" className="relative z-10 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 underline mt-3 mb-2 tracking-wide">
+        {sponsorUrl && sponsorUrl.length > 5 && (
+          <a href={sponsorUrl} target="_blank" rel="noopener noreferrer" className="relative z-10 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 underline mt-3 mb-2 tracking-wide">
             Learn More
           </a>
         )}
