@@ -471,32 +471,48 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
 
     // Skenario B/C: No Unlockable Content! Pure Gamification / Sponsor Campaign
     return (
-      <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(16,185,129,0.15)] border border-emerald-100/50 dark:border-emerald-900/30 my-6 text-center transition-all duration-500 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent dark:from-emerald-500/10 pointer-events-none"></div>
-        <div className="absolute -top-32 -right-32 w-64 h-64 bg-emerald-500/10 dark:bg-emerald-600/10 rounded-full blur-[80px] pointer-events-none"></div>
+      <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-[#0a0a0a]/90 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(16,185,129,0.15)] border border-emerald-100/50 dark:border-emerald-900/30 my-6 text-center transition-all duration-700 overflow-hidden group hover:dark:border-white/20">
         
-        <div className="w-14 h-14 mb-4 bg-gradient-to-tr from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 relative z-10">
+        {/* Premium Web3 Glow Effects */}
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-emerald-500/10 dark:bg-emerald-600/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-emerald-500/20 transition-colors duration-700"></div>
+        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-slate-500/10 dark:bg-slate-600/10 rounded-full blur-[80px] pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent dark:from-emerald-500/5 dark:to-transparent opacity-50 pointer-events-none"></div>
+
+        {/* Watermark Icon */}
+        <div className="absolute -bottom-16 -right-16 text-emerald-200/30 dark:text-emerald-800/20 pointer-events-none transition-transform duration-1000 group-hover:scale-105 group-hover:-rotate-3">
+          <svg className="w-48 h-48 sm:w-64 sm:h-64" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        
+        <div className="w-14 h-14 mb-4 bg-gradient-to-tr from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 relative z-10 group-hover:scale-105 transition-transform duration-500">
           <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
         </div>
+        
         <div className="flex flex-col items-center justify-center gap-1 mb-5 text-slate-900 dark:text-white font-extrabold text-xl sm:text-2xl tracking-tight relative z-10">
           <p>Campaign Completed</p>
           <p className="text-emerald-500 dark:text-emerald-400 text-sm sm:text-lg">Reward Verified</p>
         </div>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs leading-relaxed relative z-10">Terima kasih telah berpartisipasi!</p>
+        
         <a
           href={getOpenSeaUrl()}
           target="_blank"
           rel="noopener noreferrer"
-          className="relative z-10 flex items-center justify-center gap-2 w-full py-3 text-center rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-white/10 transition-all duration-300 mb-2 border border-slate-200/50 dark:border-white/10 shadow-sm text-sm"
+          className="relative z-10 flex items-center justify-center gap-2 w-full py-3.5 text-center rounded-2xl bg-white dark:bg-transparent text-slate-800 dark:text-white font-bold transition-all duration-200 border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-emerald-500/50 hover:bg-slate-50 dark:hover:bg-emerald-900/20 mt-2 mb-2 shadow-sm hover:shadow text-sm"
         >
           <span>View NFT</span>
         </a>
+        
         {externalURI && externalURI.length > 5 && (
           <a href={externalURI} target="_blank" rel="noopener noreferrer" className="relative z-10 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 underline mt-3 mb-2 tracking-wide">
             Learn More
           </a>
         )}
-        {renderCustomWeb3Button()}
+        
+        <div className="mt-4 relative z-10 w-full flex justify-center">
+          {renderCustomWeb3Button()}
+        </div>
       </div>
     );
   }
