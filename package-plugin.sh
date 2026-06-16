@@ -18,7 +18,7 @@ echo "========================================"
 # Step 1: Build React bundle
 echo ""
 echo "[1/4] Building React bundle..."
-npm run build
+yarn build
 
 # Step 2: Buat folder temporary untuk packaging
 echo ""
