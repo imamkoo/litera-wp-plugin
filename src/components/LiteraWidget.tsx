@@ -120,13 +120,15 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   const externalURI = articleArray ? articleArray[2] : "";
   const isFeeEnabled = articleArray ? articleArray[3] : false;
   const creatorAddress = articleArray ? articleArray[4] : "0x0";
+  const publisherAddress = articleArray ? articleArray[1] : "0x0";
   const price = articleArray ? articleArray[5] : BigInt(0);
   const maxMinted = articleArray ? Number(articleArray[6]) : 0;
   const totalMinted = articleArray ? Number(articleArray[7]) : 0;
   const isSoldOut = maxMinted > 0 && totalMinted >= maxMinted;
 
   const isCreator = address && creatorAddress && address.toLowerCase() === creatorAddress.toLowerCase();
-  const hasAccess = ownsNFT || isCreator;
+  const isPublisher = address && publisherAddress && address.toLowerCase() === publisherAddress.toLowerCase();
+  const hasAccess = ownsNFT || isCreator || isPublisher;
 
   // 3. Unlockable Check
   const { data: cidUnlockable, isLoading: isUnlockableLoading } = useReadContract({
