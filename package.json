@@ -1,7 +1,7 @@
 {
   "name": "litera-plugin-v2",
-  "version": "1.0.5",
-  "private": true,
+  "version": "1.0.6",
+  "description": "Litera Widget WordPress Plugin",
   "homepage": "https://cdn.literaa.xyz/",
   "dependencies": {
     "@coinbase/wallet-sdk": "^4.3.7",
