@@ -1,6 +1,6 @@
 {
   "name": "litera-plugin-v2",
-  "version": "0.1.0",
+  "version": "1.0.4",
   "private": true,
   "homepage": "https://cdn.literaa.xyz/",
   "dependencies": {
