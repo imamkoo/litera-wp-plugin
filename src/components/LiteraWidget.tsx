@@ -3,6 +3,7 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { parseUnits, formatUnits } from 'viem';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import axios from 'axios';
+import QuizModal from './QuizModal';
 import {
   contractAddress,
   contractABI,
@@ -29,6 +30,12 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   const [nftMedia, setNftMedia] = useState<{ url: string, type: 'image' | 'video' } | null>(null);
   const { open } = useWeb3Modal();
   const [isRevealing, setIsRevealing] = useState(false);
+
+  // --- Quiz Gate States ---
+  const [isQuizOpen, setQuizOpen] = useState(false);
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+  const [quizPassingScore, setQuizPassingScore] = useState<number>(60);
+  const [isQuizFetching, setIsQuizFetching] = useState<boolean>(false);
 
   // ============================
   // CUSTOM PREMIUM WEB3 BUTTON
@@ -297,6 +304,77 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const handleMintGate = async () => {
+    if (!address || isSoldOut) return;
+    
+    // Check balance logic here as well to prevent fetching quiz if no balance
+    const needed = BigInt(price);
+    const currentUserBalance = BigInt(userBalance as any || 0);
+
+    if (currentUserBalance < needed) {
+      alert("Insufficient LITE Balance! You don't have enough LITE to mint this NFT.");
+      return;
+    }
+
+    const cid = tokenURI ? (tokenURI as string).replace('ipfs://', '') : '';
+
+    if (!cid) {
+      handleBuy();
+      return;
+    }
+
+    try {
+      setIsQuizFetching(true);
+      
+      const quizRes = await axios.get(`https://literaa.xyz/quizzes?url=${cid}`);
+      const quizData = quizRes.data;
+
+      if (!quizData || !quizData.questions || quizData.questions.length === 0) {
+        setIsQuizFetching(false);
+        handleBuy();
+        return;
+      }
+
+      const statusRes = await axios.get(`https://literaa.xyz/quizzes/${cid}/status/${address}`);
+      const statusData = statusRes.data;
+
+      if (statusData && statusData.hasAttempted && statusData.status === 'PASS') {
+        setIsQuizFetching(false);
+        handleBuy();
+        return;
+      }
+
+      setQuizQuestions(quizData.questions);
+      setQuizPassingScore(quizData.passingScore || 60);
+      setIsQuizFetching(false);
+      setQuizOpen(true);
+    } catch (e) {
+      console.error("Error fetching quiz", e);
+      setIsQuizFetching(false);
+      // Fallback if API fails, don't block
+      handleBuy();
+    }
+  };
+
+  const handleQuizSubmit = async (answers: { questionId: number, optionId: number }[]) => {
+    if (!address) return null;
+    const cid = tokenURI ? (tokenURI as string).replace('ipfs://', '') : '';
+    try {
+      const res = await axios.post(`https://literaa.xyz/quizzes/${cid}/submit`, {
+        walletAddress: address,
+        answers
+      });
+      return res.data;
+    } catch (e) {
+      console.error("Submit quiz error", e);
+      return null;
+    }
+  };
+
+  const handleQuizSuccess = () => {
+    handleBuy();
   };
 
   const handleReveal = async () => {
@@ -620,8 +698,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
       </div>
 
       <button
-        onClick={handleBuy}
-        disabled={isApprovingReq || isApprovingTx || isMintingReq || isMintingTx || isMintSuccess || (userBalance !== undefined && BigInt(userBalance as any) < BigInt(price))}
+        onClick={handleMintGate}
+        disabled={isApprovingReq || isApprovingTx || isMintingReq || isMintingTx || isMintSuccess || (userBalance !== undefined && BigInt(userBalance as any) < BigInt(price)) || isQuizFetching}
         className="w-full py-3.5 rounded-2xl text-white font-black transition-all duration-200 relative z-10 flex items-center justify-center gap-3 text-sm bg-blue-600 shadow-[0_4px_0_0_#1d4ed8,0_10px_20px_rgba(37,99,235,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#1d4ed8,0_15px_25px_rgba(37,99,235,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#1d4ed8,0_5px_10px_rgba(37,99,235,0.5)] disabled:opacity-50 disabled:transform-none disabled:shadow-none disabled:cursor-not-allowed"
       >
         <span className="relative z-10 flex items-center justify-center gap-2 font-bold tracking-wide">
@@ -634,6 +712,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
             <>
               <svg className="animate-spin h-5 w-5 text-white/70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
               Minting NFT...
+            </>
+          ) : isQuizFetching ? (
+            <>
+              <svg className="animate-spin h-5 w-5 text-white/70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              Checking Quiz...
             </>
           ) : isMintSuccess ? (
              "Success!"
@@ -654,6 +737,15 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
       )}
 
       {renderCustomWeb3Button()}
+
+      <QuizModal 
+        isOpen={isQuizOpen}
+        onClose={() => setQuizOpen(false)}
+        onSuccess={handleQuizSuccess}
+        questions={quizQuestions}
+        passingScore={quizPassingScore}
+        onSubmitAnswers={handleQuizSubmit}
+      />
     </div>
   );
 };
