@@ -39,7 +39,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   passingScore = 60,
   onSubmitAnswers
 }) => {
-  const [step, setStep] = useState<'intro' | 'quiz' | 'submitting' | 'result'>('intro');
+  const [step, setStep] = useState<'intro' | 'quiz' | 'submitting' | 'result' | 'error'>('intro');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<{ questionId: number, optionId: number }[]>([]);
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
@@ -69,6 +69,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
       setSelectedOptionId(null);
     } else {
       // Last question, submit
+      setAnswers(newAnswers);
       setStep('submitting');
       try {
         const result = await onSubmitAnswers(newAnswers);
@@ -77,12 +78,28 @@ export const QuizModal: React.FC<QuizModalProps> = ({
           setStep('result');
         } else {
           // Backend failed or returned error
-          setStep('intro'); // or show error state
+          setStep('error');
         }
       } catch (err) {
         console.error("Failed to submit quiz", err);
-        setStep('intro');
+        setStep('error');
       }
+    }
+  };
+
+  const handleRetrySubmit = async () => {
+    setStep('submitting');
+    try {
+      const result = await onSubmitAnswers(answers);
+      if (result) {
+        setQuizResult(result);
+        setStep('result');
+      } else {
+        setStep('error');
+      }
+    } catch (err) {
+      console.error("Failed to submit quiz", err);
+      setStep('error');
     }
   };
 
@@ -253,6 +270,30 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                       Try Again
                     </Button>
                   )}
+                </ModalFooter>
+              </>
+            )}
+
+            {step === 'error' && (
+              <>
+                <ModalHeader className="flex flex-col gap-1 items-center pt-8">
+                  <div className="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mb-4">
+                    <AlertCircleIcon size={40} />
+                  </div>
+                  <h2 className="text-2xl font-black text-slate-800">Submission Failed</h2>
+                </ModalHeader>
+                <ModalBody className="py-6 text-center">
+                  <p className="text-slate-500 font-medium leading-relaxed">
+                    Your answers could not be saved.<br/>Please try again.
+                  </p>
+                </ModalBody>
+                <ModalFooter className="pb-8 justify-center">
+                  <Button 
+                    className="w-full h-14 rounded-2xl bg-slate-900 text-white font-black text-lg shadow-xl"
+                    onPress={handleRetrySubmit}
+                  >
+                    Retry Submission
+                  </Button>
                 </ModalFooter>
               </>
             )}

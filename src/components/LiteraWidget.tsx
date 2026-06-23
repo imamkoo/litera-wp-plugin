@@ -353,8 +353,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     } catch (e) {
       console.error("Error fetching quiz", e);
       setIsQuizFetching(false);
-      // Fallback if API fails, don't block
-      handleBuy();
+      alert("Unable to load Knowledge Check.\n\nPlease try again later.");
     }
   };
 
