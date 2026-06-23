@@ -64,19 +64,30 @@ add_shortcode('litera_premium', 'litera_widget_shortcode'); // UX Improvement al
 // Automatically append to content if shortcode is not used
 function my_react_plugin_add_button_after_post_content($content) {
     if (is_single()) {
-        // Check all shortcode variants to avoid duplicate widget
+        global $post, $page, $numpages;
+
+        // Check if the shortcode exists anywhere in the ENTIRE post, not just the current page slice
+        $full_post_content = $post->post_content;
         $has_shortcode = (
-            strpos($content, '[litera_widget]') !== false ||
-            strpos($content, '[litera]') !== false ||
-            strpos($content, '[litera_premium]') !== false ||
-            has_shortcode($content, 'litera_widget') ||
-            has_shortcode($content, 'litera') ||
-            has_shortcode($content, 'litera_premium')
+            strpos($full_post_content, '[litera_widget]') !== false ||
+            strpos($full_post_content, '[litera]') !== false ||
+            strpos($full_post_content, '[litera_premium]') !== false ||
+            has_shortcode($full_post_content, 'litera_widget') ||
+            has_shortcode($full_post_content, 'litera') ||
+            has_shortcode($full_post_content, 'litera_premium')
         );
 
+        // If user didn't put a shortcode anywhere, we auto-append it.
+        // BUT we only auto-append it on the LAST page of the article.
         if (!$has_shortcode) {
-            $button = '<div id="my-react-plugin-root"></div>';
-            return $content . $button;
+            // $page and $numpages handle WP pagination (<!--nextpage-->)
+            $current_page = $page ? $page : 1;
+            $total_pages = $numpages ? $numpages : 1;
+
+            if ($current_page >= $total_pages) {
+                $button = '<div id="my-react-plugin-root"></div>';
+                return $content . $button;
+            }
         }
     }
     return $content;
