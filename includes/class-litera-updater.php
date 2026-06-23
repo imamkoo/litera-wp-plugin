@@ -2,9 +2,8 @@
 /**
  * Litera Plugin Auto-Updater via GitHub Releases
  *
- * Mengecek versi terbaru dari GitHub Releases secara otomatis.
- * Jika ada versi baru, WordPress akan menampilkan notifikasi update
- * di halaman Plugins, dan admin bisa meng-update dengan satu klik.
+ * Mengecek versi terbaru dari GitHub Releases setiap 30 menit.
+ * Jika ada versi baru, tampilkan admin notice dan notifikasi di halaman Plugins.
  *
  * @package Litera_Plugin
  */
@@ -20,6 +19,12 @@ class Litera_GitHub_Updater {
     private $plugin_file;
     private $github_response;
     private $access_token;
+
+    // Transient key untuk cache response GitHub kustom (30 menit)
+    private $transient_key = 'litera_github_update_check';
+
+    // Interval pengecekan: 30 menit (dalam detik)
+    private $check_interval = 1800;
 
     /**
      * Constructor
@@ -40,6 +45,63 @@ class Litera_GitHub_Updater {
         add_filter('pre_set_site_transient_update_plugins', [$this, 'check_update']);
         add_filter('plugins_api', [$this, 'plugin_info'], 20, 3);
         add_filter('upgrader_post_install', [$this, 'after_install'], 10, 3);
+
+        // Force re-check setiap 30 menit (bukan 12 jam default WordPress)
+        add_action('admin_init', [$this, 'maybe_force_update_check']);
+
+        // Tampilkan admin notice banner jika ada versi baru
+        add_action('admin_notices', [$this, 'show_update_notice']);
+    }
+
+    /**
+     * Hapus transient update_plugins WP agar re-check dilakukan setiap 30 menit.
+     * Default WordPress adalah 12 jam, ini mempercepat deteksi versi baru.
+     */
+    public function maybe_force_update_check() {
+        $last_check = get_option('litera_last_update_force_check', 0);
+        $now        = time();
+
+        if (($now - $last_check) > $this->check_interval) {
+            delete_site_transient('update_plugins');
+            delete_transient($this->transient_key); // Paksa fetch ulang dari GitHub juga
+            update_option('litera_last_update_force_check', $now);
+        }
+    }
+
+    /**
+     * Tampilkan admin notice (banner kuning) di semua halaman admin
+     * jika ada versi baru yang tersedia di GitHub.
+     */
+    public function show_update_notice() {
+        // Hanya tampilkan untuk user yang punya izin update plugin
+        if (!current_user_can('update_plugins')) {
+            return;
+        }
+
+        $this->get_plugin_data();
+        $this->get_github_release();
+
+        if (empty($this->github_response)) {
+            return;
+        }
+
+        $github_version  = ltrim($this->github_response->tag_name, 'v');
+        $current_version = $this->plugin_data['Version'];
+
+        if (version_compare($github_version, $current_version, '>')) {
+            $update_url  = admin_url('plugins.php');
+            $release_url = esc_url($this->github_response->html_url);
+
+            echo '<div class="notice notice-warning is-dismissible">';
+            echo '<p>';
+            echo '<strong>🔔 Litera Plugin Update Tersedia!</strong> ';
+            echo "Versi baru <strong>v{$github_version}</strong> sudah siap. ";
+            echo "Versi Anda saat ini: <strong>v{$current_version}</strong>. ";
+            echo "<a href='{$update_url}'>Pergi ke halaman Plugins</a> untuk update 1-klik, ";
+            echo "atau <a href='{$release_url}' target='_blank'>lihat Changelog di GitHub &rarr;</a>.";
+            echo '</p>';
+            echo '</div>';
+        }
     }
 
     /**
@@ -53,10 +115,19 @@ class Litera_GitHub_Updater {
     }
 
     /**
-     * Fetch release terbaru dari GitHub API
+     * Fetch release terbaru dari GitHub API.
+     * Hasilnya di-cache dalam transient WP selama 30 menit
+     * agar tidak membebani GitHub API rate limit.
      */
     private function get_github_release() {
         if (!empty($this->github_response)) {
+            return;
+        }
+
+        // Cek cache transient kustom (30 menit)
+        $cached = get_transient($this->transient_key);
+        if ($cached !== false) {
+            $this->github_response = $cached;
             return;
         }
 
@@ -64,7 +135,7 @@ class Litera_GitHub_Updater {
 
         $args = [
             'headers' => [
-                'Accept' => 'application/vnd.github.v3+json',
+                'Accept'     => 'application/vnd.github.v3+json',
                 'User-Agent' => 'Litera-WP-Plugin-Updater',
             ],
             'timeout' => 10,
@@ -81,10 +152,13 @@ class Litera_GitHub_Updater {
         }
 
         $this->github_response = json_decode(wp_remote_retrieve_body($response));
+
+        // Simpan ke transient selama 30 menit
+        set_transient($this->transient_key, $this->github_response, $this->check_interval);
     }
 
     /**
-     * Cek apakah ada update tersedia
+     * Cek apakah ada update tersedia dan daftarkan ke sistem WordPress
      */
     public function check_update($transient) {
         if (empty($transient->checked)) {
@@ -99,7 +173,7 @@ class Litera_GitHub_Updater {
         }
 
         // Versi dari GitHub (hapus prefix "v" jika ada)
-        $github_version = ltrim($this->github_response->tag_name, 'v');
+        $github_version  = ltrim($this->github_response->tag_name, 'v');
         $current_version = $this->plugin_data['Version'];
 
         if (version_compare($github_version, $current_version, '>')) {
@@ -114,7 +188,7 @@ class Litera_GitHub_Updater {
                 }
             }
 
-            // Fallback ke zipball jika tidak ada asset .zip
+            // Fallback ke zipball jika tidak ada asset .zip manual
             if (empty($download_url)) {
                 $download_url = $this->github_response->zipball_url;
             }
@@ -200,6 +274,10 @@ class Litera_GitHub_Updater {
         $install_directory = plugin_dir_path($this->plugin_file);
         $wp_filesystem->move($result['destination'], $install_directory);
         $result['destination'] = $install_directory;
+
+        // Bersihkan semua cache setelah update selesai agar fresh check dimulai
+        delete_transient($this->transient_key);
+        delete_option('litera_last_update_force_check');
 
         // Re-activate plugin setelah update
         activate_plugin($this->slug);
