@@ -118,7 +118,10 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     functionName: 'articleInfo',
     args: [BigInt(tokenId)],
     chainId: activeChainId,
-    query: { enabled: tokenId > 0 }
+    query: { 
+      enabled: tokenId > 0,
+      refetchInterval: 5000 
+    }
   });
   const articleArray = articleInfo as any[];
   // struct mapping:

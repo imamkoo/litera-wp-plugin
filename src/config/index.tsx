@@ -1,5 +1,6 @@
 import { defaultWagmiConfig } from '@web3modal/wagmi/react/config'
 import { polygon } from 'wagmi/chains'
+import { http, fallback } from 'wagmi'
 
 export const projectId = "3b80ae67f7bf7baa0d65ddfdebe61662"
 
@@ -19,5 +20,13 @@ export const chains = [polygon] as const
 export const config = defaultWagmiConfig({
   chains,
   projectId,
-  metadata
+  metadata,
+  transports: {
+    [polygon.id]: fallback([
+        http('https://polygon.llamarpc.com'),
+        http('https://polygon-bor-rpc.publicnode.com'),
+        http('https://1rpc.io/matic'),
+        http('https://rpc-mainnet.maticvigil.com')
+    ])
+  }
 })
