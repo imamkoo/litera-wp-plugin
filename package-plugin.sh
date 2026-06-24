@@ -30,6 +30,8 @@ mkdir -p "${TEMP_DIR}/includes"
 # Step 3: Copy only production files (no src, node_modules, etc.)
 echo ""
 echo "[3/4] Copying production files..."
+# Make sure the new build replaces the root bundle.js before packaging
+cp build/bundle.js bundle.js
 cp litera.php "${TEMP_DIR}/"
 cp bundle.js "${TEMP_DIR}/"
 cp -r includes/ "${TEMP_DIR}/includes/"
