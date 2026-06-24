@@ -23,7 +23,7 @@ export const config = defaultWagmiConfig({
   metadata,
   transports: {
     [polygon.id]: fallback([
-        http('https://polygon-mainnet.g.alchemy.com/v2/REDACTED_ALCHEMY_KEY'),
+        http(process.env.REACT_APP_ALCHEMY_RPC_URL || 'https://polygon-mainnet.g.alchemy.com/v2/REDACTED_ALCHEMY_KEY'),
         http('https://polygon.llamarpc.com'),
         http('https://polygon-bor-rpc.publicnode.com'),
         http('https://1rpc.io/matic'),
