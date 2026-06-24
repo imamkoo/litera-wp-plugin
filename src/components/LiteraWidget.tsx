@@ -331,7 +331,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     try {
       setIsQuizFetching(true);
       
-      const quizRes = await axios.get(`https://literaa.xyz/quizzes?url=${cid}`);
+      const quizRes = await axios.get(`https://literaa.xyz/quizzes?url=${tokenId}`);
       const quizData = quizRes.data;
 
       if (!quizData || !quizData.questions || quizData.questions.length === 0) {
@@ -340,7 +340,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
         return;
       }
 
-      const statusRes = await axios.get(`https://literaa.xyz/quizzes/${cid}/status/${address}`);
+      const statusRes = await axios.get(`https://literaa.xyz/quizzes/${tokenId}/status/${address}`);
       const statusData = statusRes.data;
 
       if (statusData && statusData.hasAttempted && statusData.status === 'PASS') {
@@ -364,7 +364,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     if (!address) return null;
     const cid = tokenURI ? (tokenURI as string).replace('ipfs://', '') : '';
     try {
-      const res = await axios.post(`https://literaa.xyz/quizzes/${cid}/submit`, {
+      const res = await axios.post(`https://literaa.xyz/quizzes/${tokenId}/submit`, {
         walletAddress: address,
         answers
       });
