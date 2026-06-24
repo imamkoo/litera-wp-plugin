@@ -60,8 +60,9 @@ class Litera_GitHub_Updater {
     public function maybe_force_update_check() {
         $last_check = get_option('litera_last_update_force_check', 0);
         $now        = time();
+        $is_force_check = isset($_GET['force-check']) && $_GET['force-check'] == '1';
 
-        if (($now - $last_check) > $this->check_interval) {
+        if ($is_force_check || ($now - $last_check) > $this->check_interval) {
             delete_site_transient('update_plugins');
             delete_transient($this->transient_key); // Paksa fetch ulang dari GitHub juga
             update_option('litera_last_update_force_check', $now);
