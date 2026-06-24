@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.0.10 (Hotfix: Widget Rendering Crash)
+- **HOTFIX**: Resolved a critical issue where the widget failed to render (disappeared) due to an accidental wiping of the Wagmi configuration during the previous build process.
+
 ## v1.0.9 (Smart Contract Synchronization)
 - **CRITICAL FIX**: Synchronized the `contractAddress` for the Writer Contract to properly point to the verified Mainnet deployment.
 - **RPC Setup Completion**: Finalized the `REACT_APP_NETWORK` and `GENERATE_SOURCEMAP` configurations.
