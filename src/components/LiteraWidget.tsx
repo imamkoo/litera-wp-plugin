@@ -139,6 +139,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   const isCreator = address && creatorAddress && address.toLowerCase() === creatorAddress.toLowerCase();
   const isPublisher = address && publisherAddress && address.toLowerCase() === publisherAddress.toLowerCase();
   const hasAccess = ownsNFT || isCreator || isPublisher;
+  
+  // Security Check: If idnft is 0, the NFT was never actually minted/published to the blockchain
+  const isArticleValid = articleArray ? Number(articleArray[0]) > 0 : true; // Default true while loading
 
   // 3. Unlockable Check
   const { data: cidUnlockable, isLoading: isUnlockableLoading } = useReadContract({
@@ -617,6 +620,24 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
         <div className="mt-4 relative z-10 w-full flex justify-center">
           {renderCustomWeb3Button()}
         </div>
+      </div>
+    );
+  }
+
+  if (!isArticleValid) {
+    return (
+      <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-[#0a0a0a]/90 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(0,0,0,0.8)] border border-red-200/80 dark:border-red-900/30 text-center my-6 overflow-hidden group hover:dark:border-red-500/20 transition-all duration-700">
+        <div className="w-14 h-14 mb-4 bg-gradient-to-br from-red-400 to-red-500 dark:from-red-800 dark:to-red-900 rounded-2xl flex items-center justify-center text-white shadow-inner border border-red-300/50 dark:border-red-700/50 relative z-10 group-hover:scale-105 transition-transform duration-500">
+          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        </div>
+        <div className="flex items-center gap-2 text-red-500 dark:text-red-400 font-bold mb-3 tracking-[0.15em] text-[9px] sm:text-[10px] bg-red-50 dark:bg-red-900/30 px-3 py-1 rounded-full border border-red-100 dark:border-red-800/50 relative z-10">
+          <span>NFT NOT INITIALIZED</span>
+        </div>
+        <h3 className="text-2xl sm:text-[24px] font-black text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Asset Not Found</h3>
+        <p className="text-xs sm:text-[14px] text-slate-500 dark:text-slate-400 mb-6 max-w-sm leading-relaxed relative z-10">
+          This article was published on WordPress, but the NFT has not been successfully deployed to the blockchain. Please contact the publisher.
+        </p>
+        {renderCustomWeb3Button()}
       </div>
     );
   }
