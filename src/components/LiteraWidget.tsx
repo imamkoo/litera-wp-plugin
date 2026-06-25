@@ -158,7 +158,10 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
     functionName: 'allowance',
     args: [address as `0x${string}`, contractAddress],
     chainId: activeChainId,
-    query: { enabled: !!address && !hasAccess }
+    query: { 
+      enabled: !!address && !hasAccess,
+      refetchInterval: 3000 // Poll allowance to ensure UI updates after Approve
+    }
   });
 
   // 4.5. Balance Check
@@ -196,19 +199,6 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   });
 
   // --- Effects ---
-
-  // Auto-mint after approve with delay to prevent RPC out-of-sync revert
-  useEffect(() => {
-    if (isApproveSuccess) {
-      // Jeda 4 detik agar RPC (seperti Alchemy/Infura) sempat mensinkronisasi data Allowance
-      // Jika langsung di-hit, transaksi Mint akan Revert dan MetaMask menembak limit gas 30 Juta (sangat mahal).
-      const timer = setTimeout(() => {
-        refetchAllowance();
-        handleMintAction();
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [isApproveSuccess]);
 
   // Fast RPC Sync: Trigger refetch immediately after successful mint
   useEffect(() => {
@@ -728,6 +718,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
             </>
           ) : isMintSuccess ? (
              "Success!"
+          ) : BigInt(allowance as any || 0) < BigInt(price) ? (
+            <>
+              Approve LITE <span className="opacity-50">|</span> <span className="text-blue-200">Step 1</span>
+              <svg className="w-4 h-4 ml-1 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </>
           ) : (
             <>
               Mint NFT <span className="opacity-50">|</span> <span className="text-blue-200">{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
