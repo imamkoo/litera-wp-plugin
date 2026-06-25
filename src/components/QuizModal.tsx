@@ -137,6 +137,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
       }}
       size="md"
       backdrop="blur"
+      scrollBehavior="inside"
       isDismissable={step !== 'submitting'}
       hideCloseButton={step === 'submitting'}
       classNames={{
@@ -169,7 +170,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                 </ModalBody>
                 <ModalFooter className="pb-8 justify-center">
                   <Button 
-                    className="w-full h-14 rounded-2xl bg-slate-900 text-white font-black text-lg shadow-xl"
+                    className="w-full h-14 rounded-2xl bg-slate-900 text-white font-black text-lg shadow-[0_4px_0_0_#334155] active:shadow-[0_0px_0_0_#334155] active:translate-y-1 transition-all"
                     onPress={handleStart}
                   >
                     Start Quiz
@@ -220,14 +221,14 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                 <ModalFooter className="pb-6 flex gap-3">
                   {currentQuestionIndex > 0 && (
                     <Button 
-                      className="w-full h-14 rounded-2xl font-black text-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                      className="w-full h-14 rounded-2xl font-black text-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shadow-[0_4px_0_0_#cbd5e1] dark:shadow-[0_4px_0_0_#334155] active:shadow-none active:translate-y-1 transition-all border border-slate-200 dark:border-slate-700"
                       onPress={handlePrevious}
                     >
                       Previous
                     </Button>
                   )}
                   <Button 
-                    className="w-full h-14 rounded-2xl font-black text-lg"
+                    className="w-full h-14 rounded-2xl font-black text-lg shadow-[0_4px_0_0_#1d4ed8] active:shadow-none active:translate-y-1 transition-all disabled:shadow-none disabled:translate-y-0"
                     color="primary"
                     isDisabled={selectedOptionId === null}
                     onPress={handleNext}
@@ -307,7 +308,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                 </ModalBody>
                 <ModalFooter className="pb-8 justify-center">
                   <Button 
-                    className="w-full h-14 rounded-2xl bg-slate-900 text-white font-black text-lg shadow-xl"
+                    className="w-full h-14 rounded-2xl bg-slate-900 text-white font-black text-lg shadow-[0_4px_0_0_#334155] active:shadow-none active:translate-y-1 transition-all"
                     onPress={handleRetrySubmit}
                   >
                     Retry Submission
