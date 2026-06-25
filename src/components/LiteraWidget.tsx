@@ -197,10 +197,16 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
 
   // --- Effects ---
 
-  // Auto-mint after approve
+  // Auto-mint after approve with delay to prevent RPC out-of-sync revert
   useEffect(() => {
     if (isApproveSuccess) {
-      handleMintAction();
+      // Jeda 4 detik agar RPC (seperti Alchemy/Infura) sempat mensinkronisasi data Allowance
+      // Jika langsung di-hit, transaksi Mint akan Revert dan MetaMask menembak limit gas 30 Juta (sangat mahal).
+      const timer = setTimeout(() => {
+        refetchAllowance();
+        handleMintAction();
+      }, 4000);
+      return () => clearTimeout(timer);
     }
   }, [isApproveSuccess]);
 
