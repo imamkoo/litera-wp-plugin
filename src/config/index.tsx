@@ -24,7 +24,7 @@ export const config = defaultWagmiConfig({
   transports: {
     [polygon.id]: fallback([
         http(process.env.REACT_APP_ALCHEMY_RPC_URL || 'https://polygon-mainnet.g.alchemy.com/v2/REDACTED_ALCHEMY_KEY'),
-        http(process.env.REACT_APP_INFURA_RPC_URL),
+        http(process.env.REACT_APP_INFURA_RPC_URL || 'https://polygon-mainnet.infura.io/v3/e3fd4e9a33ef48d3be06ec68b7fd1b0a'),
         http('https://polygon.llamarpc.com'),
         http('https://polygon-bor-rpc.publicnode.com'),
         http('https://1rpc.io/matic'),
