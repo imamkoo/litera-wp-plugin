@@ -333,7 +333,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
       const quizRes = await axios.get(`https://literaa.xyz/quizzes?url=${tokenId}`);
       const quizData = quizRes.data;
 
-      if (!quizData || !quizData.questions || quizData.questions.length === 0) {
+      // If no quiz, or quiz is explicitly turned OFF by creator, or no questions exist, skip the quiz.
+      if (!quizData || quizData.status === 'OFF' || !quizData.questions || quizData.questions.length === 0) {
         setIsQuizFetching(false);
         handleBuy();
         return;
