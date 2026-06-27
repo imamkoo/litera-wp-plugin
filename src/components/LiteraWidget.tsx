@@ -20,9 +20,10 @@ import { useSafeGas } from '../shared/hooks/useSafeGas';
 
 interface LiteraWidgetProps {
   tokenId: number;
+  articleTitle?: string;
 }
 
-const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
+const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) => {
   const { address, isConnected } = useAccount();
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
   const [hasVisitedSponsor, setHasVisitedSponsor] = useState(false);
@@ -753,12 +754,37 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
       <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent dark:from-white/5 dark:to-transparent opacity-50 pointer-events-none"></div>
 
       <div className="flex flex-col items-center w-full mb-6 relative z-10">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-3">
           <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
           <span className="text-[9px] sm:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">Digital Collectible</span>
         </div>
-        <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Litera Mint</h3>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Collect & earn rewards</p>
+        
+        <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight max-w-md text-center mb-6">
+          {articleTitle || 'Digital Asset'}
+        </h3>
+        
+        <div className="flex flex-col gap-3 w-full max-w-sm bg-slate-50/80 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 backdrop-blur-sm shadow-sm mb-2">
+          <div className="flex justify-between items-center text-xs sm:text-sm">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Creator</span>
+            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+               <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+               <span className="font-mono text-slate-700 dark:text-slate-300 font-bold tracking-wider">
+                 {creatorAddress !== "0x0" ? `${creatorAddress.substring(0, 6)}...${creatorAddress.substring(creatorAddress.length - 4)}` : "Unknown"}
+               </span>
+            </div>
+          </div>
+          <div className="flex justify-between items-center text-xs sm:text-sm">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Publisher</span>
+            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+               <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+               <span className="font-mono text-slate-700 dark:text-slate-300 font-bold tracking-wider">
+                 {publisherAddress !== "0x0" ? `${publisherAddress.substring(0, 6)}...${publisherAddress.substring(publisherAddress.length - 4)}` : "Unknown"}
+               </span>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">Collect & earn rewards</p>
       </div>
 
       <button

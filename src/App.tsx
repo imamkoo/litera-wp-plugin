@@ -10,17 +10,24 @@ function App() {
   const { address, isConnected, chainId } = useAccount();
   const { open } = useWeb3Modal();
   const [permalink, setPermalink] = useState<string>('');
+  const [articleTitle, setArticleTitle] = useState<string>('Litera Digital Asset');
 
   // Use dynamic chain ID from config instead of hardcoded Amoy
   const EXPECTED_CHAIN_ID = activeChainId;
 
   useEffect(() => {
-    // Ambil URL dari injeksi plugin WordPress
-    if (typeof (window as any).myReactPluginData !== 'undefined' && (window as any).myReactPluginData.permalink) {
-      setPermalink(normalizeUrl((window as any).myReactPluginData.permalink));
+    // Ambil URL dan Title dari injeksi plugin WordPress
+    if (typeof (window as any).myReactPluginData !== 'undefined') {
+      if ((window as any).myReactPluginData.permalink) {
+        setPermalink(normalizeUrl((window as any).myReactPluginData.permalink));
+      }
+      if ((window as any).myReactPluginData.title) {
+        setArticleTitle((window as any).myReactPluginData.title);
+      }
     } else {
       // Fallback localhost development
       setPermalink(normalizeUrl(window.location.href));
+      setArticleTitle(document.title);
     }
   }, []);
 
@@ -101,7 +108,7 @@ function App() {
   // 5. State "Published" -> Tampilkan Widget
   return (
     <div className="App fade-in transition-opacity duration-500">
-      <LiteraWidget tokenId={tokenId} />
+      <LiteraWidget tokenId={tokenId} articleTitle={articleTitle} />
     </div>
   );
 }
