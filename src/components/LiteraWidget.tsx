@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
 import { parseUnits, formatUnits } from 'viem';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import axios from 'axios';
@@ -84,6 +84,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   // --- Contracts Read ---
 
   // --- Contracts Write ---
+  const publicClient = usePublicClient();
   const { getSafeGasParams } = useSafeGas();
 
   // Approve
@@ -264,6 +265,27 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
   // --- Handlers ---
   const handleMintAction = async () => {
     try {
+      if (publicClient && address) {
+        try {
+          await publicClient.estimateContractGas({
+            address: contractAddress as `0x${string}`,
+            abi: contractABI,
+            functionName: 'Mint',
+            args: [BigInt(tokenId), "0x"],
+            account: address as `0x${string}`
+          });
+        } catch (err: any) {
+          console.warn("Pre-flight Mint check failed:", err);
+          if (err.message && err.message.includes("already minted")) {
+            alert("You have already minted this article! Please refresh the page to view the content.");
+            return;
+          } else if (err.message && err.message.includes("insufficient funds")) {
+            alert("Insufficient POL balance in your wallet to cover the network gas fee.");
+            return;
+          }
+        }
+      }
+
       const gasParams = await getSafeGasParams();
       mintWrite({
         address: contractAddress,
@@ -288,6 +310,28 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId }) => {
         // Mencegah transaksi jika saldo tidak cukup (akan ditangani oleh disabled state di button juga, tapi ini double check)
         alert("Insufficient LITE Balance! You don't have enough LITE to mint this NFT.");
         return;
+      }
+
+      // Pre-flight check to prevent unnecessary approve if mint will fail anyway
+      if (publicClient && address) {
+        try {
+          await publicClient.estimateContractGas({
+            address: contractAddress as `0x${string}`,
+            abi: contractABI,
+            functionName: 'Mint',
+            args: [BigInt(tokenId), "0x"],
+            account: address as `0x${string}`
+          });
+        } catch (err: any) {
+          console.warn("Pre-flight Mint check before Approve failed:", err);
+          if (err.message && err.message.includes("already minted")) {
+            alert("You have already minted this article! Please refresh the page to view the content.");
+            return;
+          } else if (err.message && err.message.includes("insufficient funds")) {
+            alert("Insufficient POL balance in your wallet to cover the network gas fee.");
+            return;
+          }
+        }
       }
 
       const gasParams = await getSafeGasParams();
