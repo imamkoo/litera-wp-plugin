@@ -754,57 +754,22 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
       <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-transparent dark:from-white/[0.02] dark:to-transparent pointer-events-none"></div>
 
       {/* Header: Badge + Title */}
-      <div className="flex flex-col items-center w-full relative z-10 mb-5">
-        <div className="flex items-center gap-2 mb-3 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 rounded-full border border-blue-100 dark:border-blue-500/20">
+      <div className="flex flex-col items-center w-full relative z-10 mb-6">
+        <div className="flex items-center gap-2 mb-4 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 rounded-full border border-blue-100 dark:border-blue-500/20">
           <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_6px_rgba(59,130,246,0.5)]"></div>
           <span className="text-[9px] sm:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">Digital Collectible</span>
         </div>
         
-        <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug max-w-sm text-center mt-1">
+        <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug max-w-sm text-center">
           {articleTitle || 'Digital Asset'}
         </h3>
+        
+        {maxMinted > 0 && (
+           <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-medium">
+             {totalMinted} of {maxMinted} Collected
+           </p>
+        )}
       </div>
-
-      {/* Stats Row */}
-      <div className="flex w-full gap-2 mb-5 relative z-10">
-        <div className="flex-1 flex flex-col items-center gap-1 py-3 px-2 bg-slate-50/80 dark:bg-white/[0.04] rounded-2xl border border-slate-100 dark:border-white/[0.06]">
-          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Price</span>
-          <span className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
-            {price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')}` : '0'}
-          </span>
-          <span className="text-[10px] font-bold text-blue-500 dark:text-blue-400">LITE</span>
-        </div>
-        <div className="flex-1 flex flex-col items-center gap-1 py-3 px-2 bg-slate-50/80 dark:bg-white/[0.04] rounded-2xl border border-slate-100 dark:border-white/[0.06]">
-          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Supply</span>
-          <span className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
-            {maxMinted > 0 ? maxMinted.toLocaleString() : '∞'}
-          </span>
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{maxMinted > 0 ? 'Limited' : 'Unlimited'}</span>
-        </div>
-        <div className="flex-1 flex flex-col items-center gap-1 py-3 px-2 bg-slate-50/80 dark:bg-white/[0.04] rounded-2xl border border-slate-100 dark:border-white/[0.06]">
-          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Minted</span>
-          <span className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
-            {totalMinted > 0 ? totalMinted.toLocaleString() : '0'}
-          </span>
-          <span className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400">Collected</span>
-        </div>
-      </div>
-
-      {/* Progress Bar (only if limited supply) */}
-      {maxMinted > 0 && (
-        <div className="w-full mb-5 relative z-10">
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">{Math.round((totalMinted / maxMinted) * 100)}% Minted</span>
-            <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">{totalMinted}/{maxMinted}</span>
-          </div>
-          <div className="w-full h-2 bg-slate-100 dark:bg-white/[0.06] rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(99,102,241,0.4)]"
-              style={{ width: `${Math.min((totalMinted / maxMinted) * 100, 100)}%` }}
-            ></div>
-          </div>
-        </div>
-      )}
 
       {/* Mint Button */}
       <button
