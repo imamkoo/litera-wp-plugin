@@ -79,7 +79,8 @@ export const useSafeGas = () => {
 
     const params = {
       maxFeePerGas,
-      maxPriorityFeePerGas
+      maxPriorityFeePerGas,
+      gas: 400000n
     };
 
     const telemetryData = {
