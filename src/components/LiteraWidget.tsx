@@ -632,15 +632,28 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
           </svg>
         </div>
         
-        <div className="w-14 h-14 mb-4 bg-gradient-to-tr from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 relative z-10 group-hover:scale-105 transition-transform duration-500">
-          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
+        {/* NFT Media (Image/Video) */}
+        {nftMedia && nftMedia.type === 'image' && (
+          <div className="w-full h-40 sm:h-56 mb-5 rounded-2xl overflow-hidden shadow-lg relative z-10 border border-emerald-200/50 dark:border-white/10 bg-slate-100 dark:bg-slate-900">
+            <img src={nftMedia.url} alt="NFT Media" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+          </div>
+        )}
+        {nftMedia && nftMedia.type === 'video' && (
+          <div className="w-full h-40 sm:h-56 mb-5 rounded-2xl overflow-hidden shadow-lg relative z-10 border border-emerald-200/50 dark:border-white/10 bg-slate-100 dark:bg-slate-900">
+            <video src={nftMedia.url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+          </div>
+        )}
+        
+        <div className="w-12 h-12 mb-3 bg-gradient-to-tr from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30 relative z-10 group-hover:scale-105 transition-transform duration-500">
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
         </div>
         
-        <div className="flex flex-col items-center justify-center gap-1 mb-5 text-slate-900 dark:text-white font-extrabold text-xl sm:text-2xl tracking-tight relative z-10">
-          <p>Campaign Completed</p>
-          <p className="text-emerald-500 dark:text-emerald-400 text-sm sm:text-lg">Reward Verified</p>
+        <div className="flex flex-col items-center justify-center gap-1 mb-2 text-slate-900 dark:text-white font-extrabold text-xl sm:text-2xl tracking-tight relative z-10">
+          <p>Collection Verified</p>
         </div>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs leading-relaxed relative z-10">Thank you for participating!</p>
+        <p className="text-sm sm:text-base font-semibold text-emerald-600 dark:text-emerald-400 mb-6 max-w-xs leading-relaxed relative z-10">
+          You now own this Digital Asset.
+        </p>
         
         {sponsorUrl && sponsorUrl.length > 5 ? (
           <div className="relative z-10 flex flex-col sm:flex-row w-full gap-3 mt-2 mb-2">
