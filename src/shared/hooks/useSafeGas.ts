@@ -79,10 +79,7 @@ export const useSafeGas = () => {
 
     const params = {
       maxFeePerGas,
-      maxPriorityFeePerGas,
-      source,
-      chainId,
-      estimatedAt
+      maxPriorityFeePerGas
     };
 
     const telemetryData = {
