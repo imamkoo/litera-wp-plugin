@@ -746,51 +746,71 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   }
 
   return (
-    <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-[#0a0a0a]/90 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(255,255,255,0.05)] border border-slate-200/50 dark:border-white/10 text-center my-6 transition-all duration-700 overflow-hidden group hover:dark:border-white/20">
+    <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(99,102,241,0.08)] border border-slate-200/60 dark:border-white/[0.06] text-center my-6 transition-all duration-700 overflow-hidden group hover:border-slate-300/80 hover:dark:border-white/[0.12]">
       
-      {/* Premium Web3 Glow Effects */}
-      <div className="absolute -top-32 -right-32 w-64 h-64 bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-500/20 transition-colors duration-700"></div>
-      <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-600/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-indigo-500/20 transition-colors duration-700"></div>
-      <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent dark:from-white/5 dark:to-transparent opacity-50 pointer-events-none"></div>
+      {/* Premium Ambient Glow */}
+      <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-500/8 to-indigo-500/8 dark:from-blue-500/10 dark:to-indigo-500/10 rounded-full blur-[100px] pointer-events-none group-hover:from-blue-500/12 group-hover:to-indigo-500/12 transition-all duration-1000"></div>
+      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-violet-500/6 to-purple-500/6 dark:from-violet-500/8 dark:to-purple-500/8 rounded-full blur-[100px] pointer-events-none group-hover:from-violet-500/10 group-hover:to-purple-500/10 transition-all duration-1000"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-transparent dark:from-white/[0.02] dark:to-transparent pointer-events-none"></div>
 
-      <div className="flex flex-col items-center w-full mb-6 relative z-10">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+      {/* Header: Badge + Title */}
+      <div className="flex flex-col items-center w-full relative z-10 mb-5">
+        <div className="flex items-center gap-2 mb-3 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 rounded-full border border-blue-100 dark:border-blue-500/20">
+          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_6px_rgba(59,130,246,0.5)]"></div>
           <span className="text-[9px] sm:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">Digital Collectible</span>
         </div>
         
-        <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight max-w-md text-center mb-6">
+        <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug max-w-sm text-center mt-1">
           {articleTitle || 'Digital Asset'}
         </h3>
-        
-        <div className="flex flex-col gap-3 w-full max-w-sm bg-slate-50/80 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 backdrop-blur-sm shadow-sm mb-2">
-          <div className="flex justify-between items-center text-xs sm:text-sm">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Creator</span>
-            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
-               <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-               <span className="font-mono text-slate-700 dark:text-slate-300 font-bold tracking-wider">
-                 {creatorAddress !== "0x0" ? `${creatorAddress.substring(0, 6)}...${creatorAddress.substring(creatorAddress.length - 4)}` : "Unknown"}
-               </span>
-            </div>
-          </div>
-          <div className="flex justify-between items-center text-xs sm:text-sm">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Publisher</span>
-            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
-               <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-               <span className="font-mono text-slate-700 dark:text-slate-300 font-bold tracking-wider">
-                 {publisherAddress !== "0x0" ? `${publisherAddress.substring(0, 6)}...${publisherAddress.substring(publisherAddress.length - 4)}` : "Unknown"}
-               </span>
-            </div>
-          </div>
-        </div>
-
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">Collect & earn rewards</p>
       </div>
 
+      {/* Stats Row */}
+      <div className="flex w-full gap-2 mb-5 relative z-10">
+        <div className="flex-1 flex flex-col items-center gap-1 py-3 px-2 bg-slate-50/80 dark:bg-white/[0.04] rounded-2xl border border-slate-100 dark:border-white/[0.06]">
+          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Price</span>
+          <span className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+            {price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')}` : '0'}
+          </span>
+          <span className="text-[10px] font-bold text-blue-500 dark:text-blue-400">LITE</span>
+        </div>
+        <div className="flex-1 flex flex-col items-center gap-1 py-3 px-2 bg-slate-50/80 dark:bg-white/[0.04] rounded-2xl border border-slate-100 dark:border-white/[0.06]">
+          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Supply</span>
+          <span className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+            {maxMinted > 0 ? maxMinted.toLocaleString() : '∞'}
+          </span>
+          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{maxMinted > 0 ? 'Limited' : 'Unlimited'}</span>
+        </div>
+        <div className="flex-1 flex flex-col items-center gap-1 py-3 px-2 bg-slate-50/80 dark:bg-white/[0.04] rounded-2xl border border-slate-100 dark:border-white/[0.06]">
+          <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Minted</span>
+          <span className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+            {totalMinted > 0 ? totalMinted.toLocaleString() : '0'}
+          </span>
+          <span className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400">Collected</span>
+        </div>
+      </div>
+
+      {/* Progress Bar (only if limited supply) */}
+      {maxMinted > 0 && (
+        <div className="w-full mb-5 relative z-10">
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">{Math.round((totalMinted / maxMinted) * 100)}% Minted</span>
+            <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">{totalMinted}/{maxMinted}</span>
+          </div>
+          <div className="w-full h-2 bg-slate-100 dark:bg-white/[0.06] rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(99,102,241,0.4)]"
+              style={{ width: `${Math.min((totalMinted / maxMinted) * 100, 100)}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
+
+      {/* Mint Button */}
       <button
         onClick={handleMintGate}
         disabled={isApprovingReq || isApprovingTx || isMintingReq || isMintingTx || isMintSuccess || (userBalance !== undefined && BigInt(userBalance as any) < BigInt(price)) || isQuizFetching}
-        className="w-full py-3.5 rounded-2xl text-white font-black transition-all duration-200 relative z-10 flex items-center justify-center gap-3 text-sm bg-blue-600 shadow-[0_4px_0_0_#1d4ed8,0_10px_20px_rgba(37,99,235,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#1d4ed8,0_15px_25px_rgba(37,99,235,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#1d4ed8,0_5px_10px_rgba(37,99,235,0.5)] disabled:opacity-50 disabled:transform-none disabled:shadow-none disabled:cursor-not-allowed"
+        className="w-full py-3.5 rounded-2xl text-white font-black transition-all duration-200 relative z-10 flex items-center justify-center gap-3 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 shadow-[0_4px_0_0_#3730a3,0_10px_20px_rgba(79,70,229,0.35)] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#3730a3,0_15px_30px_rgba(79,70,229,0.4)] active:translate-y-0.5 active:shadow-[0_1px_0_0_#3730a3,0_5px_10px_rgba(79,70,229,0.3)] disabled:opacity-40 disabled:transform-none disabled:shadow-none disabled:cursor-not-allowed disabled:from-slate-400 disabled:to-slate-500"
       >
         <span className="relative z-10 flex items-center justify-center gap-2 font-bold tracking-wide">
           {isApprovingTx || isApprovingReq ? (
@@ -809,29 +829,42 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
               Checking Quiz...
             </>
           ) : isMintSuccess ? (
-             "Success!"
+            <>
+              <svg className="w-5 h-5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
+              Minted Successfully!
+            </>
           ) : BigInt(allowance as any || 0) < BigInt(price) ? (
             <>
-              Approve LITE <span className="opacity-50">|</span> <span className="text-blue-200">Step 1</span>
-              <svg className="w-4 h-4 ml-1 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              Approve LITE <span className="opacity-40">·</span> <span className="text-blue-200 font-medium">Step 1</span>
+              <svg className="w-4 h-4 ml-0.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
             </>
           ) : (
             <>
-              Mint NFT <span className="opacity-50">|</span> <span className="text-blue-200">{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
-              <svg className="w-4 h-4 ml-1 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              Collect NFT <span className="opacity-40">·</span> <span className="text-blue-200 font-medium">{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
+              <svg className="w-4 h-4 ml-0.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
             </>
           )}
         </span>
       </button>
 
       {userBalance !== undefined && BigInt(userBalance as any) < BigInt(price) && (
-        <p className="text-xs text-rose-400 mt-3 font-semibold tracking-wide relative z-10 flex items-center justify-center gap-1.5 opacity-90">
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-          Insufficient LITE Balance
-        </p>
+        <div className="flex items-center gap-2 mt-3 px-3 py-1.5 bg-rose-50 dark:bg-rose-500/10 rounded-full border border-rose-100 dark:border-rose-500/20 relative z-10">
+          <svg className="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          <span className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold">Insufficient LITE Balance</span>
+        </div>
       )}
 
-      {renderCustomWeb3Button()}
+      {/* Wallet + Branding Footer */}
+      <div className="mt-5 relative z-10 w-full flex flex-col items-center gap-3">
+        {renderCustomWeb3Button()}
+        <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-60 transition-opacity duration-500">
+          <svg viewBox="0 0 200 200" className="w-3 h-3">
+            <circle cx="100" cy="100" r="100" fill="#F04E37" />
+            <text x="100" y="130" fill="#FFFFFF" fontSize="90" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="bold" textAnchor="middle" letterSpacing="-2">L</text>
+          </svg>
+          <span className="text-[9px] font-semibold text-slate-400 dark:text-slate-600 tracking-wider">Powered by Litera</span>
+        </div>
+      </div>
 
       <QuizModal 
         isOpen={isQuizOpen}
