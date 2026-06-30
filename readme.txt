@@ -48,6 +48,7 @@ Readers minting NFTs will need a small amount of POL (MATIC) for gas fees, unles
 * Removed local Web3 transaction dependencies (Wagmi/Viem) to improve performance and compatibility.
 * Moved Authorization (Quiz) and Minting logic to the central Dashboard (literaa.xyz) for enhanced security and persistent sessions.
 * Cross-Platform Continuity: Readers are seamlessly redirected to the Dashboard to unlock content and then returned to the article.
+* Redesigned Litera Widget UI with premium Glassmorphism and better user flows for unlocking content.
 
 = 1.0.3 =
 * Implement Wallet Signature Authentication (EIP-712).
