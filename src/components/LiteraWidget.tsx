@@ -222,7 +222,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
             You own this NFT but the content is encrypted. Please go to your Dashboard to view it.
           </p>
           <a
-            href="https://literaa.xyz/mynft"
+            href={`https://literaa.xyz/nfts/${contractAddress}/${tokenId}`}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition-colors mb-4 inline-flex items-center justify-center gap-2 shadow-sm"
