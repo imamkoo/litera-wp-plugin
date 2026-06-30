@@ -4,7 +4,7 @@ Tags: web3, nft, polygon, monetization, content creator
 Requires at least: 5.6
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -43,7 +43,7 @@ Readers minting NFTs will need a small amount of POL (MATIC) for gas fees, unles
 
 == Changelog ==
 
-= 1.1.0 =
+= 1.1.1 =
 * Major Architecture Update: Plugin transformed into a Thin Client.
 * Removed local Web3 transaction dependencies (Wagmi/Viem) to improve performance and compatibility.
 * Moved Authorization (Quiz) and Minting logic to the central Dashboard (literaa.xyz) for enhanced security and persistent sessions.
