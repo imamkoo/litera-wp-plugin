@@ -4,7 +4,7 @@ Tags: web3, nft, polygon, monetization, content creator
 Requires at least: 5.6
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,9 @@ Readers minting NFTs will need a small amount of POL (MATIC) for gas fees, unles
 1. The Litera unlock screen shown to readers.
 
 == Changelog ==
+
+= 1.1.2 =
+* UI Redesign: Minimalist and slim widget design for better theme compatibility.
 
 = 1.1.1 =
 * Major Architecture Update: Plugin transformed into a Thin Client.
