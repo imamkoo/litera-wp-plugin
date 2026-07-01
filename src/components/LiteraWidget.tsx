@@ -122,8 +122,12 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
           const res = await axios.get(`https://ipfs.io/ipfs/${cid}`, { timeout: 8000 });
           const extUrl = res.data?.properties?.external_url;
           if (extUrl && extUrl.length > 5) setSponsorUrl(extUrl);
-          if (res.data?.animation_url) setNftMedia({ url: res.data.animation_url, type: 'video' });
-          else if (res.data?.image) setNftMedia({ url: res.data.image, type: 'image' });
+          
+          const mediaUrl = res.data?.animation_url || res.data?.image;
+          if (mediaUrl) {
+            const isVideo = mediaUrl.toLowerCase().endsWith('.mp4') || mediaUrl.toLowerCase().endsWith('.webm') || res.data?.animation_url;
+            setNftMedia({ url: mediaUrl, type: isVideo ? 'video' : 'image' });
+          }
         } catch (e) {
           console.warn("Failed to fetch NFT metadata", e);
         }
@@ -412,6 +416,16 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
           <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_6px_rgba(59,130,246,0.5)]"></div>
           <span className="text-[9px] sm:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">Digital Collectible</span>
         </div>
+        
+        {nftMedia && (
+          <div className="w-full flex justify-center mb-4 relative z-10">
+            {nftMedia.type === 'video' ? (
+              <video src={nftMedia.url.replace('ipfs://', 'https://ipfs.io/ipfs/')} className="w-32 h-32 rounded-2xl object-cover shadow-lg border border-slate-200/50 dark:border-white/10" autoPlay loop muted playsInline />
+            ) : (
+              <img src={nftMedia.url.replace('ipfs://', 'https://ipfs.io/ipfs/')} alt="NFT Media" className="w-32 h-32 rounded-2xl object-cover shadow-lg border border-slate-200/50 dark:border-white/10" />
+            )}
+          </div>
+        )}
         
         <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug max-w-sm text-center">
           {articleTitle || 'Digital Asset'}
