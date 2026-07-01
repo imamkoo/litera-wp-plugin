@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/bundle.js",
+    "static/media/index.cjs": "/static/media/index.02a87dd5cbbefe30bb30.cjs",
+    "index.html": "/index.html"
+  },
+  "entrypoints": [
+    "bundle.js"
+  ]
+}

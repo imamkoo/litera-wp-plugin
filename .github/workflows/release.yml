@@ -26,10 +26,8 @@ jobs:
 
       - name: Prepare Plugin Package
         run: |
-          mkdir litera-wp-plugin
-          cp litera.php litera-wp-plugin/
-          cp -r build litera-wp-plugin/
-          zip -r litera-wp-plugin.zip litera-wp-plugin
+          chmod +x package-plugin.sh
+          ./package-plugin.sh
 
       - name: Release
         uses: softprops/action-gh-release@v1
