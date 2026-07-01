@@ -9,6 +9,7 @@ import { createWeb3Modal } from '@web3modal/wagmi/react'
 import { WagmiProvider } from 'wagmi'
 import {HeroUIProvider} from '@heroui/react'
 import {ToastProvider} from "@heroui/toast";
+import ErrorBoundary from './components/ErrorBoundary';
 
 const queryClient = new QueryClient()
 
@@ -39,7 +40,9 @@ root.render(
       <QueryClientProvider client={queryClient}>
         <HeroUIProvider>
           <ToastProvider />
-          <App />
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
         </HeroUIProvider>
       </QueryClientProvider>
     </WagmiProvider>
