@@ -443,7 +443,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
           <div className="flex items-center gap-1.5">
             <span className="opacity-60">Publisher</span>
             <span className="font-mono text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10">
-              {articleArray && articleArray[3] ? `${articleArray[3].slice(0,6)}...${articleArray[3].slice(-4)}` : '-'}
+              {articleArray && articleArray[1] ? `${articleArray[1].slice(0,6)}...${articleArray[1].slice(-4)}` : '-'}
             </span>
           </div>
           <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
