@@ -122,7 +122,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
 
   const handleAuthorizeAndMint = () => {
     const returnUrl = encodeURIComponent(window.location.href);
-    window.location.href = `https://literaa.xyz/authorize/${tokenId}?returnUrl=${returnUrl}`;
+    const walletParam = address ? `&wallet=${address}` : '';
+    window.location.href = `https://literaa.xyz/authorize/${tokenId}?returnUrl=${returnUrl}${walletParam}`;
   };
 
   const getOpenSeaUrl = () => {
