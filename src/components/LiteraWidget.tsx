@@ -10,6 +10,8 @@ import {
   unlockableABI,
   Erc1155Adress,
   erc1155ABI,
+  Erc20Adress,
+  erc20ABI,
   activeNetworkName,
   activeChainId
 } from '../shared/contracts/ContractConfig';
@@ -46,7 +48,17 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     chainId: activeChainId,
     query: { enabled: !!tokenId }
   });
+
   const articleArray = articleInfo as any[];
+
+  const { data: userBalance } = useReadContract({
+    address: Erc20Adress,
+    abi: erc20ABI,
+    functionName: 'balanceOf',
+    args: [address as `0x${string}`],
+    chainId: activeChainId,
+    query: { enabled: !!address, refetchInterval: 10000 }
+  });
   const creatorAddress = articleArray ? articleArray[4] : "0x0";
   const publisherAddress = articleArray ? articleArray[1] : "0x0";
   const price = articleArray ? articleArray[5] : BigInt(0);
@@ -364,25 +376,15 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     return (
       <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-[#0a0a0a]/90 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(0,0,0,0.8)] border border-slate-200/80 dark:border-white/10 text-center my-6 overflow-hidden group hover:dark:border-white/20 transition-all duration-700">
         
-        {/* Subtle dark glow for Sold Out */}
-        <div className="absolute -top-32 -right-32 w-64 h-64 bg-slate-300/40 dark:bg-slate-700/20 rounded-full blur-[80px] pointer-events-none group-hover:bg-slate-300/50 transition-colors duration-700"></div>
-        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-red-500/5 dark:bg-red-600/5 rounded-full blur-[80px] pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-100/50 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none"></div>
-        
-        {/* Watermark Icon */}
-        <div className="absolute -bottom-16 -right-16 text-slate-200/50 dark:text-slate-800/50 pointer-events-none transition-transform duration-1000 group-hover:scale-105 group-hover:-rotate-3">
-          <svg className="w-48 h-48 sm:w-64 sm:h-64" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
-          </svg>
-        </div>
-
         <div className="w-14 h-14 mb-4 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center text-slate-500 dark:text-slate-400 shadow-inner border border-slate-300/50 dark:border-slate-700/50 relative z-10 group-hover:scale-105 transition-transform duration-500">
           <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
         </div>
 
-        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-bold mb-3 tracking-[0.15em] text-[9px] sm:text-[10px] bg-slate-100 dark:bg-slate-800/50 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 relative z-10">
-          <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-          <span>MINTING ENDED</span>
+        <div className="bg-slate-800 dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700/50 relative z-10 group-hover:border-emerald-500/30 transition-colors">
+          <span className="text-[10px] sm:text-xs font-mono font-medium text-slate-300">
+            {userBalance !== undefined && userBalance !== null ? <span className="text-emerald-400 font-bold mr-1">{parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', {maximumFractionDigits: 2})} LITE |</span> : null}
+            {address?.slice(0, 6)}...{address?.slice(-4)}
+          </span>
         </div>
 
         <h3 className="text-2xl sm:text-[28px] font-black text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Sold Out</h3>
@@ -415,38 +417,22 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
           {articleTitle || 'Digital Asset'}
         </h3>
         
-        {maxMinted > 0 && (
-          <div className="flex w-full justify-between mt-4">
-             <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex-1 mx-1">
-               <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black mb-1">PRICE</span>
-               <span className="text-sm font-black text-slate-800 dark:text-white">{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')}` : 'Free'}</span>
-               <span className="text-[9px] font-bold text-blue-500">LITE</span>
-             </div>
-             <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex-1 mx-1">
-               <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black mb-1">SUPPLY</span>
-               <span className="text-sm font-black text-slate-800 dark:text-white">{maxMinted}</span>
-               <span className="text-[9px] font-bold text-slate-500">Limited</span>
-             </div>
-             <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex-1 mx-1">
-               <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black mb-1">MINTED</span>
-               <span className="text-sm font-black text-slate-800 dark:text-white">{totalMinted}</span>
-               <span className="text-[9px] font-bold text-emerald-500">Collected</span>
-             </div>
+        <div className="flex items-center gap-3 mt-3 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
+          <div className="flex items-center gap-1.5">
+            <span className="opacity-60">Publisher</span>
+            <span className="font-mono text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10">
+              {articleArray && articleArray[3] ? `${articleArray[3].slice(0,6)}...${articleArray[3].slice(-4)}` : '-'}
+            </span>
           </div>
-        )}
+          <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+          <div className="flex items-center gap-1.5">
+            <span className="opacity-60">Author</span>
+            <span className="font-mono text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10">
+              {articleArray && articleArray[4] ? `${articleArray[4].slice(0,6)}...${articleArray[4].slice(-4)}` : '-'}
+            </span>
+          </div>
+        </div>
       </div>
-
-      {maxMinted > 0 && (
-         <div className="w-full relative z-10 mb-6">
-           <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
-             <span className="text-blue-500">{Math.round((totalMinted / maxMinted) * 100)}% Minted</span>
-             <span>{totalMinted}/{maxMinted}</span>
-           </div>
-           <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-             <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${(totalMinted / maxMinted) * 100}%` }}></div>
-           </div>
-         </div>
-      )}
 
       {/* Mint Button via Authorization Platform redirect */}
       <button
