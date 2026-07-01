@@ -21,6 +21,13 @@ interface LiteraWidgetProps {
   articleTitle?: string;
 }
 
+const formatIpfsUrl = (url: string | undefined): string => {
+  if (!url) return '';
+  if (url.startsWith('ipfs://')) return url.replace('ipfs://', 'https://ipfs.io/ipfs/');
+  if (url.startsWith('Qm') || url.startsWith('bafy')) return `https://ipfs.io/ipfs/${url}`;
+  return url;
+};
+
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) => {
   const { address, isConnected } = useAccount();
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
@@ -123,9 +130,10 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
           const extUrl = res.data?.properties?.external_url;
           if (extUrl && extUrl.length > 5) setSponsorUrl(extUrl);
           
-          const mediaUrl = res.data?.animation_url || res.data?.image;
+          let mediaUrl = res.data?.animation_url || res.data?.image;
           if (mediaUrl) {
-            const isVideo = mediaUrl.toLowerCase().endsWith('.mp4') || mediaUrl.toLowerCase().endsWith('.webm') || res.data?.animation_url;
+            mediaUrl = formatIpfsUrl(mediaUrl);
+            const isVideo = mediaUrl.toLowerCase().endsWith('.mp4') || mediaUrl.toLowerCase().endsWith('.webm') || !!res.data?.animation_url;
             setNftMedia({ url: mediaUrl, type: isVideo ? 'video' : 'image' });
           }
         } catch (e) {
@@ -420,9 +428,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
         {nftMedia && (
           <div className="w-full flex justify-center mb-4 relative z-10">
             {nftMedia.type === 'video' ? (
-              <video src={nftMedia.url.replace('ipfs://', 'https://ipfs.io/ipfs/')} className="w-32 h-32 rounded-2xl object-cover shadow-lg border border-slate-200/50 dark:border-white/10" autoPlay loop muted playsInline />
+              <video src={nftMedia.url} className="w-32 h-32 rounded-2xl object-cover shadow-lg border border-slate-200/50 dark:border-white/10" autoPlay loop muted playsInline />
             ) : (
-              <img src={nftMedia.url.replace('ipfs://', 'https://ipfs.io/ipfs/')} alt="NFT Media" className="w-32 h-32 rounded-2xl object-cover shadow-lg border border-slate-200/50 dark:border-white/10" />
+              <img src={nftMedia.url} alt="NFT Media" className="w-32 h-32 rounded-2xl object-cover shadow-lg border border-slate-200/50 dark:border-white/10" />
             )}
           </div>
         )}
