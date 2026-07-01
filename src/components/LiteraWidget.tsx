@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
+import { formatUnits } from 'viem';
 import axios from 'axios';
 import {
   contractAddress,
@@ -48,6 +49,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   const articleArray = articleInfo as any[];
   const creatorAddress = articleArray ? articleArray[4] : "0x0";
   const publisherAddress = articleArray ? articleArray[1] : "0x0";
+  const price = articleArray ? articleArray[5] : BigInt(0);
   const maxMinted = articleArray ? Number(articleArray[6]) : 0;
   const totalMinted = articleArray ? Number(articleArray[7]) : 0;
   const isSoldOut = maxMinted > 0 && totalMinted >= maxMinted;
@@ -132,39 +134,44 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     return (
       <button
         onClick={() => open()}
-        className="flex items-center justify-center py-2 px-4 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors border border-slate-200 mt-4 mx-auto w-full sm:w-auto"
+        className="group relative flex items-center justify-center py-3 px-6 rounded-2xl bg-slate-900 dark:bg-slate-800 text-white font-black transition-all duration-200 shadow-[0_4px_0_0_#1e293b,0_10px_20px_rgba(0,0,0,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#1e293b,0_15px_25px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#1e293b,0_5px_10px_rgba(0,0,0,0.5)] overflow-hidden mt-4 z-10 border border-slate-700/50 mx-auto w-fit"
       >
-        {isConnected ? (
-          <span className="flex items-center gap-2">
-             <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-            {address?.slice(0, 6)}...{address?.slice(-4)}
-          </span>
-        ) : (
-          <span className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-            Connect Wallet
-          </span>
-        )}
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <span className="relative z-10 flex items-center justify-center gap-3">
+          {isConnected ? (
+            <>
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 dark:bg-slate-100 rounded-xl shadow-inner">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]"></div>
+                <span className="text-sm font-extrabold text-emerald-400 dark:text-emerald-600">CONNECTED</span>
+              </div>
+              <span className="text-sm tracking-wide opacity-90 text-slate-300 dark:text-slate-400 font-mono bg-slate-800/50 dark:bg-slate-900/50 px-3 py-1 rounded-xl">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+            </>
+          ) : (
+            <div className="flex items-center justify-center gap-2">
+              <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+              <span>Connect Wallet</span>
+            </div>
+          )}
+        </span>
       </button>
     );
   };
 
-  const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <div className="litera-widget-container flex flex-col items-center justify-center p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm text-center my-8 max-w-2xl mx-auto">
-      {children}
-    </div>
-  );
-
   if (!isConnected) {
     return (
-      <Wrapper>
-        <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-4 border border-slate-100 text-slate-700">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path></svg>
+      <div className="litera-widget-container relative flex flex-col items-center justify-center p-6 sm:p-8 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(0,0,0,0.7)] border border-slate-200/50 dark:border-white/5 text-center my-6 transition-all duration-500 overflow-hidden group hover:dark:border-white/10">
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-slate-300/30 dark:bg-slate-700/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-slate-300/40 transition-colors duration-700"></div>
+        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-500/20 transition-colors duration-700"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-slate-200/20 via-transparent to-slate-200/20 dark:from-white/5 dark:to-transparent opacity-50 pointer-events-none"></div>
+
+        <div className="w-14 h-14 mb-4 bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-black rounded-2xl flex items-center justify-center shadow-2xl border border-slate-700/50 relative z-10 group-hover:scale-105 transition-transform duration-500">
+          <svg className="w-7 h-7 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
-        <h3 className="text-lg font-bold text-slate-900 mb-1">Exclusive Collectible</h3>
-        <p className="text-sm text-slate-500 mb-2 max-w-sm">Connect wallet to check access, take quiz, and mint.</p>
+        <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Exclusive Collectible</h3>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs leading-relaxed relative z-10">Connect your Web3 wallet to collect this article and unlock premium perks.</p>
+        
         {renderCustomWeb3Button()}
-      </Wrapper>
+      </div>
     );
   }
 
@@ -172,11 +179,18 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
 
   if (isConnected && isDataLoading) {
     return (
-      <Wrapper>
-        <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-blue-500 animate-spin mb-4"></div>
-        <div className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-2">Verifying...</div>
-        {renderCustomWeb3Button()}
-      </Wrapper>
+      <div className="litera-widget-container flex flex-col items-center p-6 sm:p-8 bg-white/80 dark:bg-[#0a0a0a]/90 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-200/50 dark:shadow-[0_0_60px_-15px_rgba(255,255,255,0.05)] border border-white/50 dark:border-white/10 my-6 text-center transition-all duration-500">
+        <div className="w-14 h-14 mb-4 bg-gradient-to-tr from-blue-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-blue-900/50">
+          <svg className="w-7 h-7 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        </div>
+        <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold mb-3 tracking-wide text-xs bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full border border-blue-100 dark:border-blue-800/50">
+          <span>VERIFYING ACCESS</span>
+        </div>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs leading-relaxed">Checking your wallet for Litera Access License...</p>
+        <div className="mt-2 flex justify-center w-full">
+          {renderCustomWeb3Button()}
+        </div>
+      </div>
     );
   }
 
@@ -185,102 +199,278 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
 
     if (hasUnlockableContent && isValidCid && unlockedContent) {
       return (
-        <Wrapper>
-          <div className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-200 mb-4 inline-flex items-center gap-1.5">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-            ACCESS GRANTED
+        <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-[#0a0a0a]/80 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(249,115,22,0.15)] border border-orange-500/10 dark:border-orange-500/20 my-6 transition-all duration-500 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 to-transparent dark:from-orange-500/10 pointer-events-none"></div>
+          <div className="absolute -top-32 -left-32 w-64 h-64 bg-orange-500/20 dark:bg-orange-600/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+          <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 font-bold mb-4 tracking-[0.15em] text-[10px] bg-orange-50 dark:bg-orange-950/50 px-3 py-1 rounded-full border border-orange-200/50 dark:border-orange-800/50 relative z-10">
+            <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></div>
+            <span>ACCESS GRANTED</span>
           </div>
-          <div className="w-full bg-white p-5 rounded-xl border border-slate-200 mb-5 text-left shadow-sm">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Secret Message</h4>
-            <p className="text-slate-800 text-sm leading-relaxed">{unlockedContent.description}</p>
+
+          <div className="w-full bg-slate-50/50 dark:bg-black/50 p-5 rounded-2xl border border-slate-200/50 dark:border-white/5 mb-4 relative overflow-hidden backdrop-blur-sm z-10 group">
+            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-orange-400 to-orange-600"></div>
+            <div className="absolute inset-0 bg-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <p className="text-slate-800 dark:text-slate-200 font-mono text-xs sm:text-sm text-left leading-relaxed relative z-10">
+              {unlockedContent.description}
+            </p>
           </div>
+          
           <a
             href={unlockedContent.content}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors mb-5 text-sm inline-block shadow-sm"
+            className="relative flex items-center justify-center gap-2 w-full py-3.5 text-center rounded-2xl bg-orange-500 text-white font-black transition-all duration-200 shadow-[0_4px_0_0_#c2410c,0_10px_20px_rgba(249,115,22,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#c2410c,0_15px_25px_rgba(249,115,22,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#c2410c,0_5px_10px_rgba(249,115,22,0.5)] border border-orange-400 mb-4 z-10 text-sm"
           >
-            Open Premium Content
+            <span className="tracking-wide">Open Premium Content</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
           </a>
-          <div className="flex flex-wrap justify-center gap-2 mb-2 w-full">
-            <a href={getOpenSeaUrl()} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none px-4 py-2 text-center rounded-lg bg-white border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50">View NFT</a>
-            {sponsorUrl && <a href={sponsorUrl} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none px-4 py-2 text-center rounded-lg bg-slate-800 text-white text-xs font-medium hover:bg-slate-900">Learn More</a>}
+          
+          <div className="flex flex-col-reverse sm:flex-row w-full gap-3 z-10">
+            <a
+              href={getOpenSeaUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 py-3 text-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-200 dark:hover:bg-white/10 transition-all duration-300 border border-slate-200/80 dark:border-white/10 text-sm"
+            >
+              <span>View NFT</span>
+            </a>
+            {sponsorUrl && sponsorUrl.length > 5 && (
+              <a href={sponsorUrl} target="_blank" rel="noopener noreferrer" className="flex-[1.5] flex items-center justify-center gap-2 py-3 text-center rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all duration-300 border border-blue-200 dark:border-blue-700/50 text-sm shadow-sm">
+                <span>Learn More</span>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+              </a>
+            )}
           </div>
+          
           {renderCustomWeb3Button()}
-        </Wrapper>
+        </div>
       );
     }
 
     if (hasUnlockableContent && !isValidCid) {
        return (
-        <Wrapper>
-          <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-4 border border-slate-100 text-slate-500">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-slate-50 dark:bg-slate-900 rounded-[2rem] shadow-sm border border-slate-200/60 dark:border-white/5 my-6 overflow-hidden text-center">
+          
+          {/* Watermark Lock Icon */}
+          <div className="absolute -bottom-12 -right-12 text-slate-200/80 dark:text-slate-800/80 pointer-events-none">
+            <svg className="w-64 h-64" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
           </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-1">Content Locked</h3>
-          <p className="text-sm text-slate-500 mb-5 max-w-sm">
+
+          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20 mb-5 relative z-10">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+          </div>
+
+          <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 dark:text-white mb-2 relative z-10 tracking-tight">Content Locked</h3>
+          
+          <p className="text-xs sm:text-[14px] text-slate-500 dark:text-slate-400 mb-6 max-w-sm leading-relaxed relative z-10">
             You own this NFT but the content is encrypted. Please go to your Dashboard to view it.
           </p>
+
           <a
             href={`https://literaa.xyz/nfts/${contractAddress}/${tokenId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition-colors mb-4 inline-flex items-center justify-center gap-2 shadow-sm"
+            className="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-blue-600 text-white font-bold transition-all duration-200 shadow-[0_4px_0_0_#1d4ed8,0_10px_20px_rgba(37,99,235,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#1d4ed8,0_15px_25px_rgba(37,99,235,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#1d4ed8,0_5px_10px_rgba(37,99,235,0.5)] relative z-10 flex items-center justify-center gap-2 text-sm"
           >
             Decrypt on Dashboard
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
           </a>
-          {renderCustomWeb3Button()}
-        </Wrapper>
+
+          <div className="mt-8 relative z-10 self-center">
+             {renderCustomWeb3Button()}
+          </div>
+        </div>
       );
     }
 
     return (
-      <Wrapper>
-        <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mb-4 border border-green-100 text-green-600">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-[#0a0a0a]/90 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(16,185,129,0.15)] border border-emerald-100/50 dark:border-emerald-900/30 my-6 text-center transition-all duration-700 overflow-hidden group hover:dark:border-white/20">
+        
+        {/* Premium Web3 Glow Effects */}
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-emerald-500/10 dark:bg-emerald-600/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-emerald-500/20 transition-colors duration-700"></div>
+        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-slate-500/10 dark:bg-slate-600/10 rounded-full blur-[80px] pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent dark:from-emerald-500/5 dark:to-transparent opacity-50 pointer-events-none"></div>
+
+        {/* Watermark Icon */}
+        <div className="absolute -bottom-16 -right-16 text-emerald-200/30 dark:text-emerald-800/20 pointer-events-none transition-transform duration-1000 group-hover:scale-105 group-hover:-rotate-3">
+          <svg className="w-48 h-48 sm:w-64 sm:h-64" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
         </div>
-        <h3 className="text-lg font-bold text-slate-900 mb-1">Collection Owned</h3>
-        <p className="text-sm text-green-600 font-medium mb-5">You successfully own this Digital Asset.</p>
-        <div className="flex flex-wrap justify-center gap-2 mb-2 w-full">
-          <a href={getOpenSeaUrl()} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none px-4 py-2 text-center rounded-lg bg-white border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50">View NFT</a>
-          {sponsorUrl && <a href={sponsorUrl} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none px-4 py-2 text-center rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700">Learn More</a>}
+        
+        <div className="w-12 h-12 mb-3 bg-gradient-to-tr from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30 relative z-10 group-hover:scale-105 transition-transform duration-500">
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
         </div>
-        {renderCustomWeb3Button()}
-      </Wrapper>
+        
+        <div className="flex flex-col items-center justify-center gap-1 mb-2 text-slate-900 dark:text-white font-extrabold text-xl sm:text-2xl tracking-tight relative z-10">
+          <p>Collection Verified</p>
+        </div>
+        <p className="text-sm sm:text-base font-semibold text-emerald-600 dark:text-emerald-400 mb-6 max-w-xs leading-relaxed relative z-10">
+          You now own this Digital Asset.
+        </p>
+        
+        {sponsorUrl && sponsorUrl.length > 5 ? (
+          <div className="relative z-10 flex flex-col sm:flex-row w-full gap-3 mt-2 mb-2">
+            <a href={sponsorUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3.5 text-center rounded-2xl bg-emerald-500 text-white font-black transition-all duration-200 shadow-[0_4px_0_0_#059669,0_10px_20px_rgba(16,185,129,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#059669,0_15px_25px_rgba(16,185,129,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#059669,0_5px_10px_rgba(16,185,129,0.5)] text-sm">
+              <span>Learn More</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            </a>
+            <a href={getOpenSeaUrl()} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3.5 text-center rounded-2xl bg-white dark:bg-transparent text-slate-800 dark:text-white font-bold transition-all duration-200 border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-emerald-500/50 hover:bg-slate-50 dark:hover:bg-emerald-900/20 shadow-sm hover:shadow text-sm">
+              <span>View NFT</span>
+            </a>
+          </div>
+        ) : (
+          <a
+            href={getOpenSeaUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative z-10 flex items-center justify-center gap-2 w-full py-3.5 text-center rounded-2xl bg-white dark:bg-transparent text-slate-800 dark:text-white font-bold transition-all duration-200 border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-emerald-500/50 hover:bg-slate-50 dark:hover:bg-emerald-900/20 mt-2 mb-2 shadow-sm hover:shadow text-sm"
+          >
+            <span>View NFT</span>
+          </a>
+        )}
+        
+        <div className="mt-4 relative z-10 w-full flex justify-center">
+          {renderCustomWeb3Button()}
+        </div>
+      </div>
     );
   }
 
-  if (!isArticleValid) return (
-    <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 text-sm font-medium text-center my-6 max-w-sm mx-auto">Asset Not Found</div>
-  );
-  if (isSoldOut) return (
-    <div className="p-4 bg-slate-50 text-slate-500 rounded-xl border border-slate-200 text-sm font-medium text-center my-6 max-w-sm mx-auto flex items-center justify-center gap-2">
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-      Sold Out
-    </div>
-  );
+  if (!isArticleValid) {
+    return (
+      <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-[#0a0a0a]/90 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(0,0,0,0.8)] border border-red-200/80 dark:border-red-900/30 text-center my-6 overflow-hidden group hover:dark:border-red-500/20 transition-all duration-700">
+        <div className="w-14 h-14 mb-4 bg-gradient-to-br from-red-400 to-red-500 dark:from-red-800 dark:to-red-900 rounded-2xl flex items-center justify-center text-white shadow-inner border border-red-300/50 dark:border-red-700/50 relative z-10 group-hover:scale-105 transition-transform duration-500">
+          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        </div>
+        <div className="flex items-center gap-2 text-red-500 dark:text-red-400 font-bold mb-3 tracking-[0.15em] text-[9px] sm:text-[10px] bg-red-50 dark:bg-red-900/30 px-3 py-1 rounded-full border border-red-100 dark:border-red-800/50 relative z-10">
+          <span>NFT NOT INITIALIZED</span>
+        </div>
+        <h3 className="text-2xl sm:text-[24px] font-black text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Asset Not Found</h3>
+        <p className="text-xs sm:text-[14px] text-slate-500 dark:text-slate-400 mb-6 max-w-sm leading-relaxed relative z-10">
+          This article was published on WordPress, but the NFT has not been successfully deployed to the blockchain. Please contact the publisher.
+        </p>
+        {renderCustomWeb3Button()}
+      </div>
+    );
+  }
+
+  if (isSoldOut) {
+    return (
+      <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-[#0a0a0a]/90 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(0,0,0,0.8)] border border-slate-200/80 dark:border-white/10 text-center my-6 overflow-hidden group hover:dark:border-white/20 transition-all duration-700">
+        
+        {/* Subtle dark glow for Sold Out */}
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-slate-300/40 dark:bg-slate-700/20 rounded-full blur-[80px] pointer-events-none group-hover:bg-slate-300/50 transition-colors duration-700"></div>
+        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-red-500/5 dark:bg-red-600/5 rounded-full blur-[80px] pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-100/50 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none"></div>
+        
+        {/* Watermark Icon */}
+        <div className="absolute -bottom-16 -right-16 text-slate-200/50 dark:text-slate-800/50 pointer-events-none transition-transform duration-1000 group-hover:scale-105 group-hover:-rotate-3">
+          <svg className="w-48 h-48 sm:w-64 sm:h-64" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+          </svg>
+        </div>
+
+        <div className="w-14 h-14 mb-4 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center text-slate-500 dark:text-slate-400 shadow-inner border border-slate-300/50 dark:border-slate-700/50 relative z-10 group-hover:scale-105 transition-transform duration-500">
+          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+        </div>
+
+        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-bold mb-3 tracking-[0.15em] text-[9px] sm:text-[10px] bg-slate-100 dark:bg-slate-800/50 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 relative z-10">
+          <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+          <span>MINTING ENDED</span>
+        </div>
+
+        <h3 className="text-2xl sm:text-[28px] font-black text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Sold Out</h3>
+        
+        <p className="text-xs sm:text-[14px] text-slate-500 dark:text-slate-400 mb-6 max-w-sm leading-relaxed relative z-10">
+          All available NFTs for this campaign have been minted. Thank you for the incredible support!
+        </p>
+
+        {renderCustomWeb3Button()}
+      </div>
+    );
+  }
 
   return (
-    <Wrapper>
-      <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-4 border border-slate-100 text-blue-600">
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+    <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(99,102,241,0.08)] border border-slate-200/60 dark:border-white/[0.06] text-center my-6 transition-all duration-700 overflow-hidden group hover:border-slate-300/80 hover:dark:border-white/[0.12]">
+      
+      {/* Premium Ambient Glow */}
+      <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-500/8 to-indigo-500/8 dark:from-blue-500/10 dark:to-indigo-500/10 rounded-full blur-[100px] pointer-events-none group-hover:from-blue-500/12 group-hover:to-indigo-500/12 transition-all duration-1000"></div>
+      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-violet-500/6 to-purple-500/6 dark:from-violet-500/8 dark:to-purple-500/8 rounded-full blur-[100px] pointer-events-none group-hover:from-violet-500/10 group-hover:to-purple-500/10 transition-all duration-1000"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-transparent dark:from-white/[0.02] dark:to-transparent pointer-events-none"></div>
+
+      {/* Header: Badge + Title */}
+      <div className="flex flex-col items-center w-full relative z-10 mb-6">
+        <div className="flex items-center gap-2 mb-4 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 rounded-full border border-blue-100 dark:border-blue-500/20">
+          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_6px_rgba(59,130,246,0.5)]"></div>
+          <span className="text-[9px] sm:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">Digital Collectible</span>
+        </div>
+        
+        <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug max-w-sm text-center">
+          {articleTitle || 'Digital Asset'}
+        </h3>
+        
+        {maxMinted > 0 && (
+          <div className="flex w-full justify-between mt-4">
+             <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex-1 mx-1">
+               <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black mb-1">PRICE</span>
+               <span className="text-sm font-black text-slate-800 dark:text-white">{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')}` : 'Free'}</span>
+               <span className="text-[9px] font-bold text-blue-500">LITE</span>
+             </div>
+             <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex-1 mx-1">
+               <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black mb-1">SUPPLY</span>
+               <span className="text-sm font-black text-slate-800 dark:text-white">{maxMinted}</span>
+               <span className="text-[9px] font-bold text-slate-500">Limited</span>
+             </div>
+             <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex-1 mx-1">
+               <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black mb-1">MINTED</span>
+               <span className="text-sm font-black text-slate-800 dark:text-white">{totalMinted}</span>
+               <span className="text-[9px] font-bold text-emerald-500">Collected</span>
+             </div>
+          </div>
+        )}
       </div>
-      <h3 className="text-lg font-bold text-slate-900 mb-1 line-clamp-1 max-w-xs">{articleTitle || 'Digital Asset'}</h3>
-      <div className="flex items-center gap-1.5 mb-5 text-xs">
-        <span className="font-semibold text-slate-700">{totalMinted}</span>
-        <span className="text-slate-400">/</span>
-        <span className="text-slate-500">{maxMinted} Minted</span>
-      </div>
+
+      {maxMinted > 0 && (
+         <div className="w-full relative z-10 mb-6">
+           <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
+             <span className="text-blue-500">{Math.round((totalMinted / maxMinted) * 100)}% Minted</span>
+             <span>{totalMinted}/{maxMinted}</span>
+           </div>
+           <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+             <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${(totalMinted / maxMinted) * 100}%` }}></div>
+           </div>
+         </div>
+      )}
+
+      {/* Mint Button via Authorization Platform redirect */}
       <button
         onClick={handleAuthorizeAndMint}
-        className="w-full sm:w-auto px-8 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors flex justify-center items-center gap-2 shadow-sm text-sm mb-2"
+        className="w-full py-3.5 rounded-2xl text-white font-black transition-all duration-200 relative z-10 flex items-center justify-center gap-3 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 shadow-[0_4px_0_0_#3730a3,0_10px_20px_rgba(79,70,229,0.35)] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#3730a3,0_15px_30px_rgba(79,70,229,0.4)] active:translate-y-0.5 active:shadow-[0_1px_0_0_#3730a3,0_5px_10px_rgba(79,70,229,0.3)]"
       >
-        Authorize & Mint
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        <span className="relative z-10 flex items-center justify-center gap-2 font-bold tracking-wide">
+          Collect NFT <span className="opacity-40">·</span> <span className="text-blue-200 font-medium">{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
+          <svg className="w-4 h-4 ml-0.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </span>
       </button>
-      {renderCustomWeb3Button()}
-    </Wrapper>
+
+      {/* Wallet + Branding Footer */}
+      <div className="mt-5 relative z-10 w-full flex flex-col items-center gap-3">
+        {renderCustomWeb3Button()}
+        <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-60 transition-opacity duration-500 mt-2">
+          <svg viewBox="0 0 200 200" className="w-3 h-3">
+            <circle cx="100" cy="100" r="100" fill="#F04E37" />
+            <text x="100" y="130" fill="#FFFFFF" fontSize="90" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="bold" textAnchor="middle" letterSpacing="-2">L</text>
+          </svg>
+          <span className="text-[9px] font-semibold text-slate-400 dark:text-slate-600 tracking-wider">Powered by Litera</span>
+        </div>
+      </div>
+
+    </div>
   );
 };
 
