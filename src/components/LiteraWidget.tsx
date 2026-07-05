@@ -36,6 +36,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   const [nftMedia, setNftMedia] = useState<{ url: string, type: 'image' | 'video' } | null>(null);
   const [publisherName, setPublisherName] = useState<string | null>(null);
   const [authorName, setAuthorName] = useState<string | null>(null);
+  const [articleCid, setArticleCid] = useState<string | null>(null);
   const { open } = useWeb3Modal();
 
   // --- Quiz & Auth States ---
@@ -166,6 +167,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
 
           const fetchedAuthor = res.data?.author || res.data?.properties?.AUTHOR || res.data?.properties?.Author || res.data?.properties?.author;
           if (fetchedAuthor) setAuthorName(fetchedAuthor);
+
+          const contentCid = res.data?.properties?.Content || res.data?.properties?.content;
+          if (contentCid) setArticleCid(contentCid);
         } catch (e) {
           console.warn("Failed to fetch NFT metadata", e);
         }
@@ -187,9 +191,15 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
 
   const handleStartAuthorization = async () => {
     if (!tokenId || !address) return;
+    
+    if (!articleCid) {
+      setStep('mint_ready');
+      return;
+    }
+
     setStep('checking_auth');
     try {
-      const quizRes = await axios.get(`https://literaa.xyz/quizzes?url=${tokenId}`);
+      const quizRes = await axios.get(`https://literaa.xyz/quizzes?url=${articleCid}`);
       const quizData = quizRes.data;
 
       if (!quizData || quizData.status === 'OFF' || !quizData.questions || quizData.questions.length === 0) {
@@ -197,7 +207,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
         return;
       }
 
-      const statusRes = await axios.get(`https://literaa.xyz/quizzes/${tokenId}/status/${address}`);
+      const statusRes = await axios.get(`https://literaa.xyz/quizzes/${articleCid}/status/${address}`);
       const statusData = statusRes.data;
 
       if (statusData && statusData.hasAttempted && statusData.status === 'PASS') {
@@ -207,7 +217,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
 
       setQuestions(quizData.questions);
       setStep('quiz_intro');
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response && error.response.status === 404) {
+        setStep('mint_ready');
+        return;
+      }
       console.error("Auth fetch failed", error);
       setErrorMessage("Failed to load Authorization Mechanism. Please try again later.");
       setStep('error');
@@ -235,7 +249,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
           questionId: Number(qId),
           optionId: oId
         }));
-        const res = await axios.post(`https://literaa.xyz/quizzes/${tokenId}/submit`, {
+        const res = await axios.post(`https://literaa.xyz/quizzes/${articleCid}/submit`, {
           walletAddress: address,
           answers: answersArray
         });
