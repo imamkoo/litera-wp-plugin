@@ -167,7 +167,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
             <>
               <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 dark:bg-slate-100 rounded-xl shadow-inner">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]"></div>
-                <span className="text-sm font-extrabold text-emerald-400 dark:text-emerald-600">CONNECTED</span>
+                <span className="text-sm font-extrabold text-emerald-400 dark:text-emerald-600">
+                  {userBalance !== undefined && userBalance !== null ? `${parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', {maximumFractionDigits: 2})} LITE` : '0 LITE'}
+                </span>
               </div>
               <span className="text-sm tracking-wide opacity-90 text-slate-300 dark:text-slate-400 font-mono bg-slate-800/50 dark:bg-slate-900/50 px-3 py-1 rounded-xl">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
             </>
@@ -442,15 +444,17 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
         <div className="flex items-center gap-3 mt-3 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
           <div className="flex items-center gap-1.5">
             <span className="opacity-60">Publisher</span>
-            <span className="font-mono text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10">
-              {articleArray && articleArray[1] ? `${articleArray[1].slice(0,6)}...${articleArray[1].slice(-4)}` : '-'}
+            <span className="flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-500/20">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Verified
             </span>
           </div>
           <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
           <div className="flex items-center gap-1.5">
             <span className="opacity-60">Author</span>
-            <span className="font-mono text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10">
-              {articleArray && articleArray[4] ? `${articleArray[4].slice(0,6)}...${articleArray[4].slice(-4)}` : '-'}
+            <span className="flex items-center gap-1 font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.5 rounded-md border border-blue-200 dark:border-blue-500/20">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Verified
             </span>
           </div>
         </div>
