@@ -833,7 +833,7 @@ Expires: ${expiresAt}`;
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 auto 24px auto', maxWidth: '280px', lineHeight: 1.6 }}>
             {quizResult.passed 
               ? 'Congratulations! Your signature has been verified and you may now proceed to mint your digital collectible.' 
-              : `You need at least 60% to pass. Please review the content and try again.`}
+              : `You need at least ${quizResult.passingScore ?? 60}% to pass. Please review the content and try again.`}
           </p>
 
           {isPassed ? (
