@@ -29,6 +29,161 @@ const formatIpfsUrl = (url: string | undefined): string => {
   return url;
 };
 
+/* ═══════════════════════════════════════════════════════
+   Dynamic Theme CSS — injected once via <style> tag.
+   Uses prefers-color-scheme so dark/light follows device.
+   ═══════════════════════════════════════════════════════ */
+const THEME_CSS = `
+@media (prefers-color-scheme: light) {
+  .lw-root {
+    --lw-bg: rgba(255,255,255,0.85);
+    --lw-bg-alt: #f8fafc;
+    --lw-bg-inner: rgba(241,245,249,0.6);
+    --lw-border: rgba(226,232,240,0.6);
+    --lw-border-hover: rgba(203,213,225,0.8);
+    --lw-text: #0f172a;
+    --lw-text-secondary: #64748b;
+    --lw-text-muted: #94a3b8;
+    --lw-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    --lw-option-bg: #f1f5f9;
+    --lw-option-border: #e2e8f0;
+    --lw-option-hover: #e2e8f0;
+    --lw-option-selected-bg: rgba(240,78,55,0.08);
+    --lw-option-selected-border: #F04E37;
+    --lw-progress-bg: #e2e8f0;
+    --lw-badge-bg: rgba(240,78,55,0.08);
+    --lw-badge-border: rgba(240,78,55,0.15);
+    --lw-badge-text: #F04E37;
+    --lw-wallet-bg: #1e293b;
+    --lw-wallet-text: #ffffff;
+    --lw-score-card-bg: #f8fafc;
+    --lw-glow: transparent;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .lw-root {
+    --lw-bg: rgba(10,10,15,0.92);
+    --lw-bg-alt: #111118;
+    --lw-bg-inner: rgba(255,255,255,0.04);
+    --lw-border: rgba(255,255,255,0.08);
+    --lw-border-hover: rgba(255,255,255,0.15);
+    --lw-text: #f1f5f9;
+    --lw-text-secondary: #94a3b8;
+    --lw-text-muted: #475569;
+    --lw-shadow: 0 4px 40px rgba(0,0,0,0.4);
+    --lw-option-bg: rgba(255,255,255,0.04);
+    --lw-option-border: rgba(255,255,255,0.08);
+    --lw-option-hover: rgba(255,255,255,0.08);
+    --lw-option-selected-bg: rgba(240,78,55,0.12);
+    --lw-option-selected-border: #F04E37;
+    --lw-progress-bg: rgba(255,255,255,0.06);
+    --lw-badge-bg: rgba(240,78,55,0.12);
+    --lw-badge-border: rgba(240,78,55,0.2);
+    --lw-badge-text: #fb7b6a;
+    --lw-wallet-bg: rgba(255,255,255,0.06);
+    --lw-wallet-text: #f1f5f9;
+    --lw-score-card-bg: rgba(255,255,255,0.03);
+    --lw-glow: rgba(240,78,55,0.06);
+  }
+}
+.lw-root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--lw-text);
+}
+`;
+
+let themeInjected = false;
+const injectThemeCSS = () => {
+  if (themeInjected) return;
+  const style = document.createElement('style');
+  style.textContent = THEME_CSS;
+  document.head.appendChild(style);
+  themeInjected = true;
+};
+
+/* ═══════════════════════════════════════════════════════
+   Reusable Sub-components
+   ═══════════════════════════════════════════════════════ */
+
+/** Consistent "Powered by Litera" footer used in ALL states */
+const PoweredByLitera: React.FC = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '16px', opacity: 0.5 }}>
+    <svg viewBox="0 0 200 200" style={{ width: '12px', height: '12px' }}>
+      <circle cx="100" cy="100" r="100" fill="#F04E37" />
+      <text x="100" y="130" fill="#FFFFFF" fontSize="90" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="bold" textAnchor="middle" letterSpacing="-2">L</text>
+    </svg>
+    <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--lw-text-muted)', letterSpacing: '0.05em' }}>Powered by Litera</span>
+  </div>
+);
+
+/** Primary action button — solid Litera orange, no gradient */
+const LiteraButton: React.FC<{ onClick?: () => void; disabled?: boolean; children: React.ReactNode; variant?: 'primary' | 'secondary' | 'outline'; fullWidth?: boolean; href?: string }> = ({ onClick, disabled, children, variant = 'primary', fullWidth = true, href }) => {
+  const baseStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+    width: fullWidth ? '100%' : 'auto',
+    padding: '14px 24px',
+    borderRadius: '16px',
+    fontSize: '13px', fontWeight: 800, letterSpacing: '0.02em',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    transition: 'all 0.2s ease',
+    border: 'none',
+    textDecoration: 'none',
+    opacity: disabled ? 0.5 : 1,
+  };
+
+  const variants: Record<string, React.CSSProperties> = {
+    primary: { ...baseStyle, background: '#F04E37', color: '#ffffff' },
+    secondary: { ...baseStyle, background: 'var(--lw-bg-inner)', color: 'var(--lw-text)', border: '1px solid var(--lw-border)' },
+    outline: { ...baseStyle, background: 'transparent', color: 'var(--lw-text)', border: '1.5px solid var(--lw-border)' },
+  };
+
+  const style = variants[variant] || variants.primary;
+
+  if (href) {
+    return <a href={href} target="_blank" rel="noopener noreferrer" style={style}>{children}</a>;
+  }
+  return <button onClick={onClick} disabled={disabled} style={style}>{children}</button>;
+};
+
+/** Widget container shell — consistent across all states */
+const WidgetShell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="lw-root" style={{
+    position: 'relative',
+    display: 'flex', flexDirection: 'column', alignItems: 'center',
+    padding: '28px 24px',
+    background: 'var(--lw-bg)',
+    backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+    borderRadius: '24px',
+    boxShadow: 'var(--lw-shadow)',
+    border: '1px solid var(--lw-border)',
+    margin: '24px 0',
+    textAlign: 'center' as const,
+    overflow: 'hidden',
+    transition: 'border-color 0.3s ease',
+  }}>
+    {/* Subtle ambient glow */}
+    <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '200px', height: '200px', background: 'var(--lw-glow)', borderRadius: '50%', filter: 'blur(60px)', pointerEvents: 'none' }} />
+    {children}
+  </div>
+);
+
+/** Badge component */
+const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 'red' | 'blue' }> = ({ children, color = 'orange' }) => {
+  const colors: Record<string, { bg: string; border: string; text: string; dot: string }> = {
+    orange: { bg: 'var(--lw-badge-bg)', border: 'var(--lw-badge-border)', text: 'var(--lw-badge-text)', dot: '#F04E37' },
+    green: { bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.15)', text: '#10b981', dot: '#10b981' },
+    red: { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.15)', text: '#ef4444', dot: '#ef4444' },
+    blue: { bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.15)', text: '#3b82f6', dot: '#3b82f6' },
+  };
+  const c = colors[color] || colors.orange;
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', background: c.bg, border: `1px solid ${c.border}`, borderRadius: '99px', fontSize: '10px', fontWeight: 700, color: c.text, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>
+      <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: c.dot, animation: 'pulse 2s infinite' }} />
+      {children}
+    </div>
+  );
+};
+
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) => {
   const { address, isConnected } = useAccount();
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
@@ -47,6 +202,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [quizResult, setQuizResult] = useState<any | null>(null);
+
+  // --- Inject theme CSS on mount ---
+  useEffect(() => { injectThemeCSS(); }, []);
 
   // --- Contracts Write ---
   const { writeContract: approveWrite, data: approveHash, isPending: isApprovingReq } = useWriteContract();
@@ -320,445 +478,339 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     return `${baseUrl}/${Erc1155Adress}/${tokenId}`;
   };
 
-  const renderCustomWeb3Button = () => {
-    return (
-      <button
-        onClick={() => open()}
-        className="group relative flex items-center justify-center py-3 px-6 rounded-2xl bg-slate-900 dark:bg-slate-800 text-white font-black transition-all duration-200 shadow-[0_4px_0_0_#1e293b,0_10px_20px_rgba(0,0,0,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#1e293b,0_15px_25px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#1e293b,0_5px_10px_rgba(0,0,0,0.5)] overflow-hidden mt-4 z-10 border border-slate-700/50 mx-auto w-fit"
-      >
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <span className="relative z-10 flex items-center justify-center gap-3">
-          {isConnected ? (
-            <>
-              <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 dark:bg-slate-100 rounded-xl shadow-inner">
-                <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_6px_rgba(249,115,22,0.8)]"></div>
-                <span className="text-sm font-extrabold text-orange-400 dark:text-orange-500">
-                  {userBalance !== undefined && userBalance !== null ? `${parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', {maximumFractionDigits: 2})} LITE` : '0 LITE'}
-                </span>
-              </div>
-              <span className="text-sm tracking-wide opacity-90 text-slate-300 dark:text-slate-400 font-mono bg-slate-800/50 dark:bg-slate-900/50 px-3 py-1 rounded-xl">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
-            </>
-          ) : (
-            <div className="flex items-center justify-center gap-2">
-              <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
-              <span>Connect Wallet</span>
-            </div>
-          )}
-        </span>
-      </button>
-    );
-  };
+  /* ─── Wallet Button (reusable) ─── */
+  const renderWalletButton = () => (
+    <button
+      onClick={() => open()}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+        padding: '10px 20px',
+        borderRadius: '14px',
+        background: 'var(--lw-wallet-bg)',
+        color: 'var(--lw-wallet-text)',
+        fontSize: '12px', fontWeight: 700,
+        border: '1px solid var(--lw-border)',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        marginTop: '8px',
+      }}
+    >
+      {isConnected ? (
+        <>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: 'rgba(240,78,55,0.12)', borderRadius: '8px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F04E37' }} />
+            <span style={{ fontWeight: 800, color: '#F04E37', fontSize: '12px' }}>
+              {userBalance !== undefined && userBalance !== null ? `${parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', {maximumFractionDigits: 2})} LITE` : '0 LITE'}
+            </span>
+          </span>
+          <span style={{ fontSize: '11px', opacity: 0.7, fontFamily: 'monospace' }}>{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+        </>
+      ) : (
+        <span>Connect Wallet</span>
+      )}
+    </button>
+  );
 
+  /* ═══════════════════════════════════════════════════════
+     STATE: Not Connected
+     ═══════════════════════════════════════════════════════ */
   if (!isConnected) {
     return (
-      <div className="litera-widget-container relative flex flex-col items-center justify-center p-6 sm:p-8 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(0,0,0,0.7)] border border-slate-200/50 dark:border-white/5 text-center my-6 transition-all duration-500 overflow-hidden group hover:dark:border-white/10">
-        <div className="absolute -top-32 -right-32 w-64 h-64 bg-slate-300/30 dark:bg-slate-700/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-slate-300/40 transition-colors duration-700"></div>
-        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-500/20 transition-colors duration-700"></div>
-        <div className="absolute inset-0 bg-gradient-to-tr from-slate-200/20 via-transparent to-slate-200/20 dark:from-white/5 dark:to-transparent opacity-50 pointer-events-none"></div>
-
-        <div className="w-14 h-14 mb-4 bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-black rounded-2xl flex items-center justify-center shadow-2xl border border-slate-700/50 relative z-10 group-hover:scale-105 transition-transform duration-500">
-          <svg className="w-7 h-7 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+      <WidgetShell>
+        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--lw-bg-inner)', border: '1px solid var(--lw-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+          <svg style={{ width: '24px', height: '24px', color: 'var(--lw-text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
-        <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Exclusive Collectible</h3>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs leading-relaxed relative z-10">Connect your Web3 wallet to collect this article and unlock premium perks.</p>
-        
-        {renderCustomWeb3Button()}
-      </div>
+        <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Exclusive Collectible</h3>
+        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>Connect your Web3 wallet to collect this article and unlock premium perks.</p>
+        {renderWalletButton()}
+        <PoweredByLitera />
+      </WidgetShell>
     );
   }
 
+  /* ═══════════════════════════════════════════════════════
+     STATE: Loading Data
+     ═══════════════════════════════════════════════════════ */
   const isDataLoading = isBalanceLoading || isArticleLoading || (hasAccess && isUnlockableLoading);
 
   if (isConnected && isDataLoading) {
     return (
-      <div className="litera-widget-container flex flex-col items-center p-6 sm:p-8 bg-white/80 dark:bg-[#0a0a0a]/90 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-200/50 dark:shadow-[0_0_60px_-15px_rgba(255,255,255,0.05)] border border-white/50 dark:border-white/10 my-6 text-center transition-all duration-500">
-        <div className="w-14 h-14 mb-4 bg-gradient-to-tr from-blue-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-blue-900/50">
-          <svg className="w-7 h-7 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        </div>
-        <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold mb-3 tracking-wide text-xs bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full border border-blue-100 dark:border-blue-800/50">
-          <span>VERIFYING ACCESS</span>
-        </div>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs leading-relaxed">Checking your wallet for Litera Access License...</p>
-        <div className="mt-2 flex justify-center w-full">
-          {renderCustomWeb3Button()}
-        </div>
-      </div>
+      <WidgetShell>
+        <Loader2Icon size={36} style={{ color: '#F04E37', marginBottom: '16px', animation: 'spin 1s linear infinite' }} />
+        <Badge color="orange">Verifying Access</Badge>
+        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '12px 0 0 0', maxWidth: '260px', lineHeight: 1.6 }}>Checking your wallet for Litera Access License...</p>
+        {renderWalletButton()}
+        <PoweredByLitera />
+      </WidgetShell>
     );
   }
 
+  /* ═══════════════════════════════════════════════════════
+     STATE: Has Access (unlocked content / no unlockable / verified)
+     ═══════════════════════════════════════════════════════ */
   if (hasAccess) {
     const isValidCid = cidUnlockable && typeof cidUnlockable === 'string' && cidUnlockable.length > 10;
 
+    // Has unlockable content AND it's decrypted
     if (hasUnlockableContent && isValidCid && unlockedContent) {
       return (
-        <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-[#0a0a0a]/80 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(249,115,22,0.15)] border border-orange-500/10 dark:border-orange-500/20 my-6 transition-all duration-500 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 to-transparent dark:from-orange-500/10 pointer-events-none"></div>
-          <div className="absolute -top-32 -left-32 w-64 h-64 bg-orange-500/20 dark:bg-orange-600/10 rounded-full blur-[80px] pointer-events-none"></div>
-
-          <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 font-bold mb-4 tracking-[0.15em] text-[10px] bg-orange-50 dark:bg-orange-950/50 px-3 py-1 rounded-full border border-orange-200/50 dark:border-orange-800/50 relative z-10">
-            <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></div>
-            <span>ACCESS GRANTED</span>
+        <WidgetShell>
+          <Badge color="green">Access Granted</Badge>
+          <div style={{ width: '100%', background: 'var(--lw-bg-inner)', padding: '16px 20px', borderRadius: '16px', border: '1px solid var(--lw-border)', margin: '16px 0', position: 'relative', overflow: 'hidden', textAlign: 'left' as const }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '3px', height: '100%', background: '#F04E37' }} />
+            <p style={{ fontSize: '13px', color: 'var(--lw-text)', lineHeight: 1.7, margin: 0, paddingLeft: '8px' }}>{unlockedContent.description}</p>
           </div>
-
-          <div className="w-full bg-slate-50/50 dark:bg-black/50 p-5 rounded-2xl border border-slate-200/50 dark:border-white/5 mb-4 relative overflow-hidden backdrop-blur-sm z-10 group">
-            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-orange-400 to-orange-600"></div>
-            <div className="absolute inset-0 bg-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <p className="text-slate-800 dark:text-slate-200 font-mono text-xs sm:text-sm text-left leading-relaxed relative z-10">
-              {unlockedContent.description}
-            </p>
-          </div>
-          
-          <a
-            href={unlockedContent.content}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative flex items-center justify-center gap-2 w-full py-3.5 text-center rounded-2xl bg-orange-500 text-white font-black transition-all duration-200 shadow-[0_4px_0_0_#c2410c,0_10px_20px_rgba(249,115,22,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#c2410c,0_15px_25px_rgba(249,115,22,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#c2410c,0_5px_10px_rgba(249,115,22,0.5)] border border-orange-400 mb-4 z-10 text-sm"
-          >
-            <span className="tracking-wide">Open Premium Content</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-          </a>
-          
-          <div className="flex flex-col-reverse sm:flex-row w-full gap-3 z-10">
-            <a
-              href={getOpenSeaUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-2 py-3 text-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-200 dark:hover:bg-white/10 transition-all duration-300 border border-slate-200/80 dark:border-white/10 text-sm"
-            >
-              <span>View NFT</span>
-            </a>
+          <LiteraButton href={unlockedContent.content}>Open Premium Content</LiteraButton>
+          <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '10px' }}>
+            <LiteraButton variant="outline" href={getOpenSeaUrl()}>View NFT</LiteraButton>
             {sponsorUrl && sponsorUrl.length > 5 && (
-              <a href={sponsorUrl} target="_blank" rel="noopener noreferrer" className="flex-[1.5] flex items-center justify-center gap-2 py-3 text-center rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all duration-300 border border-blue-200 dark:border-blue-700/50 text-sm shadow-sm">
-                <span>Learn More</span>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-              </a>
+              <LiteraButton variant="secondary" href={sponsorUrl}>Learn More</LiteraButton>
             )}
           </div>
-          
-          {renderCustomWeb3Button()}
-        </div>
+          {renderWalletButton()}
+          <PoweredByLitera />
+        </WidgetShell>
       );
     }
 
+    // Has unlockable content but NOT decrypted
     if (hasUnlockableContent && !isValidCid) {
-       return (
-        <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-slate-50 dark:bg-slate-900 rounded-[2rem] shadow-sm border border-slate-200/60 dark:border-white/5 my-6 overflow-hidden text-center">
-          
-          {/* Watermark Lock Icon */}
-          <div className="absolute -bottom-12 -right-12 text-slate-200/80 dark:text-slate-800/80 pointer-events-none">
-            <svg className="w-64 h-64" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
+      return (
+        <WidgetShell>
+          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--lw-badge-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+            <svg style={{ width: '24px', height: '24px', color: '#F04E37' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
           </div>
-
-          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20 mb-5 relative z-10">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
-          </div>
-
-          <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 dark:text-white mb-2 relative z-10 tracking-tight">Content Locked</h3>
-          
-          <p className="text-xs sm:text-[14px] text-slate-500 dark:text-slate-400 mb-6 max-w-sm leading-relaxed relative z-10">
-            You own this NFT but the content is encrypted. Please go to your Dashboard to view it.
-          </p>
-
-          <a
-            href={`https://literaa.xyz/nfts/${contractAddress}/${tokenId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-blue-600 text-white font-bold transition-all duration-200 shadow-[0_4px_0_0_#1d4ed8,0_10px_20px_rgba(37,99,235,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#1d4ed8,0_15px_25px_rgba(37,99,235,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#1d4ed8,0_5px_10px_rgba(37,99,235,0.5)] relative z-10 flex items-center justify-center gap-2 text-sm"
-          >
-            Decrypt on Dashboard
-          </a>
-
-          <div className="mt-8 relative z-10 self-center">
-             {renderCustomWeb3Button()}
-          </div>
-        </div>
+          <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Content Locked</h3>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>You own this NFT but the content is encrypted. Please go to your Dashboard to view it.</p>
+          <LiteraButton href={`https://literaa.xyz/nfts/${contractAddress}/${tokenId}`}>Decrypt on Dashboard</LiteraButton>
+          {renderWalletButton()}
+          <PoweredByLitera />
+        </WidgetShell>
       );
     }
 
+    // Owns NFT, no unlockable
     return (
-      <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-[#0a0a0a]/90 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(16,185,129,0.15)] border border-emerald-100/50 dark:border-emerald-900/30 my-6 text-center transition-all duration-700 overflow-hidden group hover:dark:border-white/20">
-        
-        {/* Premium Web3 Glow Effects */}
-        <div className="absolute -top-32 -right-32 w-64 h-64 bg-emerald-500/10 dark:bg-emerald-600/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-emerald-500/20 transition-colors duration-700"></div>
-        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-slate-500/10 dark:bg-slate-600/10 rounded-full blur-[80px] pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent dark:from-emerald-500/5 dark:to-transparent opacity-50 pointer-events-none"></div>
-
-        {/* Watermark Icon */}
-        <div className="absolute -bottom-16 -right-16 text-emerald-200/30 dark:text-emerald-800/20 pointer-events-none transition-transform duration-1000 group-hover:scale-105 group-hover:-rotate-3">
-          <svg className="w-48 h-48 sm:w-64 sm:h-64" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
+      <WidgetShell>
+        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+          <CheckCircle2Icon size={24} style={{ color: '#10b981' }} />
         </div>
-        
-        <div className="w-12 h-12 mb-3 bg-gradient-to-tr from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30 relative z-10 group-hover:scale-105 transition-transform duration-500">
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
-        </div>
-        
-        <div className="flex flex-col items-center justify-center gap-1 mb-2 text-slate-900 dark:text-white font-extrabold text-xl sm:text-2xl tracking-tight relative z-10">
-          <p>Collection Verified</p>
-        </div>
-        <p className="text-sm sm:text-base font-semibold text-emerald-600 dark:text-emerald-400 mb-6 max-w-xs leading-relaxed relative z-10">
-          You now own this Digital Asset.
-        </p>
+        <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 4px 0', color: 'var(--lw-text)' }}>Collection Verified</h3>
+        <p style={{ fontSize: '14px', fontWeight: 600, color: '#10b981', margin: '0 0 20px 0' }}>You now own this Digital Asset.</p>
         
         {sponsorUrl && sponsorUrl.length > 5 ? (
-          <div className="relative z-10 flex flex-col sm:flex-row w-full gap-3 mt-2 mb-2">
-            <a href={sponsorUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3.5 text-center rounded-2xl bg-emerald-500 text-white font-black transition-all duration-200 shadow-[0_4px_0_0_#059669,0_10px_20px_rgba(16,185,129,0.4)] hover:-translate-y-1 hover:shadow-[0_4px_0_0_#059669,0_15px_25px_rgba(16,185,129,0.5)] active:translate-y-1 active:shadow-[0_0px_0_0_#059669,0_5px_10px_rgba(16,185,129,0.5)] text-sm">
-              <span>Learn More</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-            </a>
-            <a href={getOpenSeaUrl()} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3.5 text-center rounded-2xl bg-white dark:bg-transparent text-slate-800 dark:text-white font-bold transition-all duration-200 border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-emerald-500/50 hover:bg-slate-50 dark:hover:bg-emerald-900/20 shadow-sm hover:shadow text-sm">
-              <span>View NFT</span>
-            </a>
+          <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+            <LiteraButton href={sponsorUrl}>Learn More</LiteraButton>
+            <LiteraButton variant="outline" href={getOpenSeaUrl()}>View NFT</LiteraButton>
           </div>
         ) : (
-          <a
-            href={getOpenSeaUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative z-10 flex items-center justify-center gap-2 w-full py-3.5 text-center rounded-2xl bg-white dark:bg-transparent text-slate-800 dark:text-white font-bold transition-all duration-200 border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-emerald-500/50 hover:bg-slate-50 dark:hover:bg-emerald-900/20 mt-2 mb-2 shadow-sm hover:shadow text-sm"
-          >
-            <span>View NFT</span>
-          </a>
+          <LiteraButton variant="outline" href={getOpenSeaUrl()}>View NFT</LiteraButton>
         )}
-        
-        <div className="mt-4 relative z-10 w-full flex justify-center">
-          {renderCustomWeb3Button()}
-        </div>
-      </div>
+        {renderWalletButton()}
+        <PoweredByLitera />
+      </WidgetShell>
     );
   }
 
+  /* ═══════════════════════════════════════════════════════
+     STATE: Article not valid
+     ═══════════════════════════════════════════════════════ */
   if (!isArticleValid) {
     return (
-      <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-[#0a0a0a]/90 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(0,0,0,0.8)] border border-red-200/80 dark:border-red-900/30 text-center my-6 overflow-hidden group hover:dark:border-red-500/20 transition-all duration-700">
-        <div className="w-14 h-14 mb-4 bg-gradient-to-br from-red-400 to-red-500 dark:from-red-800 dark:to-red-900 rounded-2xl flex items-center justify-center text-white shadow-inner border border-red-300/50 dark:border-red-700/50 relative z-10 group-hover:scale-105 transition-transform duration-500">
-          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+      <WidgetShell>
+        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(239,68,68,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+          <AlertCircleIcon size={24} style={{ color: '#ef4444' }} />
         </div>
-        <div className="flex items-center gap-2 text-red-500 dark:text-red-400 font-bold mb-3 tracking-[0.15em] text-[9px] sm:text-[10px] bg-red-50 dark:bg-red-900/30 px-3 py-1 rounded-full border border-red-100 dark:border-red-800/50 relative z-10">
-          <span>NFT NOT INITIALIZED</span>
-        </div>
-        <h3 className="text-2xl sm:text-[24px] font-black text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Asset Not Found</h3>
-        <p className="text-xs sm:text-[14px] text-slate-500 dark:text-slate-400 mb-6 max-w-sm leading-relaxed relative z-10">
-          This article was published on WordPress, but the NFT has not been successfully deployed to the blockchain. Please contact the publisher.
-        </p>
-        {renderCustomWeb3Button()}
-      </div>
+        <Badge color="red">NFT Not Initialized</Badge>
+        <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '12px 0 6px 0', color: 'var(--lw-text)' }}>Asset Not Found</h3>
+        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>This article was published on WordPress, but the NFT has not been successfully deployed to the blockchain. Please contact the publisher.</p>
+        {renderWalletButton()}
+        <PoweredByLitera />
+      </WidgetShell>
     );
   }
 
+  /* ═══════════════════════════════════════════════════════
+     STATE: Sold Out
+     ═══════════════════════════════════════════════════════ */
   if (isSoldOut) {
     return (
-      <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/70 dark:bg-[#0a0a0a]/90 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(0,0,0,0.8)] border border-slate-200/80 dark:border-white/10 text-center my-6 overflow-hidden group hover:dark:border-white/20 transition-all duration-700">
-        
-        <div className="w-14 h-14 mb-4 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center text-slate-500 dark:text-slate-400 shadow-inner border border-slate-300/50 dark:border-slate-700/50 relative z-10 group-hover:scale-105 transition-transform duration-500">
-          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+      <WidgetShell>
+        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--lw-bg-inner)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+          <svg style={{ width: '24px', height: '24px', color: 'var(--lw-text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
         </div>
-
-        <div className="bg-slate-800 dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700/50 relative z-10 group-hover:border-emerald-500/30 transition-colors">
-          <span className="text-[10px] sm:text-xs font-mono font-medium text-slate-300">
-            {userBalance !== undefined && userBalance !== null ? <span className="text-emerald-400 font-bold mr-1">{parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', {maximumFractionDigits: 2})} LITE |</span> : null}
-            {address?.slice(0, 6)}...{address?.slice(-4)}
-          </span>
-        </div>
-
-        <h3 className="text-2xl sm:text-[28px] font-black text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">Sold Out</h3>
-        
-        <p className="text-xs sm:text-[14px] text-slate-500 dark:text-slate-400 mb-6 max-w-sm leading-relaxed relative z-10">
-          All available NFTs for this campaign have been minted. Thank you for the incredible support!
-        </p>
-
-        {renderCustomWeb3Button()}
-      </div>
+        <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Sold Out</h3>
+        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>All available NFTs for this campaign have been minted. Thank you for the incredible support!</p>
+        {renderWalletButton()}
+        <PoweredByLitera />
+      </WidgetShell>
     );
   }
 
+  /* ═══════════════════════════════════════════════════════
+     STEP-BASED STATES (Quiz / Mint flow)
+     ═══════════════════════════════════════════════════════ */
   const alphabet = ['A', 'B', 'C', 'D', 'E', 'F'];
 
   if (step !== 'idle') {
+
+    /* --- Checking Auth / Evaluating --- */
     if (step === 'checking_auth' || step === 'quiz_evaluating') {
       return (
-        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white dark:bg-[#0a0a0f] border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-xl dark:shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 text-center relative overflow-hidden">
-          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-600/10 dark:bg-blue-600/20 rounded-full blur-[80px] pointer-events-none" />
-          <div className="relative mb-8 z-10">
-            <div className="absolute inset-0 bg-blue-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
-            <Loader2Icon size={56} className="text-blue-500 dark:text-blue-400 animate-spin relative z-10 drop-shadow-sm dark:drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
-          </div>
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 tracking-tight relative z-10">
+        <WidgetShell>
+          <Loader2Icon size={40} style={{ color: '#F04E37', marginBottom: '20px', animation: 'spin 1s linear infinite' }} />
+          <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 8px 0', color: 'var(--lw-text)' }}>
             {step === 'checking_auth' ? 'Verifying Access' : 'Awaiting Wallet Signature'}
           </h3>
-          <p className="text-slate-600 dark:text-slate-400 font-medium text-sm max-w-[280px] mx-auto leading-relaxed relative z-10">
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0', maxWidth: '260px', lineHeight: 1.6 }}>
             {step === 'checking_auth' ? 'Please wait while we check your authorization status.' : 'Please open your wallet and sign the message to verify your answers.'}
           </p>
-          <div className="mt-8 flex items-center gap-2 text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-widest relative z-10">
-            Powered by Litera Protocol
-          </div>
-        </div>
+          <PoweredByLitera />
+        </WidgetShell>
       );
     }
 
+    /* --- Quiz Intro --- */
     if (step === 'quiz_intro') {
       return (
-        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white dark:bg-[#0a0a0f] border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-xl dark:shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 text-center relative overflow-hidden">
-          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-600/10 dark:bg-blue-600/20 rounded-full blur-[80px] pointer-events-none" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-64 h-64 bg-purple-600/10 dark:bg-purple-600/20 rounded-full blur-[80px] pointer-events-none" />
-          
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 border border-slate-200 dark:border-white/10 rounded-full flex items-center justify-center mb-6 shadow-sm dark:shadow-[0_0_30px_rgba(59,130,246,0.2)] relative z-10">
-            <ShieldCheckIcon size={40} className="text-blue-500 dark:text-blue-400 drop-shadow-sm dark:drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+        <WidgetShell>
+          <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--lw-badge-bg)', border: '1px solid var(--lw-badge-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+            <ShieldCheckIcon size={32} style={{ color: '#F04E37' }} />
           </div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-white dark:to-slate-400 tracking-tight relative z-10 mb-2">Authorization Required</h2>
-          
-          <p className="text-slate-600 dark:text-slate-400 font-medium text-sm max-w-[280px] mx-auto leading-relaxed relative z-10 mb-6">
+          <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: 'var(--lw-text)' }}>Authorization Required</h2>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 24px 0', maxWidth: '280px', lineHeight: 1.6 }}>
             This premium content is gated by a Knowledge Check. Pass the quiz to generate a Proof of Knowledge and mint your access NFT.
           </p>
-
-          <button onClick={() => setStep('quiz_active')} className="w-full h-14 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:shadow-lg dark:hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] text-white font-black text-sm uppercase tracking-widest transition-all relative z-10 mb-4">
-            Start Authorization
-          </button>
-          
-          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-widest relative z-10">
-            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-            Powered by Litera Protocol
-          </div>
-        </div>
+          <LiteraButton onClick={() => setStep('quiz_active')}>Start Authorization</LiteraButton>
+          <PoweredByLitera />
+        </WidgetShell>
       );
     }
 
+    /* --- Quiz Active --- */
     if (step === 'quiz_active') {
+      const progress = ((currentQuestionIndex) / questions.length) * 100;
       return (
-        <div className="litera-widget-container flex flex-col items-center p-8 bg-white dark:bg-[#0a0a0f] border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-xl dark:shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 relative overflow-hidden">
-          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-600/10 dark:bg-blue-600/20 rounded-full blur-[80px] pointer-events-none" />
-          
-          <div className="w-full flex justify-between items-center mb-4 relative z-10">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Question {currentQuestionIndex + 1} of {questions.length}</span>
-            <span className="text-[10px] font-black text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-3 py-1 rounded-full border border-blue-200 dark:border-blue-500/20 tracking-wider">
-              {Math.round((currentQuestionIndex / questions.length) * 100)}% COMPLETED
+        <WidgetShell>
+          {/* Header */}
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--lw-text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.1em' }}>
+              Question {currentQuestionIndex + 1} of {questions.length}
+            </span>
+            <span style={{ fontSize: '10px', fontWeight: 800, color: '#F04E37', background: 'var(--lw-badge-bg)', padding: '3px 10px', borderRadius: '99px', border: '1px solid var(--lw-badge-border)' }}>
+              {Math.round(progress)}%
             </span>
           </div>
-          <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full mb-8 overflow-hidden relative z-10">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-300" style={{ width: `${(currentQuestionIndex / questions.length) * 100}%` }}></div>
+
+          {/* Progress bar */}
+          <div style={{ width: '100%', height: '4px', background: 'var(--lw-progress-bg)', borderRadius: '99px', marginBottom: '24px', overflow: 'hidden' }}>
+            <div style={{ width: `${progress}%`, height: '100%', background: '#F04E37', borderRadius: '99px', transition: 'width 0.3s ease' }} />
           </div>
-          
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white leading-relaxed mb-8 text-center w-full relative z-10">
+
+          {/* Question */}
+          <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--lw-text)', lineHeight: 1.5, marginBottom: '24px', textAlign: 'center' as const }}>
             {questions[currentQuestionIndex].text}
           </h3>
-          
-          <div className="flex flex-col gap-3 w-full mb-8 relative z-10">
+
+          {/* Options */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', marginBottom: '24px' }}>
             {questions[currentQuestionIndex].options.map((option: any, idx: number) => {
               const isSelected = selectedOptionId === option.id;
               return (
                 <button
                   key={option.id}
                   onClick={() => handleSelectOption(option.id)}
-                  className={`text-left p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden group ${
-                    isSelected 
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 shadow-sm dark:shadow-[0_0_15px_rgba(59,130,246,0.15)]' 
-                      : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:border-slate-300 dark:hover:border-white/30 hover:bg-slate-100 dark:hover:bg-white/10'
-                  }`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: `1.5px solid ${isSelected ? '#F04E37' : 'var(--lw-option-border)'}`,
+                    background: isSelected ? 'var(--lw-option-selected-bg)' : 'var(--lw-option-bg)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    textAlign: 'left' as const,
+                  }}
                 >
-                  <div className="flex items-center gap-4 relative z-10">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-black transition-all ${
-                      isSelected 
-                        ? 'bg-blue-500 text-white shadow-sm dark:shadow-[0_0_10px_rgba(59,130,246,0.5)]' 
-                        : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-slate-400 group-hover:bg-slate-300 dark:group-hover:bg-white/20 group-hover:text-slate-700 dark:group-hover:text-white'
-                    }`}>
-                      {alphabet[idx]}
-                    </div>
-                    <span className={`text-sm font-medium leading-relaxed ${isSelected ? 'text-blue-800 dark:text-blue-100' : 'text-slate-600 dark:text-slate-300'}`}>
-                      {option.text}
-                    </span>
+                  <div style={{
+                    width: '28px', height: '28px', borderRadius: '10px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    fontSize: '11px', fontWeight: 800,
+                    background: isSelected ? '#F04E37' : 'var(--lw-bg-inner)',
+                    color: isSelected ? '#fff' : 'var(--lw-text-muted)',
+                    border: isSelected ? 'none' : '1px solid var(--lw-border)',
+                    transition: 'all 0.2s ease',
+                  }}>
+                    {alphabet[idx]}
                   </div>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: isSelected ? 'var(--lw-text)' : 'var(--lw-text-secondary)', lineHeight: 1.5 }}>
+                    {option.text}
+                  </span>
                 </button>
               );
             })}
           </div>
-          
-          <div className="flex w-full gap-3 relative z-10 mb-4">
+
+          {/* Navigation */}
+          <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
             {currentQuestionIndex > 0 && (
-              <button 
-                onClick={handlePrevQuestion} 
-                className="h-14 rounded-2xl font-black text-sm uppercase tracking-widest transition-all bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10 w-1/3"
-              >
+              <LiteraButton variant="secondary" onClick={handlePrevQuestion} fullWidth={false}>
                 Prev
-              </button>
+              </LiteraButton>
             )}
-            <button 
-              onClick={handleNextQuestion} 
-              disabled={selectedOptionId === null} 
-              className={`h-14 rounded-2xl font-black text-sm uppercase tracking-widest transition-all disabled:opacity-50 ${currentQuestionIndex > 0 ? 'w-2/3' : 'w-full'}`}
-              style={{
-                background: selectedOptionId ? 'linear-gradient(to right, #2563eb, #9333ea)' : 'rgba(100,116,139,0.1)',
-                color: selectedOptionId ? 'white' : '#94a3b8'
-              }}
+            <LiteraButton
+              onClick={handleNextQuestion}
+              disabled={selectedOptionId === null}
             >
-              {currentQuestionIndex === questions.length - 1 ? 'Submit & Sign' : 'Confirm Answer'}
-            </button>
+              {currentQuestionIndex === questions.length - 1 ? 'Submit & Sign' : 'Next'}
+            </LiteraButton>
           </div>
-          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 dark:text-slate-600 uppercase font-bold tracking-widest relative z-10 w-full">
-            Powered by Litera Protocol
-          </div>
-        </div>
+          <PoweredByLitera />
+        </WidgetShell>
       );
     }
 
+    /* --- Quiz Result --- */
     if (step === 'quiz_result') {
       const isPassed = quizResult?.status === 'PASS';
+      const resultColor = isPassed ? '#10b981' : '#ef4444';
       return (
-        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white dark:bg-[#0a0a0f] border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-xl dark:shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 text-center relative overflow-hidden">
-          <div className={`relative w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-xl dark:shadow-2xl ${
-            isPassed ? 'bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/30' : 'bg-rose-100 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/30'
-          } relative z-10`}>
-            <div className={`absolute inset-0 rounded-full blur-xl opacity-50 ${isPassed ? 'bg-emerald-400 dark:bg-emerald-500' : 'bg-rose-400 dark:bg-rose-500'}`} />
-            {isPassed 
-              ? <CheckCircle2Icon size={48} className="text-emerald-500 dark:text-emerald-400 drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(52,211,153,0.8)] relative z-10" /> 
-              : <AlertCircleIcon size={48} className="text-rose-500 dark:text-rose-400 drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(225,29,72,0.8)] relative z-10" />}
+        <WidgetShell>
+          <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: isPassed ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+            {isPassed
+              ? <CheckCircle2Icon size={32} style={{ color: resultColor }} />
+              : <AlertCircleIcon size={32} style={{ color: resultColor }} />}
           </div>
-          
-          <h2 className="text-3xl font-black text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-white dark:to-slate-400 tracking-tight relative z-10 mb-6">
+          <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: 'var(--lw-text)' }}>
             {isPassed ? 'Access Granted' : 'Access Denied'}
           </h2>
-          
-          <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 p-6 rounded-[2rem] shadow-inner mb-6 relative overflow-hidden w-full z-10">
-            <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl -mr-10 -mt-10 ${isPassed ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`} />
-            <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-2">Final Score</p>
-            <div className={`text-7xl font-black mb-1 drop-shadow-md ${isPassed ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
+
+          {/* Score card */}
+          <div style={{ width: '100%', background: 'var(--lw-score-card-bg)', border: '1px solid var(--lw-border)', padding: '24px', borderRadius: '20px', marginBottom: '20px' }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--lw-text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.1em', margin: '0 0 8px 0' }}>Final Score</p>
+            <div style={{ fontSize: '48px', fontWeight: 900, color: resultColor, lineHeight: 1 }}>
               {quizResult?.score || 0}%
             </div>
           </div>
-          
-          <p className="text-slate-600 dark:text-slate-400 font-medium text-sm leading-relaxed max-w-[280px] mx-auto relative z-10 mb-8">
-            {isPassed 
-              ? "Cryptographic proof of knowledge generated. You may now mint the NFT." 
+
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 24px 0', maxWidth: '280px', lineHeight: 1.6 }}>
+            {isPassed
+              ? "Cryptographic proof of knowledge generated. You may now mint the NFT."
               : `A minimum score of 60% is required. Review the material and try again.`}
           </p>
-          
+
           {isPassed ? (
-            <button 
-              onClick={() => setStep('mint_ready')} 
-              className="w-full h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500 hover:text-emerald-700 dark:hover:text-white font-black text-sm uppercase tracking-widest transition-all shadow-sm dark:shadow-[0_0_20px_rgba(52,211,153,0.1)] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(52,211,153,0.4)] relative z-10 mb-4"
-            >
-              Mint Digital Collectible
-            </button>
+            <LiteraButton onClick={() => setStep('mint_ready')}>Mint Digital Collectible</LiteraButton>
           ) : (
-            <button 
-              onClick={() => { setStep('quiz_intro'); setAnswers({}); setCurrentQuestionIndex(0); }} 
-              className="w-full h-14 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10 font-black text-sm uppercase tracking-widest transition-all relative z-10 mb-4"
-            >
+            <LiteraButton variant="secondary" onClick={() => { setStep('quiz_intro'); setAnswers({}); setCurrentQuestionIndex(0); }}>
               Retry Authorization
-            </button>
+            </LiteraButton>
           )}
-          
-          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 dark:text-slate-600 uppercase font-bold tracking-widest relative z-10 w-full">
-            Powered by Litera Protocol
-          </div>
-        </div>
+          <PoweredByLitera />
+        </WidgetShell>
       );
     }
 
+    /* --- Mint Ready / Minting --- */
     if (step === 'mint_ready' || step === 'minting') {
       const isApproving = isApprovingReq || isApprovingTx;
       const isMintTx = isMintingReq || isMintingTx;
@@ -766,141 +818,122 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
       const buttonText = isApproving ? "Approving LITE..." : isMintTx ? "Minting NFT..." : (allowance !== undefined && BigInt(allowance as any) < (price ? BigInt(price) : 0n)) ? "Approve LITE" : "Mint NFT";
 
       return (
-        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6 text-center">
-          <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <ShieldCheckIcon size={32} />
+        <WidgetShell>
+          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--lw-badge-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+            <ShieldCheckIcon size={24} style={{ color: '#F04E37' }} />
           </div>
-          <div className="inline-block px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold tracking-widest mb-4 border border-emerald-200">
-            ELIGIBLE FOR MINTING
-          </div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">Claim Your Access</h2>
-          <p className="text-slate-500 mb-8">You have passed the authorization check. Mint your NFT now to unlock the premium article permanently.</p>
-          
-          <div className="bg-slate-50 dark:bg-[#1a1a1f] w-full p-4 rounded-2xl mb-8 flex justify-between items-center border border-slate-100 dark:border-white/5">
-             <span className="font-semibold text-slate-600 dark:text-slate-400">Price</span>
-             <span className="font-black text-slate-800 dark:text-white">{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
+          <Badge color="green">Eligible for Minting</Badge>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '12px 0 6px 0', color: 'var(--lw-text)' }}>Claim Your Access</h2>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>
+            You have passed the authorization check. Mint your NFT now to unlock the premium article permanently.
+          </p>
+
+          <div style={{ width: '100%', background: 'var(--lw-bg-inner)', padding: '14px 20px', borderRadius: '14px', border: '1px solid var(--lw-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--lw-text-secondary)' }}>Price</span>
+            <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--lw-text)' }}>
+              {price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}
+            </span>
           </div>
 
-          <button onClick={handleBuy} disabled={isButtonDisabled} className="w-full py-3.5 rounded-2xl text-white font-black bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-colors">
-            {buttonText}
-          </button>
-        </div>
+          <LiteraButton onClick={handleBuy} disabled={isButtonDisabled}>{buttonText}</LiteraButton>
+          <PoweredByLitera />
+        </WidgetShell>
       );
     }
 
+    /* --- Receipt --- */
     if (step === 'receipt') {
       const baseUrl = activeNetworkName === 'MAINNET' ? 'https://polygonscan.com/tx' : 'https://amoy.polygonscan.com/tx';
       const txUrl = mintReceipt?.transactionHash ? `${baseUrl}/${mintReceipt.transactionHash}` : null;
 
       return (
-        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6 text-center">
-          <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2Icon size={40} />
+        <WidgetShell>
+          <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+            <CheckCircle2Icon size={28} style={{ color: '#10b981' }} />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">Publication Receipt</h2>
-          <p className="text-slate-500 mb-8">Congratulations! The NFT has been minted and added to your wallet. You now have permanent access to the article.</p>
-          
+          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Publication Receipt</h2>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>
+            Congratulations! The NFT has been minted and added to your wallet. You now have permanent access to the article.
+          </p>
           {txUrl && (
-            <a href={txUrl} target="_blank" rel="noopener noreferrer" className="block text-sm text-blue-600 font-semibold mb-8 hover:underline">
-              View on Explorer
+            <a href={txUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#F04E37', fontWeight: 600, marginBottom: '20px', textDecoration: 'none' }}>
+              View on Explorer →
             </a>
           )}
-
-          <button onClick={() => window.location.reload()} className="w-full py-3.5 rounded-2xl text-white font-black bg-blue-600 hover:bg-blue-700 transition-colors">
-            Read Article
-          </button>
-        </div>
+          <LiteraButton onClick={() => window.location.reload()}>Read Article</LiteraButton>
+          <PoweredByLitera />
+        </WidgetShell>
       );
     }
 
+    /* --- Error --- */
     if (step === 'error') {
       return (
-        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6 text-center">
-          <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircleIcon size={32} />
+        <WidgetShell>
+          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(239,68,68,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+            <AlertCircleIcon size={24} style={{ color: '#ef4444' }} />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">An Error Occurred</h2>
-          <p className="text-slate-500 mb-8">{errorMessage}</p>
-          <button onClick={() => setStep('idle')} className="w-full py-3.5 rounded-2xl text-white font-black bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors">
-            Return
-          </button>
-        </div>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>An Error Occurred</h2>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>{errorMessage}</p>
+          <LiteraButton variant="secondary" onClick={() => setStep('idle')}>Return</LiteraButton>
+          <PoweredByLitera />
+        </WidgetShell>
       );
     }
   }
 
+  /* ═══════════════════════════════════════════════════════
+     STATE: Default (Idle — show Collect NFT)
+     ═══════════════════════════════════════════════════════ */
   return (
-    <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(99,102,241,0.08)] border border-slate-200/60 dark:border-white/[0.06] text-center my-6 transition-all duration-700 overflow-hidden group hover:border-slate-300/80 hover:dark:border-white/[0.12]">
-      
-      {/* Premium Ambient Glow */}
-      <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-500/8 to-indigo-500/8 dark:from-blue-500/10 dark:to-indigo-500/10 rounded-full blur-[100px] pointer-events-none group-hover:from-blue-500/12 group-hover:to-indigo-500/12 transition-all duration-1000"></div>
-      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-violet-500/6 to-purple-500/6 dark:from-violet-500/8 dark:to-purple-500/8 rounded-full blur-[100px] pointer-events-none group-hover:from-violet-500/10 group-hover:to-purple-500/10 transition-all duration-1000"></div>
-      <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-transparent dark:from-white/[0.02] dark:to-transparent pointer-events-none"></div>
+    <WidgetShell>
+      {/* Badge */}
+      <Badge color="orange">Digital Collectible</Badge>
 
-      {/* Header: Badge + Title */}
-      <div className="flex flex-col items-center w-full relative z-10 mb-6">
-        <div className="flex items-center gap-2 mb-4 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 rounded-full border border-blue-100 dark:border-blue-500/20">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_6px_rgba(59,130,246,0.5)]"></div>
-          <span className="text-[9px] sm:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">Digital Collectible</span>
+      {/* NFT Media */}
+      {nftMedia && (
+        <div style={{ margin: '16px 0 12px 0' }}>
+          {nftMedia.type === 'video' ? (
+            <video src={nftMedia.url} style={{ width: '120px', height: '120px', borderRadius: '16px', objectFit: 'cover', border: '1px solid var(--lw-border)' }} autoPlay loop muted playsInline />
+          ) : (
+            <img src={nftMedia.url} alt="NFT Media" style={{ width: '120px', height: '120px', borderRadius: '16px', objectFit: 'cover', border: '1px solid var(--lw-border)' }} />
+          )}
         </div>
-        
-        {nftMedia && (
-          <div className="w-full flex justify-center mb-4 relative z-10">
-            {nftMedia.type === 'video' ? (
-              <video src={nftMedia.url} className="w-32 h-32 rounded-2xl object-cover shadow-lg border border-slate-200/50 dark:border-white/10" autoPlay loop muted playsInline />
-            ) : (
-              <img src={nftMedia.url} alt="NFT Media" className="w-32 h-32 rounded-2xl object-cover shadow-lg border border-slate-200/50 dark:border-white/10" />
-            )}
-          </div>
-        )}
-        
-        <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug max-w-sm text-center">
-          {articleTitle || 'Digital Asset'}
-        </h3>
-        
-        <div className="flex items-center gap-3 mt-3 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
-          <div className="flex items-center gap-1.5">
-            <span className="opacity-60">Publisher</span>
-            <span className="flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-500/20">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              {publisherName || 'Verified'}
-            </span>
-          </div>
-          <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
-          <div className="flex items-center gap-1.5">
-            <span className="opacity-60">Author</span>
-            <span className="flex items-center gap-1 font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.5 rounded-md border border-blue-200 dark:border-blue-500/20">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              {authorName || 'Verified'}
-            </span>
-          </div>
-        </div>
-      </div>
+      )}
 
-      {/* Mint Button triggering local Authorization */}
-      <button
-        onClick={handleStartAuthorization}
-        className="w-full py-3.5 rounded-2xl text-white font-black transition-all duration-200 relative z-10 flex items-center justify-center gap-3 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 shadow-[0_4px_0_0_#3730a3,0_10px_20px_rgba(79,70,229,0.35)] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#3730a3,0_15px_30px_rgba(79,70,229,0.4)] active:translate-y-0.5 active:shadow-[0_1px_0_0_#3730a3,0_5px_10px_rgba(79,70,229,0.3)]"
-      >
-        <span className="relative z-10 flex items-center justify-center gap-2 font-bold tracking-wide">
-          Collect NFT <span className="opacity-40">·</span> <span className="text-blue-200 font-medium">{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
-          <svg className="w-4 h-4 ml-0.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+      {/* Title */}
+      <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 8px 0', color: 'var(--lw-text)', lineHeight: 1.4, maxWidth: '320px' }}>
+        {articleTitle || 'Digital Asset'}
+      </h3>
+
+      {/* Publisher / Author */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--lw-text-muted)', marginBottom: '20px' }}>
+        <span>Publisher</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,0.08)', padding: '2px 8px', borderRadius: '6px', fontSize: '10px' }}>
+          <svg style={{ width: '10px', height: '10px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          {publisherName || 'Verified'}
         </span>
-      </button>
-
-      {/* Wallet + Branding Footer */}
-      <div className="mt-5 relative z-10 w-full flex flex-col items-center gap-3">
-        {renderCustomWeb3Button()}
-        <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-60 transition-opacity duration-500 mt-2">
-          <svg viewBox="0 0 200 200" className="w-3 h-3">
-            <circle cx="100" cy="100" r="100" fill="#F04E37" />
-            <text x="100" y="130" fill="#FFFFFF" fontSize="90" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="bold" textAnchor="middle" letterSpacing="-2">L</text>
-          </svg>
-          <span className="text-[9px] font-semibold text-slate-400 dark:text-slate-600 tracking-wider">Powered by Litera</span>
-        </div>
+        <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--lw-text-muted)' }} />
+        <span>Author</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 700, color: '#F04E37', background: 'var(--lw-badge-bg)', padding: '2px 8px', borderRadius: '6px', fontSize: '10px' }}>
+          <svg style={{ width: '10px', height: '10px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          {authorName || 'Verified'}
+        </span>
       </div>
 
-    </div>
+      {/* Collect Button */}
+      <LiteraButton onClick={handleStartAuthorization}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          Collect NFT
+          <span style={{ opacity: 0.5 }}>·</span>
+          <span style={{ fontWeight: 500, opacity: 0.85 }}>{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
+        </span>
+      </LiteraButton>
+
+      {/* Wallet + Branding */}
+      {renderWalletButton()}
+      <PoweredByLitera />
+    </WidgetShell>
   );
 };
 
