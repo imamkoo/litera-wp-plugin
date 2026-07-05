@@ -33,6 +33,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
   const [sponsorUrl, setSponsorUrl] = useState<string | null>(null);
   const [nftMedia, setNftMedia] = useState<{ url: string, type: 'image' | 'video' } | null>(null);
+  const [publisherName, setPublisherName] = useState<string | null>(null);
+  const [authorName, setAuthorName] = useState<string | null>(null);
   const { open } = useWeb3Modal();
 
   // --- Contracts Read ---
@@ -143,6 +145,28 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
       fetchMetadata();
     }
   }, [tokenURI]);
+
+  useEffect(() => {
+    if (publisherAddress && publisherAddress !== '0x0' && publisherAddress !== '0x0000000000000000000000000000000000000000') {
+      axios.get(`https://literaa.xyz/api/v1/publishers/${publisherAddress}`)
+        .then(res => {
+           const name = res.data?.displayName || res.data?.data?.displayName;
+           if (name) setPublisherName(name);
+        })
+        .catch(() => {});
+    }
+  }, [publisherAddress]);
+
+  useEffect(() => {
+    if (creatorAddress && creatorAddress !== '0x0' && creatorAddress !== '0x0000000000000000000000000000000000000000') {
+      axios.get(`https://literaa.xyz/api/v1/publishers/${creatorAddress}`)
+        .then(res => {
+           const name = res.data?.displayName || res.data?.data?.displayName;
+           if (name) setAuthorName(name);
+        })
+        .catch(() => {});
+    }
+  }, [creatorAddress]);
 
   const handleAuthorizeAndMint = () => {
     const returnUrl = encodeURIComponent(window.location.href);
@@ -446,7 +470,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
             <span className="opacity-60">Publisher</span>
             <span className="flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-500/20">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              Verified
+              {publisherName || 'Verified'}
             </span>
           </div>
           <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
@@ -454,7 +478,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
             <span className="opacity-60">Author</span>
             <span className="flex items-center gap-1 font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.5 rounded-md border border-blue-200 dark:border-blue-500/20">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              Verified
+              {authorName || 'Verified'}
             </span>
           </div>
         </div>
