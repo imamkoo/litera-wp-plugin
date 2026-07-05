@@ -44,7 +44,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   const [errorMessage, setErrorMessage] = useState('');
   const [questions, setQuestions] = useState<any[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [quizResult, setQuizResult] = useState<any | null>(null);
 
   // --- Contracts Write ---
@@ -192,22 +192,18 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   const handleStartAuthorization = async () => {
     if (!tokenId || !address) return;
     
-    if (!articleCid) {
-      setStep('mint_ready');
-      return;
-    }
-
     setStep('checking_auth');
     try {
-      const quizRes = await axios.get(`https://literaa.xyz/quizzes?url=${articleCid}`);
-      const quizData = quizRes.data;
+      const apiUrl = 'https://literaa.xyz';
+      const quizRes = await axios.get(`${apiUrl}/api/v1/quiz/token/${tokenId}`);
+      const quizData = quizRes.data?.data || quizRes.data;
 
       if (!quizData || quizData.status === 'OFF' || !quizData.questions || quizData.questions.length === 0) {
         setStep('mint_ready');
         return;
       }
 
-      const statusRes = await axios.get(`https://literaa.xyz/quizzes/${articleCid}/status/${address}`);
+      const statusRes = await axios.get(`${apiUrl}/api/v1/quiz/token/${tokenId}/status/${address}`);
       const statusData = statusRes.data;
 
       if (statusData && statusData.hasAttempted && statusData.status === 'PASS') {
@@ -228,7 +224,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     }
   };
 
-  const handleSelectOption = (optionId: number) => {
+  const handleSelectOption = (optionId: string) => {
     const currentQuestion = questions[currentQuestionIndex];
     if (currentQuestion) {
       setAnswers(prev => ({ ...prev, [currentQuestion.id]: optionId }));
@@ -245,13 +241,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     } else {
       setStep('quiz_evaluating');
       try {
-        const answersArray = Object.entries(answers).map(([qId, oId]) => ({
-          questionId: Number(qId),
-          optionId: oId
-        }));
-        const res = await axios.post(`https://literaa.xyz/quizzes/${articleCid}/submit`, {
-          walletAddress: address,
-          answers: answersArray
+        const apiUrl = 'https://literaa.xyz';
+        const res = await axios.post(`${apiUrl}/api/v1/quiz/submit`, {
+          tokenId: tokenId,
+          answers: answers,
+          nonce: Math.random().toString(36).substring(2, 15)
         });
         setQuizResult(res.data);
         setStep('quiz_result');
