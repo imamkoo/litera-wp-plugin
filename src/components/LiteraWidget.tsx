@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useAccount, useReadContract } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
+import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
 import axios from 'axios';
 import {
@@ -36,6 +37,30 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   const [publisherName, setPublisherName] = useState<string | null>(null);
   const [authorName, setAuthorName] = useState<string | null>(null);
   const { open } = useWeb3Modal();
+
+  // --- Quiz & Auth States ---
+  const [step, setStep] = useState<'idle' | 'checking_auth' | 'quiz_intro' | 'quiz_active' | 'quiz_evaluating' | 'quiz_result' | 'mint_ready' | 'minting' | 'receipt' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [quizResult, setQuizResult] = useState<any | null>(null);
+
+  // --- Contracts Write ---
+  const { writeContract: approveWrite, data: approveHash, isPending: isApprovingReq } = useWriteContract();
+  const { isLoading: isApprovingTx, isSuccess: isApproveSuccess } = useWaitForTransactionReceipt({ hash: approveHash });
+
+  const { writeContract: mintWrite, data: mintHash, isPending: isMintingReq } = useWriteContract();
+  const { isLoading: isMintingTx, isSuccess: isMintSuccess, data: mintReceipt } = useWaitForTransactionReceipt({ hash: mintHash });
+
+  const { data: allowance } = useReadContract({
+    address: Erc20Adress,
+    abi: erc20ABI,
+    functionName: 'allowance',
+    args: [address as `0x${string}`, contractAddress],
+    chainId: activeChainId,
+    query: { enabled: !!address, refetchInterval: 3000 }
+  });
 
   // --- Contracts Read ---
 
@@ -160,10 +185,105 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     }
   }, [publisherAddress]);
 
-  const handleAuthorizeAndMint = () => {
-    const returnUrl = encodeURIComponent(window.location.href);
-    const walletParam = address ? `&wallet=${address}` : '';
-    window.location.href = `https://literaa.xyz/authorize/${tokenId}?returnUrl=${returnUrl}${walletParam}`;
+  const handleStartAuthorization = async () => {
+    if (!tokenId || !address) return;
+    setStep('checking_auth');
+    try {
+      const quizRes = await axios.get(`https://literaa.xyz/quizzes?url=${tokenId}`);
+      const quizData = quizRes.data;
+
+      if (!quizData || quizData.status === 'OFF' || !quizData.questions || quizData.questions.length === 0) {
+        setStep('mint_ready');
+        return;
+      }
+
+      const statusRes = await axios.get(`https://literaa.xyz/quizzes/${tokenId}/status/${address}`);
+      const statusData = statusRes.data;
+
+      if (statusData && statusData.hasAttempted && statusData.status === 'PASS') {
+        setStep('mint_ready');
+        return;
+      }
+
+      setQuestions(quizData.questions);
+      setStep('quiz_intro');
+    } catch (error) {
+      console.error("Auth fetch failed", error);
+      setErrorMessage("Failed to load Authorization Mechanism. Please try again later.");
+      setStep('error');
+    }
+  };
+
+  const handleSelectOption = (optionId: number) => {
+    const currentQuestion = questions[currentQuestionIndex];
+    if (currentQuestion) {
+      setAnswers(prev => ({ ...prev, [currentQuestion.id]: optionId }));
+    }
+  };
+
+  const selectedOptionId = questions[currentQuestionIndex] ? (answers[questions[currentQuestionIndex].id] ?? null) : null;
+
+  const handleNextQuestion = async () => {
+    if (selectedOptionId === null) return;
+    
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      setStep('quiz_evaluating');
+      try {
+        const answersArray = Object.entries(answers).map(([qId, oId]) => ({
+          questionId: Number(qId),
+          optionId: oId
+        }));
+        const res = await axios.post(`https://literaa.xyz/quizzes/${tokenId}/submit`, {
+          walletAddress: address,
+          answers: answersArray
+        });
+        setQuizResult(res.data);
+        setStep('quiz_result');
+      } catch (err) {
+        setErrorMessage("Failed to evaluate quiz.");
+        setStep('error');
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isMintingReq || isMintingTx) setStep('minting');
+    if (isMintSuccess) setStep('receipt');
+  }, [isMintingReq, isMintingTx, isMintSuccess]);
+
+  const handleBuy = async () => {
+    try {
+      const needed = price ? BigInt(price) : 0n;
+      const currentAllowance = allowance !== undefined ? BigInt(allowance as any) : 0n;
+      const currentUserBalance = userBalance !== undefined ? BigInt(userBalance as any) : 0n;
+
+      if (currentUserBalance < needed) {
+        alert("Insufficient LITE Balance!");
+        return;
+      }
+
+      if (currentAllowance < needed) {
+        approveWrite({
+          address: Erc20Adress,
+          abi: erc20ABI,
+          functionName: 'approve',
+          args: [contractAddress, needed]
+        });
+      } else {
+        mintWrite({
+          address: contractAddress,
+          abi: contractABI,
+          functionName: 'Mint',
+          args: [BigInt(tokenId || 0), "0x"]
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Minting failed. See console.");
+      setStep('error');
+    }
   };
 
   const getOpenSeaUrl = () => {
@@ -428,6 +548,168 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     );
   }
 
+  if (step !== 'idle') {
+    if (step === 'checking_auth' || step === 'quiz_evaluating') {
+      return (
+        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6 text-center">
+          <Loader2Icon size={48} className="text-blue-600 animate-spin mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-slate-800 dark:text-white">Processing...</h3>
+        </div>
+      );
+    }
+
+    if (step === 'quiz_intro') {
+      return (
+        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6 text-center">
+          <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <BookOpenIcon size={32} />
+          </div>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-4">Knowledge Check Required</h2>
+          <p className="text-slate-500 mb-8">You need to pass this quick quiz to unlock the premium content and mint the NFT.</p>
+          <button onClick={() => setStep('quiz_active')} className="w-full py-3.5 rounded-2xl text-white font-black bg-blue-600 hover:bg-blue-700 transition-colors">
+            Start Quiz
+          </button>
+        </div>
+      );
+    }
+
+    if (step === 'quiz_active') {
+      return (
+        <div className="litera-widget-container flex flex-col items-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6">
+          <div className="w-full flex justify-between items-center mb-2">
+            <span className="text-sm font-bold text-slate-400">Question {currentQuestionIndex + 1} of {questions.length}</span>
+            <span className="text-sm font-bold text-blue-600">{Math.round((currentQuestionIndex / questions.length) * 100)}%</span>
+          </div>
+          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full mb-8 overflow-hidden">
+            <div className="bg-blue-600 h-full transition-all duration-300" style={{ width: `${(currentQuestionIndex / questions.length) * 100}%` }}></div>
+          </div>
+          
+          <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-8 text-center w-full">
+            {questions[currentQuestionIndex].text}
+          </h3>
+          
+          <div className="flex flex-col gap-3 w-full mb-8">
+            {questions[currentQuestionIndex].options.map((option: any) => {
+              const isSelected = selectedOptionId === option.id;
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => handleSelectOption(option.id)}
+                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
+                    isSelected ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold' : 'border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300'
+                  }`}
+                >
+                  {option.text}
+                </button>
+              );
+            })}
+          </div>
+          <button onClick={handleNextQuestion} disabled={selectedOptionId === null} className="w-full py-3.5 rounded-2xl text-white font-black bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors">
+            {currentQuestionIndex === questions.length - 1 ? 'Submit Answers' : 'Next Question'}
+          </button>
+        </div>
+      );
+    }
+
+    if (step === 'quiz_result') {
+      const isPassed = quizResult?.status === 'PASS';
+      return (
+        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6 text-center">
+          <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${isPassed ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+            {isPassed ? <CheckCircle2Icon size={40} /> : <AlertCircleIcon size={40} />}
+          </div>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">
+            {isPassed ? 'Knowledge Check Passed!' : 'Knowledge Check Failed'}
+          </h2>
+          <div className={`text-6xl font-black my-6 ${isPassed ? 'text-emerald-500' : 'text-rose-500'}`}>
+            {quizResult?.score || 0}%
+          </div>
+          <p className="text-slate-500 mb-8">
+            {isPassed ? "Excellent! You are now eligible to mint this content." : "You did not reach the passing score. Please try again."}
+          </p>
+          {isPassed ? (
+            <button onClick={() => setStep('mint_ready')} className="w-full py-3.5 rounded-2xl text-white font-black bg-emerald-500 hover:bg-emerald-600 transition-colors">
+              Proceed to Mint
+            </button>
+          ) : (
+            <button onClick={() => { setStep('quiz_intro'); setAnswers({}); setCurrentQuestionIndex(0); }} className="w-full py-3.5 rounded-2xl text-white font-black bg-blue-600 hover:bg-blue-700 transition-colors">
+              Retry Quiz
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    if (step === 'mint_ready' || step === 'minting') {
+      const isApproving = isApprovingReq || isApprovingTx;
+      const isMintTx = isMintingReq || isMintingTx;
+      const isButtonDisabled = isApproving || isMintTx;
+      const buttonText = isApproving ? "Approving LITE..." : isMintTx ? "Minting NFT..." : (allowance !== undefined && BigInt(allowance as any) < (price ? BigInt(price) : 0n)) ? "Approve LITE" : "Mint NFT";
+
+      return (
+        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6 text-center">
+          <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <ShieldCheckIcon size={32} />
+          </div>
+          <div className="inline-block px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold tracking-widest mb-4 border border-emerald-200">
+            ELIGIBLE FOR MINTING
+          </div>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">Claim Your Access</h2>
+          <p className="text-slate-500 mb-8">You have passed the authorization check. Mint your NFT now to unlock the premium article permanently.</p>
+          
+          <div className="bg-slate-50 dark:bg-[#1a1a1f] w-full p-4 rounded-2xl mb-8 flex justify-between items-center border border-slate-100 dark:border-white/5">
+             <span className="font-semibold text-slate-600 dark:text-slate-400">Price</span>
+             <span className="font-black text-slate-800 dark:text-white">{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
+          </div>
+
+          <button onClick={handleBuy} disabled={isButtonDisabled} className="w-full py-3.5 rounded-2xl text-white font-black bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-colors">
+            {buttonText}
+          </button>
+        </div>
+      );
+    }
+
+    if (step === 'receipt') {
+      const baseUrl = activeNetworkName === 'MAINNET' ? 'https://polygonscan.com/tx' : 'https://amoy.polygonscan.com/tx';
+      const txUrl = mintReceipt?.transactionHash ? `${baseUrl}/${mintReceipt.transactionHash}` : null;
+
+      return (
+        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6 text-center">
+          <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2Icon size={40} />
+          </div>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">Publication Receipt</h2>
+          <p className="text-slate-500 mb-8">Congratulations! The NFT has been minted and added to your wallet. You now have permanent access to the article.</p>
+          
+          {txUrl && (
+            <a href={txUrl} target="_blank" rel="noopener noreferrer" className="block text-sm text-blue-600 font-semibold mb-8 hover:underline">
+              View on Explorer
+            </a>
+          )}
+
+          <button onClick={() => window.location.reload()} className="w-full py-3.5 rounded-2xl text-white font-black bg-blue-600 hover:bg-blue-700 transition-colors">
+            Read Article
+          </button>
+        </div>
+      );
+    }
+
+    if (step === 'error') {
+      return (
+        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6 text-center">
+          <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircleIcon size={32} />
+          </div>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">An Error Occurred</h2>
+          <p className="text-slate-500 mb-8">{errorMessage}</p>
+          <button onClick={() => setStep('idle')} className="w-full py-3.5 rounded-2xl text-white font-black bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors">
+            Return
+          </button>
+        </div>
+      );
+    }
+  }
+
   return (
     <div className="litera-widget-container relative flex flex-col items-center p-6 sm:p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(99,102,241,0.08)] border border-slate-200/60 dark:border-white/[0.06] text-center my-6 transition-all duration-700 overflow-hidden group hover:border-slate-300/80 hover:dark:border-white/[0.12]">
       
@@ -476,9 +758,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
         </div>
       </div>
 
-      {/* Mint Button via Authorization Platform redirect */}
+      {/* Mint Button triggering local Authorization */}
       <button
-        onClick={handleAuthorizeAndMint}
+        onClick={handleStartAuthorization}
         className="w-full py-3.5 rounded-2xl text-white font-black transition-all duration-200 relative z-10 flex items-center justify-center gap-3 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 shadow-[0_4px_0_0_#3730a3,0_10px_20px_rgba(79,70,229,0.35)] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#3730a3,0_15px_30px_rgba(79,70,229,0.4)] active:translate-y-0.5 active:shadow-[0_1px_0_0_#3730a3,0_5px_10px_rgba(79,70,229,0.3)]"
       >
         <span className="relative z-10 flex items-center justify-center gap-2 font-bold tracking-wide">
