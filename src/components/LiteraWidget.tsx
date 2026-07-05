@@ -36,54 +36,56 @@ const formatIpfsUrl = (url: string | undefined): string => {
 const THEME_CSS = `
 @media (prefers-color-scheme: light) {
   .lw-root {
-    --lw-bg: rgba(255,255,255,0.85);
-    --lw-bg-alt: #f8fafc;
-    --lw-bg-inner: rgba(241,245,249,0.6);
-    --lw-border: rgba(226,232,240,0.6);
-    --lw-border-hover: rgba(203,213,225,0.8);
-    --lw-text: #0f172a;
-    --lw-text-secondary: #64748b;
+    --lw-bg: rgba(255, 255, 255, 0.4);
+    --lw-bg-alt: rgba(255, 255, 255, 0.7);
+    --lw-bg-inner: rgba(255, 255, 255, 0.5);
+    --lw-border: rgba(255, 255, 255, 0.6);
+    --lw-border-hover: rgba(255, 255, 255, 0.9);
+    --lw-text: #1e293b;
+    --lw-text-secondary: #475569;
     --lw-text-muted: #94a3b8;
-    --lw-shadow: 0 4px 24px rgba(0,0,0,0.06);
-    --lw-option-bg: #f1f5f9;
-    --lw-option-border: #e2e8f0;
-    --lw-option-hover: #e2e8f0;
-    --lw-option-selected-bg: rgba(240,78,55,0.08);
-    --lw-option-selected-border: #F04E37;
-    --lw-progress-bg: #e2e8f0;
-    --lw-badge-bg: rgba(240,78,55,0.08);
-    --lw-badge-border: rgba(240,78,55,0.15);
+    --lw-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    --lw-option-bg: rgba(255, 255, 255, 0.6);
+    --lw-option-border: rgba(255, 255, 255, 0.8);
+    --lw-option-hover: rgba(255, 255, 255, 0.9);
+    --lw-option-selected-bg: rgba(240,78,55,0.15);
+    --lw-option-selected-border: rgba(240,78,55,0.6);
+    --lw-progress-bg: rgba(0,0,0,0.05);
+    --lw-badge-bg: rgba(240,78,55,0.15);
+    --lw-badge-border: rgba(240,78,55,0.3);
     --lw-badge-text: #F04E37;
-    --lw-wallet-bg: #1e293b;
-    --lw-wallet-text: #ffffff;
-    --lw-score-card-bg: #f8fafc;
-    --lw-glow: transparent;
+    --lw-wallet-bg: rgba(255, 255, 255, 0.8);
+    --lw-wallet-text: #0f172a;
+    --lw-score-card-bg: rgba(255, 255, 255, 0.7);
+    --lw-glow: rgba(240,78,55,0.15);
+    --lw-glass-inset: inset 0 0 0 1px rgba(255,255,255,0.8);
   }
 }
 @media (prefers-color-scheme: dark) {
   .lw-root {
-    --lw-bg: rgba(10,10,15,0.92);
-    --lw-bg-alt: #111118;
-    --lw-bg-inner: rgba(255,255,255,0.04);
-    --lw-border: rgba(255,255,255,0.08);
-    --lw-border-hover: rgba(255,255,255,0.15);
-    --lw-text: #f1f5f9;
+    --lw-bg: rgba(17, 25, 40, 0.75);
+    --lw-bg-alt: rgba(17, 25, 40, 0.9);
+    --lw-bg-inner: rgba(255, 255, 255, 0.05);
+    --lw-border: rgba(255, 255, 255, 0.125);
+    --lw-border-hover: rgba(255, 255, 255, 0.25);
+    --lw-text: #f8fafc;
     --lw-text-secondary: #94a3b8;
-    --lw-text-muted: #475569;
-    --lw-shadow: 0 4px 40px rgba(0,0,0,0.4);
-    --lw-option-bg: rgba(255,255,255,0.04);
-    --lw-option-border: rgba(255,255,255,0.08);
-    --lw-option-hover: rgba(255,255,255,0.08);
-    --lw-option-selected-bg: rgba(240,78,55,0.12);
-    --lw-option-selected-border: #F04E37;
-    --lw-progress-bg: rgba(255,255,255,0.06);
-    --lw-badge-bg: rgba(240,78,55,0.12);
-    --lw-badge-border: rgba(240,78,55,0.2);
-    --lw-badge-text: #fb7b6a;
-    --lw-wallet-bg: rgba(255,255,255,0.06);
-    --lw-wallet-text: #f1f5f9;
-    --lw-score-card-bg: rgba(255,255,255,0.03);
-    --lw-glow: rgba(240,78,55,0.06);
+    --lw-text-muted: #64748b;
+    --lw-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --lw-option-bg: rgba(255, 255, 255, 0.05);
+    --lw-option-border: rgba(255, 255, 255, 0.1);
+    --lw-option-hover: rgba(255, 255, 255, 0.15);
+    --lw-option-selected-bg: rgba(240,78,55,0.15);
+    --lw-option-selected-border: rgba(240,78,55,0.5);
+    --lw-progress-bg: rgba(255,255,255,0.1);
+    --lw-badge-bg: rgba(240,78,55,0.2);
+    --lw-badge-border: rgba(240,78,55,0.3);
+    --lw-badge-text: #ff8c7a;
+    --lw-wallet-bg: rgba(255, 255, 255, 0.1);
+    --lw-wallet-text: #f8fafc;
+    --lw-score-card-bg: rgba(255, 255, 255, 0.05);
+    --lw-glow: rgba(240,78,55,0.15);
+    --lw-glass-inset: inset 0 0 0 1px rgba(255,255,255,0.1);
   }
 }
 .lw-root {
@@ -132,9 +134,27 @@ const LiteraButton: React.FC<{ onClick?: () => void; disabled?: boolean; childre
   };
 
   const variants: Record<string, React.CSSProperties> = {
-    primary: { ...baseStyle, background: '#F04E37', color: '#ffffff' },
-    secondary: { ...baseStyle, background: 'var(--lw-bg-inner)', color: 'var(--lw-text)', border: '1px solid var(--lw-border)' },
-    outline: { ...baseStyle, background: 'transparent', color: 'var(--lw-text)', border: '1.5px solid var(--lw-border)' },
+    primary: { 
+      ...baseStyle, 
+      background: 'linear-gradient(135deg, #F04E37 0%, #d9432f 100%)', 
+      color: '#ffffff',
+      boxShadow: '0 8px 16px -4px rgba(240,78,55,0.4), inset 0 2px 4px rgba(255,255,255,0.3)',
+      textShadow: '0 1px 2px rgba(0,0,0,0.2)'
+    },
+    secondary: { 
+      ...baseStyle, 
+      background: 'var(--lw-bg-inner)', 
+      color: 'var(--lw-text)', 
+      border: '1px solid var(--lw-border)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.05), var(--lw-glass-inset)'
+    },
+    outline: { 
+      ...baseStyle, 
+      background: 'transparent', 
+      color: 'var(--lw-text)', 
+      border: '1.5px solid var(--lw-border)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+    },
   };
 
   const style = variants[variant] || variants.primary;
@@ -154,16 +174,19 @@ const WidgetShell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     background: 'var(--lw-bg)',
     backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
     borderRadius: '24px',
-    boxShadow: 'var(--lw-shadow)',
     border: '1px solid var(--lw-border)',
     margin: '24px 0',
     textAlign: 'center' as const,
     overflow: 'hidden',
     transition: 'border-color 0.3s ease',
+    boxShadow: 'var(--lw-shadow), var(--lw-glass-inset)',
   }}>
-    {/* Subtle ambient glow */}
-    <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '200px', height: '200px', background: 'var(--lw-glow)', borderRadius: '50%', filter: 'blur(60px)', pointerEvents: 'none' }} />
-    {children}
+    {/* Ambient glass glows */}
+    <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '150px', height: '150px', background: 'var(--lw-glow)', borderRadius: '50%', filter: 'blur(50px)', pointerEvents: 'none', zIndex: 0 }} />
+    <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '150px', height: '150px', background: 'var(--lw-glow)', borderRadius: '50%', filter: 'blur(50px)', pointerEvents: 'none', zIndex: 0 }} />
+    <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+      {children}
+    </div>
   </div>
 );
 
@@ -407,19 +430,29 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
         const apiUrl = 'https://literaa.xyz';
         const timestamp = Date.now().toString();
         const action = 'SUBMIT_QUIZ';
-        const message = `${action}:${timestamp}`;
-        const signature = await signMessageAsync({ message });
+        const nonce = Math.random().toString(36).substring(2, 15);
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+        
+        const messagePayload = `Litera
+Version: 1.0
+Wallet: ${address.toLowerCase()}
+Action: ${action}
+Nonce: ${nonce}
+Chain: 137
+IssuedAt: ${new Date().toISOString()}
+Expires: ${expiresAt}`;
+        
+        const signature = await signMessageAsync({ message: messagePayload });
 
         const res = await axios.post(`${apiUrl}/api/v1/quiz/submit`, {
           tokenId: tokenId,
           answers: answers,
-          nonce: Math.random().toString(36).substring(2, 15)
+          nonce: nonce
         }, {
           headers: {
             'x-wallet-address': address,
-            'x-wallet-signature': signature,
-            'x-timestamp': timestamp,
-            'x-action': action
+            'x-signature': signature,
+            'x-message': encodeURIComponent(messagePayload)
           }
         });
         setQuizResult(res.data);
@@ -708,7 +741,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
           </div>
 
           {/* Question */}
-          <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--lw-text)', lineHeight: 1.5, marginBottom: '24px', textAlign: 'center' as const }}>
+          <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--lw-text)', lineHeight: 1.5, marginBottom: '24px', textAlign: 'center' as const, wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal', maxWidth: '100%' }}>
             {questions[currentQuestionIndex].text}
           </h3>
 
@@ -724,11 +757,12 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
                     display: 'flex', alignItems: 'center', gap: '12px',
                     padding: '14px 16px',
                     borderRadius: '14px',
-                    border: `1.5px solid ${isSelected ? '#F04E37' : 'var(--lw-option-border)'}`,
+                    border: `1.5px solid ${isSelected ? 'var(--lw-option-selected-border)' : 'var(--lw-option-border)'}`,
                     background: isSelected ? 'var(--lw-option-selected-bg)' : 'var(--lw-option-bg)',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     textAlign: 'left' as const,
+                    boxShadow: isSelected ? 'inset 0 0 0 1px rgba(240,78,55,0.2), 0 4px 12px rgba(240,78,55,0.1)' : 'var(--lw-glass-inset)'
                   }}
                 >
                   <div style={{
@@ -739,10 +773,12 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
                     color: isSelected ? '#fff' : 'var(--lw-text-muted)',
                     border: isSelected ? 'none' : '1px solid var(--lw-border)',
                     transition: 'all 0.2s ease',
+                    boxShadow: isSelected ? '0 2px 8px rgba(240,78,55,0.4)' : 'none',
+                    textShadow: isSelected ? '0 1px 2px rgba(0,0,0,0.2)' : 'none'
                   }}>
                     {alphabet[idx]}
                   </div>
-                  <span style={{ fontSize: '13px', fontWeight: 500, color: isSelected ? 'var(--lw-text)' : 'var(--lw-text-secondary)', lineHeight: 1.5 }}>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: isSelected ? 'var(--lw-text)' : 'var(--lw-text-secondary)', lineHeight: 1.5, wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal', flex: 1 }}>
                     {option.text}
                   </span>
                 </button>
