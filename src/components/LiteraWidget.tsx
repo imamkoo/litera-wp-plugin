@@ -889,7 +889,7 @@ Expires: ${expiresAt}`;
       const isMintTx = isMintingReq || isMintingTx;
       const isButtonDisabled = isApproving || isMintTx;
       const priceText = price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free';
-      const buttonText = isApproving ? "Approving LITE..." : isMintTx ? "Minting NFT..." : (allowance !== undefined && BigInt(allowance as any) < (price ? BigInt(price) : 0n)) ? "Approve LITE" : `Mint NFT (${priceText})`;
+      const buttonText = isApproving ? "Approving LITE..." : isMintTx ? "Minting NFT..." : `Mint NFT (${priceText})`;
 
       return (
         <WidgetShell>
@@ -993,7 +993,11 @@ Expires: ${expiresAt}`;
 
       {/* Collect Button */}
       <LiteraButton onClick={handleStartAuthorization} fullWidth={false}>
-        Collect NFT
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          Collect NFT
+          <span style={{ opacity: 0.5 }}>·</span>
+          <span style={{ fontWeight: 500, opacity: 0.85 }}>{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
+        </span>
       </LiteraButton>
 
       {/* Wallet + Branding */}
