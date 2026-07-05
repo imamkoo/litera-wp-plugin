@@ -714,12 +714,9 @@ Expires: ${expiresAt}`;
           <p className="lw-desc">
             Ready to claim your reward? Pass this quick knowledge check to mint your exclusive NFT.
           </p>
-          <button 
-            className="lw-btn"
-            onClick={handleStartQuiz}
-          >
+          <LiteraButton onClick={() => setStep('quiz_active')}>
             START QUIZ
-          </button>
+          </LiteraButton>
           <PoweredByLitera />
         </WidgetShell>
       );
