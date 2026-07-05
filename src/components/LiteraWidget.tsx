@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
@@ -38,6 +38,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   const [authorName, setAuthorName] = useState<string | null>(null);
   const [articleCid, setArticleCid] = useState<string | null>(null);
   const { open } = useWeb3Modal();
+  const { signMessageAsync } = useSignMessage();
 
   // --- Quiz & Auth States ---
   const [step, setStep] = useState<'idle' | 'checking_auth' | 'quiz_intro' | 'quiz_active' | 'quiz_evaluating' | 'quiz_result' | 'mint_ready' | 'minting' | 'receipt' | 'error'>('idle');
@@ -242,15 +243,27 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
       setStep('quiz_evaluating');
       try {
         const apiUrl = 'https://literaa.xyz';
+        const timestamp = Date.now().toString();
+        const action = 'SUBMIT_QUIZ';
+        const message = `${action}:${timestamp}`;
+        const signature = await signMessageAsync({ message });
+
         const res = await axios.post(`${apiUrl}/api/v1/quiz/submit`, {
           tokenId: tokenId,
           answers: answers,
           nonce: Math.random().toString(36).substring(2, 15)
+        }, {
+          headers: {
+            'x-wallet-address': address,
+            'x-wallet-signature': signature,
+            'x-timestamp': timestamp,
+            'x-action': action
+          }
         });
         setQuizResult(res.data);
         setStep('quiz_result');
-      } catch (err) {
-        setErrorMessage("Failed to evaluate quiz.");
+      } catch (err: any) {
+        setErrorMessage(err?.response?.data?.message || "Failed to evaluate quiz.");
         setStep('error');
       }
     }
@@ -556,65 +569,131 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     );
   }
 
+  const alphabet = ['A', 'B', 'C', 'D', 'E', 'F'];
+
   if (step !== 'idle') {
     if (step === 'checking_auth' || step === 'quiz_evaluating') {
       return (
-        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6 text-center">
-          <Loader2Icon size={48} className="text-blue-600 animate-spin mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white">Processing...</h3>
+        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-[#0a0a0f] border border-white/10 rounded-[2rem] shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 text-center relative overflow-hidden">
+          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] pointer-events-none" />
+          <div className="relative mb-8 z-10">
+            <div className="absolute inset-0 bg-blue-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+            <Loader2Icon size={56} className="text-blue-400 animate-spin relative z-10 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+          </div>
+          <h3 className="text-2xl font-black text-white mb-3 tracking-tight relative z-10">
+            {step === 'checking_auth' ? 'Verifying Access' : 'Awaiting Wallet Signature'}
+          </h3>
+          <p className="text-slate-400 font-medium text-sm max-w-[280px] mx-auto leading-relaxed relative z-10">
+            {step === 'checking_auth' ? 'Please wait while we check your authorization status.' : 'Please open your wallet and sign the message to verify your answers.'}
+          </p>
+          <div className="mt-8 flex items-center gap-2 text-[10px] text-slate-500 uppercase font-bold tracking-widest relative z-10">
+            Powered by Litera Protocol
+          </div>
         </div>
       );
     }
 
     if (step === 'quiz_intro') {
       return (
-        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6 text-center">
-          <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <BookOpenIcon size={32} />
+        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-[#0a0a0f] border border-white/10 rounded-[2rem] shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 text-center relative overflow-hidden">
+          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] pointer-events-none" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-64 h-64 bg-purple-600/20 rounded-full blur-[80px] pointer-events-none" />
+          
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(59,130,246,0.2)] relative z-10">
+            <ShieldCheckIcon size={40} className="text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-4">Knowledge Check Required</h2>
-          <p className="text-slate-500 mb-8">You need to pass this quick quiz to unlock the premium content and mint the NFT.</p>
-          <button onClick={() => setStep('quiz_active')} className="w-full py-3.5 rounded-2xl text-white font-black bg-blue-600 hover:bg-blue-700 transition-colors">
-            Start Quiz
+          <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 tracking-tight relative z-10 mb-2">Authorization Required</h2>
+          
+          <p className="text-slate-400 font-medium text-sm max-w-[280px] mx-auto leading-relaxed relative z-10 mb-6">
+            This premium content is gated by a Knowledge Check. Pass the quiz to generate a Proof of Knowledge and mint your access NFT.
+          </p>
+
+          <div className="flex justify-center gap-4 text-xs font-bold text-slate-300 relative z-10 w-full mb-8">
+            <div className="flex flex-col items-center bg-white/5 border border-white/5 p-4 rounded-2xl w-full shadow-inner">
+              <span className="text-2xl font-black text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)] mb-1">{questions.length}</span>
+              <span className="uppercase tracking-widest text-[10px] text-slate-500">Questions</span>
+            </div>
+            <div className="flex flex-col items-center bg-white/5 border border-white/5 p-4 rounded-2xl w-full shadow-inner">
+              <span className="text-2xl font-black text-purple-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)] mb-1">60%</span>
+              <span className="uppercase tracking-widest text-[10px] text-slate-500">To Pass</span>
+            </div>
+          </div>
+
+          <button onClick={() => setStep('quiz_active')} className="w-full h-14 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] text-white font-black text-sm uppercase tracking-widest transition-all relative z-10 mb-4">
+            Start Authorization
           </button>
+          
+          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-500 uppercase font-bold tracking-widest relative z-10">
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+            Powered by Litera Protocol
+          </div>
         </div>
       );
     }
 
     if (step === 'quiz_active') {
       return (
-        <div className="litera-widget-container flex flex-col items-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6">
-          <div className="w-full flex justify-between items-center mb-2">
-            <span className="text-sm font-bold text-slate-400">Question {currentQuestionIndex + 1} of {questions.length}</span>
-            <span className="text-sm font-bold text-blue-600">{Math.round((currentQuestionIndex / questions.length) * 100)}%</span>
+        <div className="litera-widget-container flex flex-col items-center p-8 bg-[#0a0a0f] border border-white/10 rounded-[2rem] shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 relative overflow-hidden">
+          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] pointer-events-none" />
+          
+          <div className="w-full flex justify-between items-center mb-4 relative z-10">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Question {currentQuestionIndex + 1} of {questions.length}</span>
+            <span className="text-[10px] font-black text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 tracking-wider">
+              {Math.round((currentQuestionIndex / questions.length) * 100)}% COMPLETED
+            </span>
           </div>
-          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full mb-8 overflow-hidden">
-            <div className="bg-blue-600 h-full transition-all duration-300" style={{ width: `${(currentQuestionIndex / questions.length) * 100}%` }}></div>
+          <div className="w-full bg-white/5 h-1.5 rounded-full mb-8 overflow-hidden relative z-10">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-300" style={{ width: `${(currentQuestionIndex / questions.length) * 100}%` }}></div>
           </div>
           
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-8 text-center w-full">
+          <h3 className="text-xl font-bold text-white leading-relaxed mb-8 text-center w-full relative z-10">
             {questions[currentQuestionIndex].text}
           </h3>
           
-          <div className="flex flex-col gap-3 w-full mb-8">
-            {questions[currentQuestionIndex].options.map((option: any) => {
+          <div className="flex flex-col gap-3 w-full mb-8 relative z-10">
+            {questions[currentQuestionIndex].options.map((option: any, idx: number) => {
               const isSelected = selectedOptionId === option.id;
               return (
                 <button
                   key={option.id}
                   onClick={() => handleSelectOption(option.id)}
-                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
-                    isSelected ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold' : 'border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300'
+                  className={`text-left p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden group ${
+                    isSelected 
+                      ? 'border-blue-500 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.15)]' 
+                      : 'border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10'
                   }`}
                 >
-                  {option.text}
+                  <div className="flex items-center gap-4 relative z-10">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-black transition-all ${
+                      isSelected 
+                        ? 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.5)]' 
+                        : 'bg-white/10 text-slate-400 group-hover:bg-white/20 group-hover:text-white'
+                    }`}>
+                      {alphabet[idx]}
+                    </div>
+                    <span className={`text-sm font-medium leading-relaxed ${isSelected ? 'text-blue-100' : 'text-slate-300'}`}>
+                      {option.text}
+                    </span>
+                  </div>
                 </button>
               );
             })}
           </div>
-          <button onClick={handleNextQuestion} disabled={selectedOptionId === null} className="w-full py-3.5 rounded-2xl text-white font-black bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors">
-            {currentQuestionIndex === questions.length - 1 ? 'Submit Answers' : 'Next Question'}
+          
+          <button 
+            onClick={handleNextQuestion} 
+            disabled={selectedOptionId === null} 
+            className="w-full h-14 rounded-2xl font-black text-sm uppercase tracking-widest transition-all relative z-10 mb-4 disabled:opacity-50"
+            style={{
+              background: selectedOptionId ? 'linear-gradient(to right, #2563eb, #9333ea)' : 'rgba(255,255,255,0.05)',
+              color: selectedOptionId ? 'white' : '#64748b'
+            }}
+          >
+            {currentQuestionIndex === questions.length - 1 ? 'Submit & Sign' : 'Confirm Answer'}
           </button>
+          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-600 uppercase font-bold tracking-widest relative z-10 w-full">
+            Powered by Litera Protocol
+          </div>
         </div>
       );
     }
@@ -622,28 +701,53 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     if (step === 'quiz_result') {
       const isPassed = quizResult?.status === 'PASS';
       return (
-        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-[#0c0c0f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/60 dark:border-white/[0.06] my-6 text-center">
-          <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${isPassed ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-            {isPassed ? <CheckCircle2Icon size={40} /> : <AlertCircleIcon size={40} />}
+        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-[#0a0a0f] border border-white/10 rounded-[2rem] shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 text-center relative overflow-hidden">
+          <div className={`relative w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-2xl ${
+            isPassed ? 'bg-emerald-500/20 border border-emerald-500/30' : 'bg-rose-500/20 border border-rose-500/30'
+          } relative z-10`}>
+            <div className={`absolute inset-0 rounded-full blur-xl opacity-50 ${isPassed ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+            {isPassed 
+              ? <CheckCircle2Icon size={48} className="text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.8)] relative z-10" /> 
+              : <AlertCircleIcon size={48} className="text-rose-400 drop-shadow-[0_0_15px_rgba(225,29,72,0.8)] relative z-10" />}
           </div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">
-            {isPassed ? 'Knowledge Check Passed!' : 'Knowledge Check Failed'}
+          
+          <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 tracking-tight relative z-10 mb-6">
+            {isPassed ? 'Access Granted' : 'Access Denied'}
           </h2>
-          <div className={`text-6xl font-black my-6 ${isPassed ? 'text-emerald-500' : 'text-rose-500'}`}>
-            {quizResult?.score || 0}%
+          
+          <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] shadow-inner mb-6 relative overflow-hidden w-full z-10">
+            <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl -mr-10 -mt-10 ${isPassed ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`} />
+            <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-2">Final Score</p>
+            <div className={`text-7xl font-black mb-1 drop-shadow-md ${isPassed ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {quizResult?.score || 0}%
+            </div>
           </div>
-          <p className="text-slate-500 mb-8">
-            {isPassed ? "Excellent! You are now eligible to mint this content." : "You did not reach the passing score. Please try again."}
+          
+          <p className="text-slate-400 font-medium text-sm leading-relaxed max-w-[280px] mx-auto relative z-10 mb-8">
+            {isPassed 
+              ? "Cryptographic proof of knowledge generated. You may now mint the NFT." 
+              : `A minimum score of 60% is required. Review the material and try again.`}
           </p>
+          
           {isPassed ? (
-            <button onClick={() => setStep('mint_ready')} className="w-full py-3.5 rounded-2xl text-white font-black bg-emerald-500 hover:bg-emerald-600 transition-colors">
-              Proceed to Mint
+            <button 
+              onClick={() => setStep('mint_ready')} 
+              className="w-full h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white font-black text-sm uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(52,211,153,0.1)] hover:shadow-[0_0_30px_rgba(52,211,153,0.4)] relative z-10 mb-4"
+            >
+              Mint Digital Collectible
             </button>
           ) : (
-            <button onClick={() => { setStep('quiz_intro'); setAnswers({}); setCurrentQuestionIndex(0); }} className="w-full py-3.5 rounded-2xl text-white font-black bg-blue-600 hover:bg-blue-700 transition-colors">
-              Retry Quiz
+            <button 
+              onClick={() => { setStep('quiz_intro'); setAnswers({}); setCurrentQuestionIndex(0); }} 
+              className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 text-white hover:bg-white/10 font-black text-sm uppercase tracking-widest transition-all relative z-10 mb-4"
+            >
+              Retry Authorization
             </button>
           )}
+          
+          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-600 uppercase font-bold tracking-widest relative z-10 w-full">
+            Powered by Litera Protocol
+          </div>
         </div>
       );
     }
