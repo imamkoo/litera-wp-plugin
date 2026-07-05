@@ -138,6 +138,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
             const isVideo = mediaUrl.toLowerCase().endsWith('.mp4') || mediaUrl.toLowerCase().endsWith('.webm') || !!res.data?.animation_url;
             setNftMedia({ url: mediaUrl, type: isVideo ? 'video' : 'image' });
           }
+
+          const fetchedAuthor = res.data?.author || res.data?.properties?.AUTHOR || res.data?.properties?.Author || res.data?.properties?.author;
+          if (fetchedAuthor) setAuthorName(fetchedAuthor);
         } catch (e) {
           console.warn("Failed to fetch NFT metadata", e);
         }
@@ -156,17 +159,6 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
         .catch(() => {});
     }
   }, [publisherAddress]);
-
-  useEffect(() => {
-    if (creatorAddress && creatorAddress !== '0x0' && creatorAddress !== '0x0000000000000000000000000000000000000000') {
-      axios.get(`https://literaa.xyz/api/v1/publishers/${creatorAddress}`)
-        .then(res => {
-           const name = res.data?.displayName || res.data?.data?.displayName;
-           if (name) setAuthorName(name);
-        })
-        .catch(() => {});
-    }
-  }, [creatorAddress]);
 
   const handleAuthorizeAndMint = () => {
     const returnUrl = encodeURIComponent(window.location.href);
@@ -190,8 +182,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
           {isConnected ? (
             <>
               <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 dark:bg-slate-100 rounded-xl shadow-inner">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]"></div>
-                <span className="text-sm font-extrabold text-emerald-400 dark:text-emerald-600">
+                <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_6px_rgba(249,115,22,0.8)]"></div>
+                <span className="text-sm font-extrabold text-orange-400 dark:text-orange-500">
                   {userBalance !== undefined && userBalance !== null ? `${parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', {maximumFractionDigits: 2})} LITE` : '0 LITE'}
                 </span>
               </div>
