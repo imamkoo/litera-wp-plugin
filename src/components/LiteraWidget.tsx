@@ -710,8 +710,8 @@ Expires: ${expiresAt}`;
           <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--lw-badge-bg)', border: '1px solid var(--lw-badge-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
             <ShieldCheckIcon size={32} style={{ color: '#F04E37' }} />
           </div>
-          <h2 className="lw-title">Knowledge Check</h2>
-          <p className="lw-desc">
+          <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: 'var(--lw-text)' }}>Knowledge Check</h2>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 24px 0', maxWidth: '280px', lineHeight: 1.6 }}>
             Ready to claim your reward? Pass this quick knowledge check to mint your exclusive NFT.
           </p>
           <LiteraButton onClick={() => setStep('quiz_active')}>
@@ -830,7 +830,7 @@ Expires: ${expiresAt}`;
             </div>
           </div>
 
-          <p className="lw-desc" style={{ maxWidth: '280px', margin: '0 auto 24px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 auto 24px auto', maxWidth: '280px', lineHeight: 1.6 }}>
             {quizResult.passed 
               ? 'Congratulations! Your signature has been verified and you may now proceed to mint your digital collectible.' 
               : `You need at least 60% to pass. Please review the content and try again.`}
