@@ -236,6 +236,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   const { writeContract: mintWrite, data: mintHash, isPending: isMintingReq } = useWriteContract();
   const { isLoading: isMintingTx, isSuccess: isMintSuccess, data: mintReceipt } = useWaitForTransactionReceipt({ hash: mintHash });
 
+  const { writeContract: unlockWrite, data: unlockHash, isPending: isUnlockingReq } = useWriteContract();
+  const { isLoading: isUnlockingTx, isSuccess: isUnlockSuccess } = useWaitForTransactionReceipt({ hash: unlockHash });
+
   const { data: allowance } = useReadContract({
     address: Erc20Adress,
     abi: erc20ABI,
@@ -506,6 +509,27 @@ Expires: ${expiresAt}`;
     }
   };
 
+  const handleDecrypt = async () => {
+    try {
+      unlockWrite({
+        address: UnlockableAddress,
+        abi: unlockableABI,
+        functionName: 'unlockContent',
+        args: [BigInt(tokenId)]
+      });
+    } catch (e) {
+      console.error(e);
+      setErrorMessage("Decryption failed. See console.");
+      setStep('error');
+    }
+  };
+
+  useEffect(() => {
+    if (isUnlockSuccess) {
+      window.location.reload();
+    }
+  }, [isUnlockSuccess]);
+
   const getOpenSeaUrl = () => {
     const baseUrl = activeNetworkName === 'MAINNET' ? 'https://opensea.io/assets/matic' : 'https://testnets.opensea.io/assets/amoy';
     return `${baseUrl}/${Erc1155Adress}/${tokenId}`;
@@ -608,14 +632,17 @@ Expires: ${expiresAt}`;
 
     // Has unlockable content but NOT decrypted
     if (hasUnlockableContent && !isValidCid) {
+      const isUnlocking = isUnlockingReq || isUnlockingTx;
       return (
         <WidgetShell>
           <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--lw-badge-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
             <svg style={{ width: '24px', height: '24px', color: '#F04E37' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
           </div>
           <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Content Locked</h3>
-          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>You own this NFT but the content is encrypted. Please go to your Dashboard to view it.</p>
-          <LiteraButton href={`https://literaa.xyz/nfts/${contractAddress}/${tokenId}`}>Decrypt on Dashboard</LiteraButton>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>You own this NFT but the content is encrypted. Click the button below to decrypt and reveal the premium article.</p>
+          <LiteraButton onClick={handleDecrypt} disabled={isUnlocking}>
+            {isUnlocking ? "Decrypting..." : "Decrypt Content"}
+          </LiteraButton>
           {renderWalletButton()}
           <PoweredByLitera />
         </WidgetShell>
