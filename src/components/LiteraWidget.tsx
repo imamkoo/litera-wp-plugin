@@ -640,8 +640,8 @@ Expires: ${expiresAt}`;
           </div>
           <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Content Locked</h3>
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>You own this NFT but the content is encrypted. Click the button below to decrypt and reveal the premium article.</p>
-          <LiteraButton onClick={handleDecrypt} disabled={isUnlocking}>
-            {isUnlocking ? "Decrypting..." : "Decrypt Content"}
+          <LiteraButton onClick={handleDecrypt} disabled={isUnlocking} fullWidth={false}>
+            {isUnlocking ? "Unlocking..." : "Unlock Premium Content"}
           </LiteraButton>
           {renderWalletButton()}
           <PoweredByLitera />
