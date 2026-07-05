@@ -63,29 +63,29 @@ const THEME_CSS = `
 }
 @media (prefers-color-scheme: dark) {
   .lw-root {
-    --lw-bg: rgba(17, 25, 40, 0.75);
-    --lw-bg-alt: rgba(17, 25, 40, 0.9);
-    --lw-bg-inner: rgba(255, 255, 255, 0.05);
-    --lw-border: rgba(255, 255, 255, 0.125);
-    --lw-border-hover: rgba(255, 255, 255, 0.25);
-    --lw-text: #f8fafc;
-    --lw-text-secondary: #94a3b8;
-    --lw-text-muted: #64748b;
-    --lw-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    --lw-option-bg: rgba(255, 255, 255, 0.05);
-    --lw-option-border: rgba(255, 255, 255, 0.1);
-    --lw-option-hover: rgba(255, 255, 255, 0.15);
+    --lw-bg: rgba(15, 23, 42, 0.95);
+    --lw-bg-alt: rgba(10, 15, 28, 0.98);
+    --lw-bg-inner: rgba(255, 255, 255, 0.08);
+    --lw-border: rgba(255, 255, 255, 0.15);
+    --lw-border-hover: rgba(255, 255, 255, 0.3);
+    --lw-text: #ffffff;
+    --lw-text-secondary: #e2e8f0;
+    --lw-text-muted: #94a3b8;
+    --lw-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.7);
+    --lw-option-bg: rgba(255, 255, 255, 0.08);
+    --lw-option-border: rgba(255, 255, 255, 0.15);
+    --lw-option-hover: rgba(255, 255, 255, 0.2);
     --lw-option-selected-bg: rgba(240,78,55,0.15);
-    --lw-option-selected-border: rgba(240,78,55,0.5);
-    --lw-progress-bg: rgba(255,255,255,0.1);
-    --lw-badge-bg: rgba(240,78,55,0.2);
-    --lw-badge-border: rgba(240,78,55,0.3);
+    --lw-option-selected-border: rgba(240,78,55,0.6);
+    --lw-progress-bg: rgba(255,255,255,0.15);
+    --lw-badge-bg: rgba(240,78,55,0.25);
+    --lw-badge-border: rgba(240,78,55,0.4);
     --lw-badge-text: #ff8c7a;
-    --lw-wallet-bg: rgba(255, 255, 255, 0.1);
-    --lw-wallet-text: #f8fafc;
-    --lw-score-card-bg: rgba(255, 255, 255, 0.05);
+    --lw-wallet-bg: rgba(255, 255, 255, 0.15);
+    --lw-wallet-text: #ffffff;
+    --lw-score-card-bg: rgba(255, 255, 255, 0.08);
     --lw-glow: rgba(240,78,55,0.15);
-    --lw-glass-inset: inset 0 0 0 1px rgba(255,255,255,0.1);
+    --lw-glass-inset: inset 0 0 0 1px rgba(255,255,255,0.15);
   }
 }
 .lw-root {
