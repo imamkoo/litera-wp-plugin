@@ -707,16 +707,21 @@ Expires: ${expiresAt}`;
     if (step === 'quiz_intro') {
       return (
         <WidgetShell>
-          <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--lw-badge-bg)', border: '1px solid var(--lw-badge-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+          <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.03, pointerEvents: 'none', transform: 'scale(2.5)' }}>
+            <ShieldCheckIcon size={120} color="#F04E37" />
+          </div>
+          <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--lw-badge-bg)', border: '1px solid var(--lw-badge-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', zIndex: 1 }}>
             <ShieldCheckIcon size={32} style={{ color: '#F04E37' }} />
           </div>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: 'var(--lw-text)' }}>Knowledge Check</h2>
-          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 24px 0', maxWidth: '280px', lineHeight: 1.6 }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: 'var(--lw-text)', zIndex: 1 }}>Knowledge Check</h2>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 24px 0', maxWidth: '280px', lineHeight: 1.6, zIndex: 1 }}>
             Ready to claim your reward? Pass this quick knowledge check to mint your exclusive NFT.
           </p>
-          <LiteraButton onClick={() => setStep('quiz_active')}>
-            START QUIZ
-          </LiteraButton>
+          <div style={{ zIndex: 1 }}>
+            <LiteraButton onClick={() => setStep('quiz_active')} fullWidth={false}>
+              START QUIZ
+            </LiteraButton>
+          </div>
           <PoweredByLitera />
         </WidgetShell>
       );
@@ -809,21 +814,24 @@ Expires: ${expiresAt}`;
 
     /* --- Quiz Result --- */
     if (step === 'quiz_result') {
-      const isPassed = quizResult?.status === 'PASS';
+      const isPassed = quizResult?.passed === true;
       const resultColor = isPassed ? '#10b981' : '#ef4444';
       return (
         <WidgetShell>
-          <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: isPassed ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+          <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.05, pointerEvents: 'none', transform: 'scale(2.5)' }}>
+            {isPassed ? <CheckCircle2Icon size={120} color={resultColor} /> : <AlertCircleIcon size={120} color={resultColor} />}
+          </div>
+          <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: isPassed ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', zIndex: 1 }}>
             {isPassed
               ? <CheckCircle2Icon size={32} style={{ color: resultColor }} />
               : <AlertCircleIcon size={32} style={{ color: resultColor }} />}
           </div>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: 'var(--lw-text)' }}>
-              {quizResult.passed ? 'Access Granted' : 'Assessment Failed'}
+          <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: 'var(--lw-text)', zIndex: 1 }}>
+              {isPassed ? 'Access Granted' : 'Assessment Failed'}
           </h2>
 
           {/* Score card */}
-          <div style={{ width: '100%', background: 'var(--lw-score-card-bg)', border: '1px solid var(--lw-border)', padding: '24px', borderRadius: '20px', marginBottom: '20px' }}>
+          <div style={{ width: '100%', background: 'var(--lw-score-card-bg)', border: '1px solid var(--lw-border)', padding: '24px', borderRadius: '20px', marginBottom: '20px', zIndex: 1 }}>
             <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--lw-text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.1em', margin: '0 0 8px 0' }}>Final Score</p>
             <div style={{ fontSize: '48px', fontWeight: 900, color: resultColor, lineHeight: 1 }}>
               {quizResult?.score || 0}%
