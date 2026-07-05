@@ -226,6 +226,16 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [quizResult, setQuizResult] = useState<any | null>(null);
 
+  useEffect(() => {
+    if (step === 'quiz_active' && tokenId) {
+      localStorage.setItem(`litera_quiz_state_${tokenId}`, JSON.stringify({ answers, currentQuestionIndex }));
+    }
+  }, [answers, currentQuestionIndex, step, tokenId]);
+
+  const clearSavedState = () => {
+    if (tokenId) localStorage.removeItem(`litera_quiz_state_${tokenId}`);
+  };
+
   // --- Inject theme CSS on mount ---
   useEffect(() => { injectThemeCSS(); }, []);
 
@@ -394,7 +404,25 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
       }
 
       setQuestions(quizData.questions);
-      setStep('quiz_intro');
+      
+      let hasSaved = false;
+      try {
+        const saved = localStorage.getItem(`litera_quiz_state_${tokenId}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.answers && Object.keys(parsed.answers).length > 0) {
+            setAnswers(parsed.answers);
+            setCurrentQuestionIndex(parsed.currentQuestionIndex || 0);
+            hasSaved = true;
+          }
+        }
+      } catch(e) {}
+
+      if (hasSaved) {
+        setStep('quiz_active');
+      } else {
+        setStep('quiz_intro');
+      }
     } catch (error: any) {
       if (error.response && error.response.status === 404) {
         setStep('mint_ready');
@@ -455,7 +483,8 @@ Expires: ${expiresAt}`;
             'x-message': encodeURIComponent(messagePayload)
           }
         });
-        setQuizResult(res.data);
+        setQuizResult(res.data?.data || res.data);
+        clearSavedState();
         setStep('quiz_result');
       } catch (err: any) {
         if (err?.message?.toLowerCase().includes('reject') || err?.message?.toLowerCase().includes('denied')) {
@@ -839,7 +868,7 @@ Expires: ${expiresAt}`;
           {isPassed ? (
             <LiteraButton onClick={() => setStep('mint_ready')}>Mint Digital Collectible</LiteraButton>
           ) : (
-            <LiteraButton variant="secondary" onClick={() => { setStep('quiz_intro'); setAnswers({}); setCurrentQuestionIndex(0); }}>
+            <LiteraButton variant="secondary" onClick={() => { clearSavedState(); setStep('quiz_intro'); setAnswers({}); setCurrentQuestionIndex(0); }}>
               Retry Quiz
             </LiteraButton>
           )}
