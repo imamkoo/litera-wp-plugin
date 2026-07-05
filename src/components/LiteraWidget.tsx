@@ -1010,6 +1010,16 @@ Expires: ${expiresAt}`;
         </span>
       </div>
 
+      {hasUnlockableContent && (
+        <div style={{ padding: '16px', background: 'var(--lw-badge-bg)', borderRadius: '12px', marginBottom: '16px', border: '1px solid var(--lw-border)' }}>
+          <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--lw-text)', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <svg style={{ width: '16px', height: '16px', color: '#F04E37' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            Premium Content Locked
+          </h4>
+          <p style={{ fontSize: '12px', color: 'var(--lw-text-secondary)', margin: 0, lineHeight: 1.5 }}>Collect this NFT to decrypt and reveal the exclusive hidden content.</p>
+        </div>
+      )}
+
       {/* Collect Button */}
       <LiteraButton onClick={handleStartAuthorization} fullWidth={false}>
         <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
