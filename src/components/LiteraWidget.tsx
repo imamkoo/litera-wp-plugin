@@ -865,23 +865,19 @@ Expires: ${expiresAt}`;
 
       return (
         <WidgetShell>
-          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--lw-badge-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-            <ShieldCheckIcon size={24} style={{ color: '#F04E37' }} />
+          <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.05, pointerEvents: 'none', transform: 'scale(2.5)' }}>
+            <ShieldCheckIcon size={120} color="#10b981" />
           </div>
-          <Badge color="green">Eligible for Minting</Badge>
-          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '12px 0 6px 0', color: 'var(--lw-text)' }}>Claim Your Access</h2>
-          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>
+          <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Badge color="green">Eligible for Minting</Badge>
+          </div>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '12px 0 6px 0', color: 'var(--lw-text)', zIndex: 1 }}>Claim Your Access</h2>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6, zIndex: 1 }}>
             You have passed the authorization check. Mint your NFT now to unlock the premium article permanently.
           </p>
-
-          <div style={{ width: '100%', background: 'var(--lw-bg-inner)', padding: '14px 20px', borderRadius: '14px', border: '1px solid var(--lw-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--lw-text-secondary)' }}>Price</span>
-            <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--lw-text)' }}>
-              {price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}
-            </span>
+          <div style={{ zIndex: 1 }}>
+            <LiteraButton onClick={handleBuy} disabled={isButtonDisabled} fullWidth={false}>{buttonText}</LiteraButton>
           </div>
-
-          <LiteraButton onClick={handleBuy} disabled={isButtonDisabled}>{buttonText}</LiteraButton>
           <PoweredByLitera />
         </WidgetShell>
       );
