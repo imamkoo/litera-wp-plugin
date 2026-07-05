@@ -134,24 +134,24 @@ const LiteraButton: React.FC<{ onClick?: () => void; disabled?: boolean; childre
   };
 
   const variants: Record<string, React.CSSProperties> = {
-    primary: { 
-      ...baseStyle, 
-      background: 'linear-gradient(135deg, #F04E37 0%, #d9432f 100%)', 
+    primary: {
+      ...baseStyle,
+      background: 'linear-gradient(135deg, #F04E37 0%, #d9432f 100%)',
       color: '#ffffff',
       boxShadow: '0 8px 16px -4px rgba(240,78,55,0.4), inset 0 2px 4px rgba(255,255,255,0.3)',
       textShadow: '0 1px 2px rgba(0,0,0,0.2)'
     },
-    secondary: { 
-      ...baseStyle, 
-      background: 'var(--lw-bg-inner)', 
-      color: 'var(--lw-text)', 
+    secondary: {
+      ...baseStyle,
+      background: 'var(--lw-bg-inner)',
+      color: 'var(--lw-text)',
       border: '1px solid var(--lw-border)',
       boxShadow: '0 4px 12px rgba(0,0,0,0.05), var(--lw-glass-inset)'
     },
-    outline: { 
-      ...baseStyle, 
-      background: 'transparent', 
-      color: 'var(--lw-text)', 
+    outline: {
+      ...baseStyle,
+      background: 'transparent',
+      color: 'var(--lw-text)',
       border: '1.5px solid var(--lw-border)',
       boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
     },
@@ -342,7 +342,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
           const res = await axios.get(`https://ipfs.io/ipfs/${cid}`, { timeout: 8000 });
           const extUrl = res.data?.properties?.external_url;
           if (extUrl && extUrl.length > 5) setSponsorUrl(extUrl);
-          
+
           let mediaUrl = res.data?.animation_url || res.data?.image;
           if (mediaUrl) {
             mediaUrl = formatIpfsUrl(mediaUrl);
@@ -367,16 +367,16 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     if (publisherAddress && publisherAddress !== '0x0' && publisherAddress !== '0x0000000000000000000000000000000000000000') {
       axios.get(`https://literaa.xyz/api/v1/publishers/${publisherAddress}`)
         .then(res => {
-           const name = res.data?.displayName || res.data?.data?.displayName;
-           if (name) setPublisherName(name);
+          const name = res.data?.displayName || res.data?.data?.displayName;
+          if (name) setPublisherName(name);
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [publisherAddress]);
 
   const handleStartAuthorization = async () => {
     if (!tokenId || !address) return;
-    
+
     setStep('checking_auth');
     try {
       const apiUrl = 'https://literaa.xyz';
@@ -435,7 +435,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
         const action = 'SUBMIT_QUIZ';
         const nonce = Math.random().toString(36).substring(2, 15);
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
-        
+
         const messagePayload = `Litera
 Version: 1.0
 Wallet: ${address.toLowerCase()}
@@ -444,7 +444,7 @@ Nonce: ${nonce}
 Chain: 137
 IssuedAt: ${new Date().toISOString()}
 Expires: ${expiresAt}`;
-        
+
         const signature = await signMessageAsync({ message: messagePayload });
 
         const res = await axios.post(`${apiUrl}/api/v1/quiz/submit`, {
@@ -557,7 +557,7 @@ Expires: ${expiresAt}`;
           <span style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: 'rgba(240,78,55,0.12)', borderRadius: '8px' }}>
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F04E37' }} />
             <span style={{ fontWeight: 800, color: '#F04E37', fontSize: '12px' }}>
-              {userBalance !== undefined && userBalance !== null ? `${parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', {maximumFractionDigits: 2})} LITE` : '0 LITE'}
+              {userBalance !== undefined && userBalance !== null ? `${parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', { maximumFractionDigits: 2 })} LITE` : '0 LITE'}
             </span>
           </span>
           <span style={{ fontSize: '11px', opacity: 0.7, fontFamily: 'monospace' }}>{address?.slice(0, 6)}...{address?.slice(-4)}</span>
@@ -657,7 +657,7 @@ Expires: ${expiresAt}`;
         </div>
         <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 4px 0', color: 'var(--lw-text)' }}>Collection Verified</h3>
         <p style={{ fontSize: '14px', fontWeight: 600, color: '#10b981', margin: '0 0 20px 0' }}>You now own this Digital Asset.</p>
-        
+
         {sponsorUrl && sponsorUrl.length > 5 ? (
           <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
             <LiteraButton href={sponsorUrl}>Learn More</LiteraButton>
@@ -854,7 +854,7 @@ Expires: ${expiresAt}`;
               : <AlertCircleIcon size={32} style={{ color: resultColor }} />}
           </div>
           <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: 'var(--lw-text)', zIndex: 1 }}>
-              {isPassed ? 'Access Granted' : 'Assessment Failed'}
+            {isPassed ? 'Access Granted' : 'Assessment Failed'}
           </h2>
 
           {/* Score card */}
@@ -866,8 +866,8 @@ Expires: ${expiresAt}`;
           </div>
 
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 auto 24px auto', maxWidth: '280px', lineHeight: 1.6 }}>
-            {quizResult.passed 
-              ? 'Congratulations! Your signature has been verified and you may now proceed to mint your digital collectible.' 
+            {quizResult.passed
+              ? 'Congratulations! Your signature has been verified and you may now proceed to mint your digital collectible.'
               : `You need at least ${quizResult.passingScore ?? 60}% to pass. Please review the content and try again.`}
           </p>
 
@@ -889,7 +889,7 @@ Expires: ${expiresAt}`;
       const isMintTx = isMintingReq || isMintingTx;
       const isButtonDisabled = isApproving || isMintTx;
       const priceText = price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free';
-      const buttonText = isApproving ? "Approving LITE..." : isMintTx ? "Minting NFT..." : `Mint NFT (${priceText})`;
+      const buttonText = isApproving ? "Approving LITE..." : isMintTx ? "Minting NFT..." : `Mint NFT · (${priceText})`;
 
       return (
         <WidgetShell>
