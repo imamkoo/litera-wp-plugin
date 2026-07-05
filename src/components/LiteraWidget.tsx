@@ -234,9 +234,13 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
 
   const selectedOptionId = questions[currentQuestionIndex] ? (answers[questions[currentQuestionIndex].id] ?? null) : null;
 
+  const handlePrevQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+    }
+  };
+
   const handleNextQuestion = async () => {
-    if (selectedOptionId === null) return;
-    
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
@@ -263,6 +267,10 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
         setQuizResult(res.data);
         setStep('quiz_result');
       } catch (err: any) {
+        if (err?.message?.toLowerCase().includes('reject') || err?.message?.toLowerCase().includes('denied')) {
+          setStep('quiz_active');
+          return;
+        }
         setErrorMessage(err?.response?.data?.message || "Failed to evaluate quiz.");
         setStep('error');
       }
@@ -574,19 +582,19 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   if (step !== 'idle') {
     if (step === 'checking_auth' || step === 'quiz_evaluating') {
       return (
-        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-[#0a0a0f] border border-white/10 rounded-[2rem] shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 text-center relative overflow-hidden">
-          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] pointer-events-none" />
+        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white dark:bg-[#0a0a0f] border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-xl dark:shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 text-center relative overflow-hidden">
+          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-600/10 dark:bg-blue-600/20 rounded-full blur-[80px] pointer-events-none" />
           <div className="relative mb-8 z-10">
             <div className="absolute inset-0 bg-blue-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
-            <Loader2Icon size={56} className="text-blue-400 animate-spin relative z-10 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+            <Loader2Icon size={56} className="text-blue-500 dark:text-blue-400 animate-spin relative z-10 drop-shadow-sm dark:drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
           </div>
-          <h3 className="text-2xl font-black text-white mb-3 tracking-tight relative z-10">
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 tracking-tight relative z-10">
             {step === 'checking_auth' ? 'Verifying Access' : 'Awaiting Wallet Signature'}
           </h3>
-          <p className="text-slate-400 font-medium text-sm max-w-[280px] mx-auto leading-relaxed relative z-10">
+          <p className="text-slate-600 dark:text-slate-400 font-medium text-sm max-w-[280px] mx-auto leading-relaxed relative z-10">
             {step === 'checking_auth' ? 'Please wait while we check your authorization status.' : 'Please open your wallet and sign the message to verify your answers.'}
           </p>
-          <div className="mt-8 flex items-center gap-2 text-[10px] text-slate-500 uppercase font-bold tracking-widest relative z-10">
+          <div className="mt-8 flex items-center gap-2 text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-widest relative z-10">
             Powered by Litera Protocol
           </div>
         </div>
@@ -595,35 +603,24 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
 
     if (step === 'quiz_intro') {
       return (
-        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-[#0a0a0f] border border-white/10 rounded-[2rem] shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 text-center relative overflow-hidden">
-          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] pointer-events-none" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-64 h-64 bg-purple-600/20 rounded-full blur-[80px] pointer-events-none" />
+        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white dark:bg-[#0a0a0f] border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-xl dark:shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 text-center relative overflow-hidden">
+          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-600/10 dark:bg-blue-600/20 rounded-full blur-[80px] pointer-events-none" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-64 h-64 bg-purple-600/10 dark:bg-purple-600/20 rounded-full blur-[80px] pointer-events-none" />
           
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(59,130,246,0.2)] relative z-10">
-            <ShieldCheckIcon size={40} className="text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 border border-slate-200 dark:border-white/10 rounded-full flex items-center justify-center mb-6 shadow-sm dark:shadow-[0_0_30px_rgba(59,130,246,0.2)] relative z-10">
+            <ShieldCheckIcon size={40} className="text-blue-500 dark:text-blue-400 drop-shadow-sm dark:drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
           </div>
-          <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 tracking-tight relative z-10 mb-2">Authorization Required</h2>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-white dark:to-slate-400 tracking-tight relative z-10 mb-2">Authorization Required</h2>
           
-          <p className="text-slate-400 font-medium text-sm max-w-[280px] mx-auto leading-relaxed relative z-10 mb-6">
+          <p className="text-slate-600 dark:text-slate-400 font-medium text-sm max-w-[280px] mx-auto leading-relaxed relative z-10 mb-6">
             This premium content is gated by a Knowledge Check. Pass the quiz to generate a Proof of Knowledge and mint your access NFT.
           </p>
 
-          <div className="flex justify-center gap-4 text-xs font-bold text-slate-300 relative z-10 w-full mb-8">
-            <div className="flex flex-col items-center bg-white/5 border border-white/5 p-4 rounded-2xl w-full shadow-inner">
-              <span className="text-2xl font-black text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)] mb-1">{questions.length}</span>
-              <span className="uppercase tracking-widest text-[10px] text-slate-500">Questions</span>
-            </div>
-            <div className="flex flex-col items-center bg-white/5 border border-white/5 p-4 rounded-2xl w-full shadow-inner">
-              <span className="text-2xl font-black text-purple-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)] mb-1">60%</span>
-              <span className="uppercase tracking-widest text-[10px] text-slate-500">To Pass</span>
-            </div>
-          </div>
-
-          <button onClick={() => setStep('quiz_active')} className="w-full h-14 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] text-white font-black text-sm uppercase tracking-widest transition-all relative z-10 mb-4">
+          <button onClick={() => setStep('quiz_active')} className="w-full h-14 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:shadow-lg dark:hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] text-white font-black text-sm uppercase tracking-widest transition-all relative z-10 mb-4">
             Start Authorization
           </button>
           
-          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-500 uppercase font-bold tracking-widest relative z-10">
+          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-widest relative z-10">
             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
             Powered by Litera Protocol
           </div>
@@ -633,20 +630,20 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
 
     if (step === 'quiz_active') {
       return (
-        <div className="litera-widget-container flex flex-col items-center p-8 bg-[#0a0a0f] border border-white/10 rounded-[2rem] shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 relative overflow-hidden">
-          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] pointer-events-none" />
+        <div className="litera-widget-container flex flex-col items-center p-8 bg-white dark:bg-[#0a0a0f] border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-xl dark:shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 relative overflow-hidden">
+          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-blue-600/10 dark:bg-blue-600/20 rounded-full blur-[80px] pointer-events-none" />
           
           <div className="w-full flex justify-between items-center mb-4 relative z-10">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Question {currentQuestionIndex + 1} of {questions.length}</span>
-            <span className="text-[10px] font-black text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 tracking-wider">
+            <span className="text-[10px] font-black text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-3 py-1 rounded-full border border-blue-200 dark:border-blue-500/20 tracking-wider">
               {Math.round((currentQuestionIndex / questions.length) * 100)}% COMPLETED
             </span>
           </div>
-          <div className="w-full bg-white/5 h-1.5 rounded-full mb-8 overflow-hidden relative z-10">
+          <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full mb-8 overflow-hidden relative z-10">
             <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-300" style={{ width: `${(currentQuestionIndex / questions.length) * 100}%` }}></div>
           </div>
           
-          <h3 className="text-xl font-bold text-white leading-relaxed mb-8 text-center w-full relative z-10">
+          <h3 className="text-xl font-bold text-slate-800 dark:text-white leading-relaxed mb-8 text-center w-full relative z-10">
             {questions[currentQuestionIndex].text}
           </h3>
           
@@ -659,19 +656,19 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
                   onClick={() => handleSelectOption(option.id)}
                   className={`text-left p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden group ${
                     isSelected 
-                      ? 'border-blue-500 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.15)]' 
-                      : 'border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 shadow-sm dark:shadow-[0_0_15px_rgba(59,130,246,0.15)]' 
+                      : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:border-slate-300 dark:hover:border-white/30 hover:bg-slate-100 dark:hover:bg-white/10'
                   }`}
                 >
                   <div className="flex items-center gap-4 relative z-10">
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-black transition-all ${
                       isSelected 
-                        ? 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.5)]' 
-                        : 'bg-white/10 text-slate-400 group-hover:bg-white/20 group-hover:text-white'
+                        ? 'bg-blue-500 text-white shadow-sm dark:shadow-[0_0_10px_rgba(59,130,246,0.5)]' 
+                        : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-slate-400 group-hover:bg-slate-300 dark:group-hover:bg-white/20 group-hover:text-slate-700 dark:group-hover:text-white'
                     }`}>
                       {alphabet[idx]}
                     </div>
-                    <span className={`text-sm font-medium leading-relaxed ${isSelected ? 'text-blue-100' : 'text-slate-300'}`}>
+                    <span className={`text-sm font-medium leading-relaxed ${isSelected ? 'text-blue-800 dark:text-blue-100' : 'text-slate-600 dark:text-slate-300'}`}>
                       {option.text}
                     </span>
                   </div>
@@ -680,18 +677,28 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
             })}
           </div>
           
-          <button 
-            onClick={handleNextQuestion} 
-            disabled={selectedOptionId === null} 
-            className="w-full h-14 rounded-2xl font-black text-sm uppercase tracking-widest transition-all relative z-10 mb-4 disabled:opacity-50"
-            style={{
-              background: selectedOptionId ? 'linear-gradient(to right, #2563eb, #9333ea)' : 'rgba(255,255,255,0.05)',
-              color: selectedOptionId ? 'white' : '#64748b'
-            }}
-          >
-            {currentQuestionIndex === questions.length - 1 ? 'Submit & Sign' : 'Confirm Answer'}
-          </button>
-          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-600 uppercase font-bold tracking-widest relative z-10 w-full">
+          <div className="flex w-full gap-3 relative z-10 mb-4">
+            {currentQuestionIndex > 0 && (
+              <button 
+                onClick={handlePrevQuestion} 
+                className="h-14 rounded-2xl font-black text-sm uppercase tracking-widest transition-all bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10 w-1/3"
+              >
+                Prev
+              </button>
+            )}
+            <button 
+              onClick={handleNextQuestion} 
+              disabled={selectedOptionId === null} 
+              className={`h-14 rounded-2xl font-black text-sm uppercase tracking-widest transition-all disabled:opacity-50 ${currentQuestionIndex > 0 ? 'w-2/3' : 'w-full'}`}
+              style={{
+                background: selectedOptionId ? 'linear-gradient(to right, #2563eb, #9333ea)' : 'rgba(100,116,139,0.1)',
+                color: selectedOptionId ? 'white' : '#94a3b8'
+              }}
+            >
+              {currentQuestionIndex === questions.length - 1 ? 'Submit & Sign' : 'Confirm Answer'}
+            </button>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 dark:text-slate-600 uppercase font-bold tracking-widest relative z-10 w-full">
             Powered by Litera Protocol
           </div>
         </div>
@@ -701,29 +708,29 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     if (step === 'quiz_result') {
       const isPassed = quizResult?.status === 'PASS';
       return (
-        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-[#0a0a0f] border border-white/10 rounded-[2rem] shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 text-center relative overflow-hidden">
-          <div className={`relative w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-2xl ${
-            isPassed ? 'bg-emerald-500/20 border border-emerald-500/30' : 'bg-rose-500/20 border border-rose-500/30'
+        <div className="litera-widget-container flex flex-col items-center justify-center p-8 bg-white dark:bg-[#0a0a0f] border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-xl dark:shadow-[0_0_50px_rgba(59,130,246,0.15)] my-6 text-center relative overflow-hidden">
+          <div className={`relative w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-xl dark:shadow-2xl ${
+            isPassed ? 'bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/30' : 'bg-rose-100 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/30'
           } relative z-10`}>
-            <div className={`absolute inset-0 rounded-full blur-xl opacity-50 ${isPassed ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+            <div className={`absolute inset-0 rounded-full blur-xl opacity-50 ${isPassed ? 'bg-emerald-400 dark:bg-emerald-500' : 'bg-rose-400 dark:bg-rose-500'}`} />
             {isPassed 
-              ? <CheckCircle2Icon size={48} className="text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.8)] relative z-10" /> 
-              : <AlertCircleIcon size={48} className="text-rose-400 drop-shadow-[0_0_15px_rgba(225,29,72,0.8)] relative z-10" />}
+              ? <CheckCircle2Icon size={48} className="text-emerald-500 dark:text-emerald-400 drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(52,211,153,0.8)] relative z-10" /> 
+              : <AlertCircleIcon size={48} className="text-rose-500 dark:text-rose-400 drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(225,29,72,0.8)] relative z-10" />}
           </div>
           
-          <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 tracking-tight relative z-10 mb-6">
+          <h2 className="text-3xl font-black text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-white dark:to-slate-400 tracking-tight relative z-10 mb-6">
             {isPassed ? 'Access Granted' : 'Access Denied'}
           </h2>
           
-          <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] shadow-inner mb-6 relative overflow-hidden w-full z-10">
+          <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 p-6 rounded-[2rem] shadow-inner mb-6 relative overflow-hidden w-full z-10">
             <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl -mr-10 -mt-10 ${isPassed ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`} />
             <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-2">Final Score</p>
-            <div className={`text-7xl font-black mb-1 drop-shadow-md ${isPassed ? 'text-emerald-400' : 'text-rose-400'}`}>
+            <div className={`text-7xl font-black mb-1 drop-shadow-md ${isPassed ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
               {quizResult?.score || 0}%
             </div>
           </div>
           
-          <p className="text-slate-400 font-medium text-sm leading-relaxed max-w-[280px] mx-auto relative z-10 mb-8">
+          <p className="text-slate-600 dark:text-slate-400 font-medium text-sm leading-relaxed max-w-[280px] mx-auto relative z-10 mb-8">
             {isPassed 
               ? "Cryptographic proof of knowledge generated. You may now mint the NFT." 
               : `A minimum score of 60% is required. Review the material and try again.`}
@@ -732,20 +739,20 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
           {isPassed ? (
             <button 
               onClick={() => setStep('mint_ready')} 
-              className="w-full h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white font-black text-sm uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(52,211,153,0.1)] hover:shadow-[0_0_30px_rgba(52,211,153,0.4)] relative z-10 mb-4"
+              className="w-full h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500 hover:text-emerald-700 dark:hover:text-white font-black text-sm uppercase tracking-widest transition-all shadow-sm dark:shadow-[0_0_20px_rgba(52,211,153,0.1)] hover:shadow-md dark:hover:shadow-[0_0_30px_rgba(52,211,153,0.4)] relative z-10 mb-4"
             >
               Mint Digital Collectible
             </button>
           ) : (
             <button 
               onClick={() => { setStep('quiz_intro'); setAnswers({}); setCurrentQuestionIndex(0); }} 
-              className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 text-white hover:bg-white/10 font-black text-sm uppercase tracking-widest transition-all relative z-10 mb-4"
+              className="w-full h-14 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10 font-black text-sm uppercase tracking-widest transition-all relative z-10 mb-4"
             >
               Retry Authorization
             </button>
           )}
           
-          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-600 uppercase font-bold tracking-widest relative z-10 w-full">
+          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 dark:text-slate-600 uppercase font-bold tracking-widest relative z-10 w-full">
             Powered by Litera Protocol
           </div>
         </div>
