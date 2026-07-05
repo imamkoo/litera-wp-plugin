@@ -386,7 +386,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
       }
 
       const statusRes = await axios.get(`${apiUrl}/api/v1/quiz/token/${tokenId}/status/${address}`);
-      const statusData = statusRes.data;
+      const statusData = statusRes.data?.data || statusRes.data;
 
       if (statusData && statusData.hasAttempted && statusData.status === 'PASS') {
         setStep('mint_ready');
