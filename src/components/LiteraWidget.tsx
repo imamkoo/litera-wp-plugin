@@ -210,6 +210,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) => {
   const { address, isConnected } = useAccount();
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
+  const [localUnlocked, setLocalUnlocked] = useState(false);
   const [sponsorUrl, setSponsorUrl] = useState<string | null>(null);
   const [nftMedia, setNftMedia] = useState<{ url: string, type: 'image' | 'video' } | null>(null);
   const [publisherName, setPublisherName] = useState<string | null>(null);
@@ -608,8 +609,8 @@ Expires: ${expiresAt}`;
   if (hasAccess) {
     const isValidCid = cidUnlockable && typeof cidUnlockable === 'string' && cidUnlockable.length > 10;
 
-    // Has unlockable content AND it's decrypted
-    if (hasUnlockableContent && isValidCid && unlockedContent) {
+    // Has unlockable content AND it's decrypted AND localUnlocked is true
+    if (hasUnlockableContent && isValidCid && unlockedContent && localUnlocked) {
       return (
         <WidgetShell>
           <Badge color="green">Access Granted</Badge>
@@ -624,6 +625,24 @@ Expires: ${expiresAt}`;
               <LiteraButton variant="secondary" href={sponsorUrl}>Learn More</LiteraButton>
             )}
           </div>
+          {renderWalletButton()}
+          <PoweredByLitera />
+        </WidgetShell>
+      );
+    }
+
+    // Has unlockable content AND it's decrypted BUT localUnlocked is false (Local instant unlock)
+    if (hasUnlockableContent && isValidCid && unlockedContent && !localUnlocked) {
+      return (
+        <WidgetShell>
+          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--lw-badge-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+            <svg style={{ width: '24px', height: '24px', color: '#F04E37' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+          </div>
+          <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Content Locked</h3>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>You own this NFT but the premium content is hidden. Click the button below to reveal it instantly for free.</p>
+          <LiteraButton onClick={() => setLocalUnlocked(true)} fullWidth={false}>
+            Unlock Premium Content
+          </LiteraButton>
           {renderWalletButton()}
           <PoweredByLitera />
         </WidgetShell>
