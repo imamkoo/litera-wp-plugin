@@ -325,6 +325,14 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     if (cidUnlockable && typeof cidUnlockable === 'string' && cidUnlockable.length > 0) {
       const fetchHiddenContent = async () => {
         try {
+          // Bypass IPFS fetch for the migrated mock string
+          if (cidUnlockable === 'migrated_encrypted_content') {
+            setUnlockedContent({ 
+              description: "Konten Rahasia Default (Sistem Migrasi)", 
+              content: "Selamat! Anda berhasil membuka secret content dari NFT ini. Karena Anda memiliki NFT-nya di dalam wallet Anda, fitur eksklusif ini sekarang dapat diakses sepenuhnya." 
+            });
+            return;
+          }
           const res = await axios.get(`https://ipfs.io/ipfs/${cidUnlockable}`, { timeout: 8000 });
           setUnlockedContent({ description: res.data.description, content: res.data.content });
         } catch (e) {
