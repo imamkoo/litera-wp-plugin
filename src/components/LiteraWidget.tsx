@@ -4,6 +4,7 @@ import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
 import axios from 'axios';
+import CryptoJS from 'crypto-js';
 import {
   contractAddress,
   contractABI,
@@ -321,6 +322,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     query: { enabled: !!tokenId }
   });
 
+  const [encryptedData, setEncryptedData] = useState<string | null>(null);
+  const [isDecrypting, setIsDecrypting] = useState(false);
+
   useEffect(() => {
     if (cidUnlockable && typeof cidUnlockable === 'string' && cidUnlockable.length > 0) {
       const fetchHiddenContent = async () => {
@@ -331,10 +335,20 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
               description: "Konten Rahasia Default (Sistem Migrasi)", 
               content: "Selamat! Anda berhasil membuka secret content dari NFT ini. Karena Anda memiliki NFT-nya di dalam wallet Anda, fitur eksklusif ini sekarang dapat diakses sepenuhnya." 
             });
+            setLocalUnlocked(true);
             return;
           }
           const res = await axios.get(`https://ipfs.io/ipfs/${cidUnlockable}`, { timeout: 8000 });
-          setUnlockedContent({ description: res.data.description, content: res.data.content });
+          
+          if (typeof res.data === 'string') {
+            // It's an encrypted ciphertext!
+            setEncryptedData(res.data);
+            setLocalUnlocked(false);
+          } else if (res.data && res.data.description) {
+            // Backward compatibility for unencrypted JSON
+            setUnlockedContent({ description: res.data.description, content: res.data.content });
+            setLocalUnlocked(false);
+          }
         } catch (e) {
           console.warn("Failed to fetch hidden content", e);
         }
@@ -520,16 +534,46 @@ Expires: ${expiresAt}`;
 
   const handleDecrypt = async () => {
     try {
-      unlockWrite({
-        address: UnlockableAddress,
-        abi: unlockableABI,
-        functionName: 'unlockContent',
-        args: [BigInt(tokenId)]
+      setIsDecrypting(true);
+      
+      if (!encryptedData) {
+        throw new Error("Encrypted data not found on IPFS");
+      }
+
+      // 1. Sign message to authenticate
+      const messagePayload = `Reveal secret content for Token #${tokenId}`;
+      const signature = await signMessageAsync({ message: messagePayload });
+
+      // 2. Fetch AES key from backend
+      const res = await axios.post(`https://literaa.xyz/api/v1/nfts/${tokenId}/get-unlockable-key`, {
+        signature: signature
       });
-    } catch (e) {
+      const aesKey = res.data?.aesKey || res.data?.data?.aesKey;
+
+      if (!aesKey) {
+        throw new Error("Encryption key not received from backend");
+      }
+
+      // 3. Decrypt ciphertext
+      const bytes = CryptoJS.AES.decrypt(encryptedData, aesKey);
+      const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
+      
+      if (!decryptedString) {
+        throw new Error("Decryption failed. Invalid key or data.");
+      }
+
+      const parsedData = JSON.parse(decryptedString);
+
+      // 4. Update UI
+      setUnlockedContent({ description: parsedData.description, content: parsedData.content });
+      setLocalUnlocked(true);
+      
+    } catch (e: any) {
       console.error(e);
-      setErrorMessage("Decryption failed. See console.");
+      setErrorMessage(e.response?.data?.message || e.message || "Decryption failed. See console.");
       setStep('error');
+    } finally {
+      setIsDecrypting(false);
     }
   };
 
@@ -657,9 +701,9 @@ Expires: ${expiresAt}`;
       );
     }
 
-    // Has unlockable content but NOT decrypted
-    if (hasUnlockableContent && !isValidCid) {
-      const isUnlocking = isUnlockingReq || isUnlockingTx;
+    // Has unlockable content but NOT decrypted yet
+    if (hasUnlockableContent && !unlockedContent) {
+      const isUnlocking = isUnlockingReq || isUnlockingTx || isDecrypting;
       return (
         <WidgetShell>
           <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--lw-badge-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
@@ -668,7 +712,7 @@ Expires: ${expiresAt}`;
           <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Content Locked</h3>
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>You own this NFT but the content is encrypted. Click the button below to decrypt and reveal the premium article.</p>
           <LiteraButton onClick={handleDecrypt} disabled={isUnlocking} fullWidth={false}>
-            {isUnlocking ? "Unlocking..." : "Unlock Premium Content"}
+            {isUnlocking ? "Decrypting..." : "Decrypt & Reveal"}
           </LiteraButton>
           {renderWalletButton()}
           <PoweredByLitera />
