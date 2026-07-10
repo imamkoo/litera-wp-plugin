@@ -960,8 +960,18 @@ Expires: ${expiresAt}`;
       const isApproving = isApprovingReq || isApprovingTx;
       const isMintTx = isMintingReq || isMintingTx;
       const isButtonDisabled = isApproving || isMintTx;
+      
+      const needed = price ? BigInt(price) : 0n;
+      const currentAllowance = allowance !== undefined ? BigInt(allowance as any) : 0n;
+      const needsApproval = currentAllowance < needed;
+      
       const priceText = price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free';
-      const buttonText = isApproving ? "Approving LITE..." : isMintTx ? "Minting NFT..." : `Mint NFT · (${priceText})`;
+      
+      let buttonText = '';
+      if (isApproving) buttonText = "Approving LITE...";
+      else if (isMintTx) buttonText = "Minting NFT...";
+      else if (needsApproval) buttonText = `Approve LITE · (${priceText})`;
+      else buttonText = `Mint NFT · (${priceText})`;
 
       return (
         <WidgetShell>
@@ -973,7 +983,9 @@ Expires: ${expiresAt}`;
           </div>
           <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '12px 0 6px 0', color: 'var(--lw-text)', zIndex: 1 }}>Claim Your Access</h2>
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6, zIndex: 1 }}>
-            You have passed the authorization check. Mint your NFT now to unlock the premium article permanently.
+            {needsApproval 
+              ? "You have passed the authorization check. Approve LITE usage first, then mint your NFT to unlock the premium article."
+              : "You have passed the authorization check. Mint your NFT now to unlock the premium article permanently."}
           </p>
           <div style={{ zIndex: 1 }}>
             <LiteraButton onClick={handleBuy} disabled={isButtonDisabled} fullWidth={false}>{buttonText}</LiteraButton>
