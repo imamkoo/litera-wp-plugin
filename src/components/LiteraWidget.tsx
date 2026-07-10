@@ -497,7 +497,10 @@ Expires: ${expiresAt}`;
 
   useEffect(() => {
     if (isMintingReq || isMintingTx) setStep('minting');
-    if (isMintSuccess) setStep('receipt');
+    if (isMintSuccess) {
+      // Reload page immediately to show the NFT ownership state
+      window.location.reload();
+    }
   }, [isMintingReq, isMintingTx, isMintSuccess]);
 
   const handleBuy = async () => {
@@ -707,15 +710,19 @@ Expires: ${expiresAt}`;
       const isUnlocking = isUnlockingReq || isUnlockingTx || isDecrypting;
       return (
         <WidgetShell>
-          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--lw-badge-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-            <svg style={{ width: '24px', height: '24px', color: '#F04E37' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+          <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.05, pointerEvents: 'none', transform: 'scale(2.5)' }}>
+            <svg style={{ width: '120px', height: '120px', color: '#F04E37' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
           </div>
-          <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Content Locked</h3>
-          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>You own this NFT but the content is encrypted. Click the button below to decrypt and reveal the premium article.</p>
-          <LiteraButton onClick={handleDecrypt} disabled={isUnlocking} fullWidth={false}>
-            {isUnlocking ? "Decrypting..." : "Decrypt & Reveal"}
-          </LiteraButton>
-          {renderWalletButton()}
+          <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)', zIndex: 1 }}>Premium Access Granted</h3>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6, zIndex: 1 }}>As an NFT holder, you have exclusive access to this premium article. Click the button below to verify your ownership and unlock the content.</p>
+          <div style={{ zIndex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <LiteraButton onClick={handleDecrypt} disabled={isUnlocking} fullWidth={false}>
+              {isUnlocking ? "Unlocking..." : "Unlock Content"}
+            </LiteraButton>
+            <div style={{ marginTop: '12px' }}>
+              {renderWalletButton()}
+            </div>
+          </div>
           <PoweredByLitera />
         </WidgetShell>
       );
@@ -995,30 +1002,7 @@ Expires: ${expiresAt}`;
       );
     }
 
-    /* --- Receipt --- */
-    if (step === 'receipt') {
-      const baseUrl = activeNetworkName === 'MAINNET' ? 'https://polygonscan.com/tx' : 'https://amoy.polygonscan.com/tx';
-      const txUrl = mintReceipt?.transactionHash ? `${baseUrl}/${mintReceipt.transactionHash}` : null;
 
-      return (
-        <WidgetShell>
-          <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-            <CheckCircle2Icon size={28} style={{ color: '#10b981' }} />
-          </div>
-          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Publication Receipt</h2>
-          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>
-            Congratulations! The NFT has been minted and added to your wallet. You now have permanent access to the article.
-          </p>
-          {txUrl && (
-            <a href={txUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#F04E37', fontWeight: 600, marginBottom: '20px', textDecoration: 'none' }}>
-              View on Explorer →
-            </a>
-          )}
-          <LiteraButton onClick={() => window.location.reload()}>Read Article</LiteraButton>
-          <PoweredByLitera />
-        </WidgetShell>
-      );
-    }
 
     /* --- Error --- */
     if (step === 'error') {
