@@ -6,6 +6,12 @@ import { contractABI, contractAddress, activeChainId, activeNetworkName } from '
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { normalizeUrl } from './shared/utils/urlNormalizer';
 
+interface ResolveResult {
+  tokenId: number;
+  generation: 'v2' | 'legacy';
+  contract: string;
+}
+
 function App() {
   const { address, isConnected, chainId } = useAccount();
   const { open } = useWeb3Modal();
@@ -15,21 +21,70 @@ function App() {
   // Use dynamic chain ID from config instead of hardcoded Amoy
   const EXPECTED_CHAIN_ID = activeChainId;
 
+  const [rawPermalink, setRawPermalink] = useState<string>('');
+  const [resolvedData, setResolvedData] = useState<ResolveResult | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
+  const [resolveError, setResolveError] = useState<string | null>(null);
+
   useEffect(() => {
     // Ambil URL dan Title dari injeksi plugin WordPress
     if (typeof (window as any).myReactPluginData !== 'undefined') {
       if ((window as any).myReactPluginData.permalink) {
-        setPermalink(normalizeUrl((window as any).myReactPluginData.permalink));
+        const rawUrl = (window as any).myReactPluginData.permalink;
+        setRawPermalink(rawUrl);
+        setPermalink(normalizeUrl(rawUrl));
       }
       if ((window as any).myReactPluginData.title) {
         setArticleTitle((window as any).myReactPluginData.title);
       }
     } else {
       // Fallback localhost development
-      setPermalink(normalizeUrl(window.location.href));
+      const rawUrl = window.location.href;
+      setRawPermalink(rawUrl);
+      setPermalink(normalizeUrl(rawUrl));
       setArticleTitle(document.title);
     }
   }, []);
+
+  // 0. Jika Writer V2 tidak menemukan artikel, coba endpoint /resolve
+  useEffect(() => {
+    const fetchResolveEndpoint = async () => {
+      if (isError || tokenId === 0) {
+        if (isResolving || !rawPermalink) return;
+        
+        setIsResolving(true);
+        setResolveError(null);
+        
+        try {
+          const response = await fetch(
+            `https://dev.literaa.xyz/api/v1/articles/resolve?url=${encodeURIComponent(rawPermalink)}`,
+            { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data.tokenId > 0) {
+              setResolvedData(data.data);
+            } else {
+              setResolveError('Article not found in legacy system');
+            }
+          } else {
+            setResolveError(`Backend error: ${response.status}`);
+          }
+        } catch (err: any) {
+          setResolveError(`Network error: ${err.message}`);
+        } finally {
+          setIsResolving(false);
+        }
+      } else {
+        // Reset jika Writer V2 berhasil
+        setResolvedData(null);
+        setResolveError(null);
+      }
+    };
+
+    fetchResolveEndpoint();
+  }, [isError, tokenId, rawPermalink, isResolving]);
 
   // 1. On-chain lookup berdasarkan URL yang sudah dinormalisasi
   const { data: tokenIdRaw, isLoading, isError, error } = useReadContract({
@@ -77,7 +132,7 @@ function App() {
   }
 
   // 3. State "Loading Skeleton"
-  if (isLoading || !permalink) {
+  if (isLoading || !permalink || isResolving) {
     return (
       <div className="App relative flex flex-col justify-center items-center py-12 px-6 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl border border-slate-200 dark:border-white/5 shadow-2xl dark:shadow-[0_0_50px_-15px_rgba(0,0,0,0.5)] my-8 overflow-hidden text-center transition-colors duration-500">
          <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-indigo-500/10 dark:from-blue-500/5 dark:to-indigo-500/5"></div>
@@ -93,8 +148,8 @@ function App() {
     );
   }
 
-  // 4. State "Not Published"
-  if (isError || tokenId === 0) {
+  // 4. State "Not Published" - hanya jika tidak ada hasil dari resolve
+  if ((isError || tokenId === 0) && !resolvedData) {
     return (
       <div className="App flex justify-center items-center p-6 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-300 dark:border-slate-600 my-8 shadow-sm transition-colors duration-500">
          <div className="flex items-center gap-3">
@@ -105,10 +160,18 @@ function App() {
     );
   }
 
-  // 5. State "Published" -> Tampilkan Widget
+  // 5. State "Published" - Gunakan resolvedData jika ada (legacy), atau tokenId (v2)
+  const finalTokenId = resolvedData ? resolvedData.tokenId : tokenId;
+  const generation = resolvedData ? resolvedData.generation : 'v2';
+  
   return (
     <div className="App fade-in transition-opacity duration-500">
-      <LiteraWidget tokenId={tokenId} articleTitle={articleTitle} />
+      <LiteraWidget 
+        tokenId={finalTokenId} 
+        articleTitle={articleTitle} 
+        generation={generation}
+        contractAddress={resolvedData?.contract}
+      />
     </div>
   );
 }

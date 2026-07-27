@@ -21,6 +21,8 @@ import {
 interface LiteraWidgetProps {
   tokenId: number;
   articleTitle?: string;
+  generation?: 'v2' | 'legacy';
+  contractAddress?: string;
 }
 
 const formatIpfsUrl = (url: string | undefined): string => {
@@ -208,7 +210,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) => {
+const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   const { address, isConnected } = useAccount();
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
   const [localUnlocked, setLocalUnlocked] = useState(false);
@@ -219,6 +221,10 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   const [articleCid, setArticleCid] = useState<string | null>(null);
   const { open } = useWeb3Modal();
   const { signMessageAsync } = useSignMessage();
+
+  // Determine contract addresses based on generation
+  const nftContractAddress = generation === 'legacy' && legacyContractAddress ? legacyContractAddress : Erc1155Adress;
+  const isLegacy = generation === 'legacy';
 
   // --- Quiz & Auth States ---
   const [step, setStep] = useState<'idle' | 'checking_auth' | 'quiz_intro' | 'quiz_active' | 'quiz_evaluating' | 'quiz_result' | 'mint_ready' | 'minting' | 'receipt' | 'error'>('idle');
@@ -253,7 +259,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   // --- Contracts Read ---
 
   const { data: balanceData, isLoading: isBalanceLoading } = useReadContract({
-    address: Erc1155Adress,
+    address: nftContractAddress as `0x${string}`,
     abi: erc1155ABI,
     functionName: 'balanceOf',
     args: [address as `0x${string}`, BigInt(tokenId)],
@@ -262,13 +268,14 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   });
   const ownsNFT = balanceData ? Number(balanceData) > 0 : false;
 
+  // Skip articleInfo query for legacy (Writer legacy doesn't have this function)
   const { data: articleInfo, isLoading: isArticleLoading } = useReadContract({
     address: contractAddress,
     abi: contractABI,
     functionName: 'articleInfo',
     args: [BigInt(tokenId)],
     chainId: activeChainId,
-    query: { enabled: !!tokenId }
+    query: { enabled: !!tokenId && !isLegacy }
   });
 
   const articleArray = articleInfo as any[];
@@ -281,40 +288,76 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
     chainId: activeChainId,
     query: { enabled: !!address, refetchInterval: 10000 }
   });
-  const creatorAddress = articleArray ? articleArray[4] : "0x0";
-  const publisherAddress = articleArray ? articleArray[1] : "0x0";
-  const price = articleArray ? articleArray[5] : BigInt(0);
-  const maxMinted = articleArray ? Number(articleArray[6]) : 0;
-  const totalMinted = articleArray ? Number(articleArray[7]) : 0;
+  
+  // For legacy, we don't have articleInfo, so set defaults
+  const creatorAddress = !isLegacy && articleArray ? articleArray[4] : "0x0";
+  const publisherAddress = !isLegacy && articleArray ? articleArray[1] : "0x0";
+  const price = !isLegacy && articleArray ? articleArray[5] : BigInt(0);
+  const maxMinted = !isLegacy && articleArray ? Number(articleArray[6]) : 0;
+  const totalMinted = !isLegacy && articleArray ? Number(articleArray[7]) : 0;
   const isSoldOut = maxMinted > 0 && totalMinted >= maxMinted;
 
   const isCreator = address && creatorAddress && address.toLowerCase() === creatorAddress.toLowerCase();
   const isPublisher = address && publisherAddress && address.toLowerCase() === publisherAddress.toLowerCase();
   const hasAccess = ownsNFT || isCreator || isPublisher;
-  const isArticleValid = articleArray ? Number(articleArray[0]) > 0 : true;
+  const isArticleValid = !isLegacy && articleArray ? Number(articleArray[0]) > 0 : true;
 
-  const { data: cidUnlockable, isLoading: isUnlockableLoading } = useReadContract({
+  const { data: v2CidUnlockable, isLoading: isV2UnlockableLoading } = useReadContract({
     address: UnlockableAddress,
     abi: unlockableABI,
     functionName: 'getUnlockedContent',
     args: [BigInt(tokenId)],
     account: address as `0x${string}`,
     chainId: activeChainId,
-    query: { enabled: !!address && hasAccess }
+    query: { enabled: !!address && hasAccess && !isLegacy }
   });
 
-  const { data: isContentUnlockableData } = useReadContract({
+  const { data: v2IsContentUnlockableData } = useReadContract({
     address: UnlockableAddress,
     abi: unlockableABI,
     functionName: 'isContentUnlockable',
     args: [BigInt(tokenId)],
     chainId: activeChainId,
-    query: { enabled: !!tokenId }
+    query: { enabled: !!tokenId && !isLegacy }
   });
-  const hasUnlockableContent = Boolean(isContentUnlockableData);
+
+  // State for legacy unlockable
+  const [legacyHasUnlockable, setLegacyHasUnlockable] = useState(false);
+  const [isLegacyUnlockableLoading, setIsLegacyUnlockableLoading] = useState(false);
+
+  useEffect(() => {
+    // Only check IF it has content without revealing CID
+    const checkLegacyUnlockable = async () => {
+      if (isLegacy && tokenId) {
+        setIsLegacyUnlockableLoading(true);
+        try {
+          const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const defaultBackendUrl = isLocalhost ? 'http://localhost:3001' : 'https://dev.literaa.xyz';
+          const backendUrl = process.env.REACT_APP_BACKEND_URL || defaultBackendUrl;
+          
+          // Using the resolve endpoint logic to quickly see if it's a legacy item
+          // For legacy generation 1, we assume all registered Legacy URLs have unlockable features.
+          // Or we can just set it to true if ownsNFT.
+          if (ownsNFT) {
+            setLegacyHasUnlockable(true);
+          }
+        } catch (error) {
+          console.error("Failed to check legacy unlockable status:", error);
+        } finally {
+          setIsLegacyUnlockableLoading(false);
+        }
+      }
+    };
+    checkLegacyUnlockable();
+  }, [isLegacy, tokenId, ownsNFT]);
+
+  const isUnlockableLoading = isLegacy ? isLegacyUnlockableLoading : isV2UnlockableLoading;
+  
+  // For legacy, show premium access if they own the NFT
+  const hasUnlockableContent = isLegacy ? legacyHasUnlockable : Boolean(v2IsContentUnlockableData);
 
   const { data: tokenURI } = useReadContract({
-    address: Erc1155Adress,
+    address: nftContractAddress as `0x${string}`,
     abi: erc1155ABI,
     functionName: 'uri',
     args: [BigInt(tokenId)],
@@ -325,8 +368,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle }) =>
   const [encryptedData, setEncryptedData] = useState<string | null>(null);
   const [isDecrypting, setIsDecrypting] = useState(false);
 
+  // Variables fallback
+  const cidUnlockable = !isLegacy ? v2CidUnlockable : undefined;
+
   useEffect(() => {
-    if (cidUnlockable && typeof cidUnlockable === 'string' && cidUnlockable.length > 0) {
+    if (!isLegacy && cidUnlockable && typeof cidUnlockable === 'string' && cidUnlockable.length > 0) {
       const fetchHiddenContent = async () => {
         try {
           // Bypass IPFS fetch for the migrated mock string
@@ -540,41 +586,82 @@ Expires: ${expiresAt}`;
     try {
       setIsDecrypting(true);
       
-      if (!encryptedData) {
-        throw new Error("Encrypted data not found on IPFS");
-      }
-
-      // 1. Sign message to authenticate
       const messagePayload = `Reveal secret content for Token #${tokenId}`;
       const signature = await signMessageAsync({ message: messagePayload });
 
-      // 2. Fetch AES key from backend
-      const res = await axios.post(`https://literaa.xyz/api/v1/nfts/${tokenId}/get-unlockable-key`, {
-        signature: signature
-      });
-      const aesKey = res.data?.aesKey || res.data?.data?.aesKey;
+      if (isLegacy) {
+        // --- LEGACY FLOW (Generation 1) ---
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const defaultBackendUrl = isLocalhost ? 'http://localhost:3001' : 'https://dev.literaa.xyz';
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || defaultBackendUrl;
 
-      if (!aesKey) {
-        throw new Error("Encryption key not received from backend");
+        const res = await axios.post(`${backendUrl}/api/v1/unlocked/legacy`, {
+          address: address,
+          tokenId: tokenId,
+          signature: signature,
+          message: messagePayload
+        });
+
+        const legacyCids = res.data?.data || res.data;
+        if (!legacyCids || legacyCids.length === 0) {
+          throw new Error("Tidak ada konten rahasia untuk artikel ini.");
+        }
+
+        const cid = legacyCids[0];
+        if (cid === 'migrated_encrypted_content') {
+          setUnlockedContent({ 
+            description: "Konten Rahasia Default (Sistem Migrasi)", 
+            content: "Selamat! Anda berhasil membuka secret content dari NFT ini." 
+          });
+          setLocalUnlocked(true);
+          return;
+        }
+
+        const ipfsRes = await axios.get(`https://ipfs.io/ipfs/${cid}`, { timeout: 8000 });
+        let parsedData = ipfsRes.data;
+        if (typeof parsedData === 'string') {
+          try {
+            parsedData = JSON.parse(parsedData);
+          } catch (e) {
+            parsedData = { description: 'Legacy Content', content: parsedData };
+          }
+        }
+        
+        setUnlockedContent({ description: parsedData.description || 'Konten Rahasia', content: parsedData.content || JSON.stringify(parsedData) });
+        setLocalUnlocked(true);
+      } else {
+        // --- V2 FLOW ---
+        if (!encryptedData) {
+          throw new Error("Encrypted data not found on IPFS");
+        }
+
+        // 2. Fetch AES key from backend
+        const res = await axios.post(`https://literaa.xyz/api/v1/nfts/${tokenId}/get-unlockable-key`, {
+          signature: signature
+        });
+        const aesKey = res.data?.aesKey || res.data?.data?.aesKey;
+
+        if (!aesKey) {
+          throw new Error("Encryption key not received from backend");
+        }
+
+        // 3. Decrypt ciphertext
+        const bytes = CryptoJS.AES.decrypt(encryptedData, aesKey);
+        const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
+        
+        if (!decryptedString) {
+          throw new Error("Decryption failed. Invalid key or data.");
+        }
+
+        const parsedData = JSON.parse(decryptedString);
+
+        // 4. Update UI
+        setUnlockedContent({ description: parsedData.description, content: parsedData.content });
+        setLocalUnlocked(true);
       }
-
-      // 3. Decrypt ciphertext
-      const bytes = CryptoJS.AES.decrypt(encryptedData, aesKey);
-      const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
-      
-      if (!decryptedString) {
-        throw new Error("Decryption failed. Invalid key or data.");
-      }
-
-      const parsedData = JSON.parse(decryptedString);
-
-      // 4. Update UI
-      setUnlockedContent({ description: parsedData.description, content: parsedData.content });
-      setLocalUnlocked(true);
-      
     } catch (e: any) {
       console.error(e);
-      setErrorMessage(e.response?.data?.message || e.message || "Decryption failed. See console.");
+      setErrorMessage(e.response?.data?.message || e.message || "Unlocking failed. See console.");
       setStep('error');
     } finally {
       setIsDecrypting(false);
@@ -663,7 +750,7 @@ Expires: ${expiresAt}`;
      STATE: Has Access (unlocked content / no unlockable / verified)
      ═══════════════════════════════════════════════════════ */
   if (hasAccess) {
-    const isValidCid = cidUnlockable && typeof cidUnlockable === 'string' && cidUnlockable.length > 10;
+    const isValidCid = isLegacy ? true : (cidUnlockable && typeof cidUnlockable === 'string' && cidUnlockable.length > 10);
 
     // Has unlockable content AND it's decrypted AND localUnlocked is true
     if (hasUnlockableContent && isValidCid && unlockedContent && localUnlocked) {
@@ -1026,7 +1113,11 @@ Expires: ${expiresAt}`;
   return (
     <WidgetShell>
       {/* Badge */}
-      <Badge color="orange">Digital Collectible</Badge>
+      {isLegacy ? (
+        <Badge color="yellow">🏷️ Generasi 1 (Legacy)</Badge>
+      ) : (
+        <Badge color="orange">Digital Collectible</Badge>
+      )}
 
       {/* NFT Media */}
       {nftMedia && (
@@ -1075,14 +1166,33 @@ Expires: ${expiresAt}`;
         </div>
       )}
 
-      {/* Collect Button */}
-      <LiteraButton onClick={handleStartAuthorization} fullWidth={false}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          Collect NFT
-          <span style={{ opacity: 0.5 }}>·</span>
-          <span style={{ fontWeight: 500, opacity: 0.85 }}>{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
-        </span>
-      </LiteraButton>
+      {/* Collect Button - Hidden for legacy articles */}
+      {!isLegacy && (
+        <LiteraButton onClick={handleStartAuthorization} fullWidth={false}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Collect NFT
+            <span style={{ opacity: 0.5 }}>·</span>
+            <span style={{ fontWeight: 500, opacity: 0.85 }}>{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
+          </span>
+        </LiteraButton>
+      )}
+      
+      {/* Legacy message - shown instead of mint button */}
+      {isLegacy && !ownsNFT && (
+        <div style={{ 
+          padding: '12px 16px', 
+          background: 'var(--lw-bg-inner)', 
+          border: '1px solid var(--lw-border)',
+          borderRadius: '12px',
+          fontSize: '12px',
+          color: 'var(--lw-text-secondary)',
+          textAlign: 'center',
+          marginBottom: '12px'
+        }}>
+          <div style={{ fontWeight: 600, marginBottom: '4px' }}>NFT Generasi 1</div>
+          <div style={{ fontSize: '11px', opacity: 0.7 }}>Artikel ini tidak lagi tersedia untuk pembelian</div>
+        </div>
+      )}
 
       {/* Wallet + Branding */}
       {renderWalletButton()}
