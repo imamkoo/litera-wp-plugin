@@ -19,6 +19,7 @@ createWeb3Modal({
   enableAnalytics: true,
   themeMode: 'light',
   themeVariables: {
+    '--w3m-accent': '#d07954',
     '--w3m-border-radius-master': '12px'
   },
   featuredWalletIds: [
