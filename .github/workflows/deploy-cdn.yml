@@ -1,0 +1,116 @@
+name: Deploy Bundle to CDN
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'webpack.config.js'
+      - 'build-combined.js'
+      - 'config-overrides.js'
+      - 'package.json'
+      - 'yarn.lock'
+  workflow_dispatch:
+
+jobs:
+  deploy-cdn:
+    runs-on: self-hosted
+    env:
+      CDN_DIR: /var/www/html/wp
+      BUNDLE_SRC: build/bundle.js
+      OLD_KEYS_REGEX: 'e3fd4e9a33ef48d3be06ec68b7fd1b0a|a2qiiAva6fEQOmxhmBGSp'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build bundle
+        run: yarn build
+        env:
+          CI: false
+          GENERATE_SOURCEMAP: false
+
+      - name: Secret-scan gate
+        run: |
+          set -e
+          if grep -qE "${{ env.OLD_KEYS_REGEX }}" "${{ env.BUNDLE_SRC }}"; then
+            echo "::error::SECRET FOUND in bundle — build mengandung key RPC lama. Abort."
+            exit 1
+          fi
+          echo "Secret scan OK — 0 old keys."
+
+      - name: Hash bundle + write manifest
+        run: |
+          set -e
+          HASH=$(sha256sum "${{ env.BUNDLE_SRC }}" | cut -c1-12)
+          VERSION=$(grep "Version:" litera.php | head -1 | awk '{print $NF}')
+          COMMIT=$(git rev-parse --short HEAD)
+          BUILD_FILE="bundle.${HASH}.js"
+          cp "${{ env.BUNDLE_SRC }}" "/tmp/${BUILD_FILE}"
+          cat > /tmp/manifest.json <<EOF
+          {
+            "version": "${VERSION}",
+            "file": "${BUILD_FILE}",
+            "commit": "${COMMIT}",
+            "builtAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+          echo "HASH=$HASH" >> "$GITHUB_ENV"
+          echo "BUILD_FILE=$BUILD_FILE" >> "$GITHUB_ENV"
+          cat /tmp/manifest.json
+
+      - name: Two-phase deploy
+        run: |
+          set -e
+          sudo mkdir -p "${{ env.CDN_DIR }}"
+          # Phase 1: bundle immutable dulu — verifikasi 200 baru flip manifest
+          sudo cp "/tmp/${BUILD_FILE}" "${{ env.CDN_DIR }}/${BUILD_FILE}"
+          sudo chown www-data:www-data "${{ env.CDN_DIR }}/${BUILD_FILE}"
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' "https://cdn.literaa.xyz/${BUILD_FILE}")
+          if [ "$CODE" != "200" ]; then
+            echo "::error::bundle ${BUILD_FILE} belum serve 200 (HTTP ${CODE}). Abort sebelum flip manifest."
+            sudo rm -f "${{ env.CDN_DIR }}/${BUILD_FILE}"
+            exit 1
+          fi
+          echo "Phase 1 OK — bundle live: ${BUILD_FILE} (HTTP ${CODE})"
+          # Phase 2: flip manifest atomik
+          sudo cp /tmp/manifest.json "${{ env.CDN_DIR }}/manifest.json.tmp"
+          sudo mv "${{ env.CDN_DIR }}/manifest.json.tmp" "${{ env.CDN_DIR }}/manifest.json"
+          sudo chown www-data:www-data "${{ env.CDN_DIR }}/manifest.json"
+          echo "Phase 2 OK — manifest flipped."
+
+      - name: Verify end-to-end
+        run: |
+          set -e
+          echo "--- manifest ---"
+          curl -fsSL https://cdn.literaa.xyz/manifest.json
+          echo ""
+          echo "--- served bundle secret scan ---"
+          curl -fsSL "https://cdn.literaa.xyz/${BUILD_FILE}" | grep -qE "${{ env.OLD_KEYS_REGEX }}" && {
+            echo "::error::old key ditemukan di bundle yang di-serve."
+            exit 1
+          } || echo "OK — 0 old keys di bundle served."
+          echo "Deployment successful!"
+
+      - name: Cloudflare purge (if token available)
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ZONE_ID != ''
+        run: |
+          curl -fsSL -X POST "https://api.cloudflare.com/client/v4/zones/${{ env.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ env.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"files":["https://cdn.literaa.xyz/manifest.json"]}'
+          echo "Cloudflare cache purged."
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}

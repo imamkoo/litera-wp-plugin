@@ -34,6 +34,7 @@ echo "[3/4] Copying production files..."
 cp build/bundle.js bundle.js
 cp litera.php "${TEMP_DIR}/"
 cp bundle.js "${TEMP_DIR}/"
+cp loader.js "${TEMP_DIR}/"
 cp -r includes/ "${TEMP_DIR}/includes/"
 
 # Optional: copy readme if exists

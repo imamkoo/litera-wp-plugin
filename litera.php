@@ -7,7 +7,7 @@
  * Author URI: https://litera.id
  * Text Domain: litera
  * Domain Path: /languages
- * Version: 1.3.5
+ * Version: 1.3.6
  *
  * @package Litera_Plugin
  */
@@ -28,14 +28,22 @@ if (file_exists(plugin_dir_path(__FILE__) . 'includes/class-litera-updater.php')
 // Check if the shortcode is used on a single post page
 function my_react_plugin_enqueue_scripts() {
     if (is_single()) {
+        $loader_path = plugin_dir_path(__FILE__) . 'loader.js';
         $bundle_path = plugin_dir_path(__FILE__) . 'bundle.js';
 
-        // Safety check: only enqueue if bundle.js actually exists
-        if (!file_exists($bundle_path)) {
+        // Loader + local fallback bundle must both exist
+        if (!file_exists($loader_path) || !file_exists($bundle_path)) {
             return;
         }
 
-        wp_enqueue_script('my-react-plugin-script', plugin_dir_url(__FILE__) . 'bundle.js', [], filemtime($bundle_path), true);
+        wp_enqueue_script('my-react-plugin-script', plugin_dir_url(__FILE__) . 'loader.js', [], filemtime($loader_path), true);
+
+        // Local bundle URL injected before loader runs — fallback if CDN is unreachable.
+        wp_add_inline_script(
+            'my-react-plugin-script',
+            'window.literaLocalBundle = ' . wp_json_encode(plugin_dir_url(__FILE__) . 'bundle.js') . ';',
+            'before'
+        );
 
         global $post;
         $permalink = esc_url(get_permalink($post->ID));
