@@ -11,7 +11,7 @@ if (!projectId) {
 export const metadata = {
     name: 'Litera',
     description: 'Litera dashboard',
-    url: 'https://app.literaa.xyz',
+    url: 'https://literaa.xyz',
     icons: ['https://avatars.githubusercontent.com/u/179229932']
 }
 
@@ -23,10 +23,9 @@ export const config = defaultWagmiConfig({
   metadata,
   transports: {
     [polygon.id]: fallback([
-        http(process.env.REACT_APP_ALCHEMY_RPC_URL || 'https://polygon-mainnet.g.alchemy.com/v2/REDACTED_ALCHEMY_KEY'),
-        http(process.env.REACT_APP_INFURA_RPC_URL || 'https://polygon-mainnet.infura.io/v3/e3fd4e9a33ef48d3be06ec68b7fd1b0a'),
-        http('https://polygon.llamarpc.com'),
+        http('https://rpc.ankr.com/polygon'),
         http('https://polygon-bor-rpc.publicnode.com'),
+        http('https://polygon.llamarpc.com'),
         http('https://1rpc.io/matic'),
         http('https://rpc-mainnet.maticvigil.com')
     ])
