@@ -57,7 +57,7 @@ function App() {
         
         try {
           const response = await fetch(
-            `https://dev.literaa.xyz/api/v1/articles/resolve?url=${encodeURIComponent(rawPermalink)}`,
+            `https://literaa.xyz/api/v1/articles/resolve?url=${encodeURIComponent(rawPermalink)}`,
             { method: 'GET', headers: { 'Content-Type': 'application/json' } }
           );
           

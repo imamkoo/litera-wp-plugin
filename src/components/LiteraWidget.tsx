@@ -332,7 +332,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
         setIsLegacyUnlockableLoading(true);
         try {
           const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const defaultBackendUrl = isLocalhost ? 'http://localhost:3001' : 'https://dev.literaa.xyz';
+          const defaultBackendUrl = isLocalhost ? 'http://localhost:3001' : 'https://literaa.xyz';
           const backendUrl = process.env.REACT_APP_BACKEND_URL || defaultBackendUrl;
           
           // Using the resolve endpoint logic to quickly see if it's a legacy item
@@ -592,7 +592,7 @@ Expires: ${expiresAt}`;
       if (isLegacy) {
         // --- LEGACY FLOW (Generation 1) ---
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const defaultBackendUrl = isLocalhost ? 'http://localhost:3001' : 'https://dev.literaa.xyz';
+        const defaultBackendUrl = isLocalhost ? 'http://localhost:3001' : 'https://literaa.xyz';
         const backendUrl = process.env.REACT_APP_BACKEND_URL || defaultBackendUrl;
 
         const res = await axios.post(`${backendUrl}/api/v1/unlocked/legacy`, {

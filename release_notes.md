@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.3.7 (Legacy Access Recovery — resolve ke production)
+- **Legacy Access Recovery**: Endpoint resolve (dual-contract access) yang tadinya menunjuk `dev.literaa.xyz` (sudah mati) kini diarahkan ke **production `literaa.xyz`**. Pembaca pemegang NFT generasi 1 (legacy) kembali bisa membuka artikel lama: widget resolve URL → cek `balanceOf` di ERC-1155 lama → buka akses. Ini melengkapi backend "baca dua kontrak" yang sudah live di production.
+- Semua referensi `dev.literaa.xyz` dihapus dari bundle (resolve + unlock legacy).
+
 ## v1.3.6 (CDN Auto-Update + RPC Key Hardening)
 - **CDN Auto-Update**: Widget kini dimuat dari `cdn.literaa.xyz` via `loader.js` ringan. Bundle JS versi terbaru otomatis tersedia tanpa publisher harus update plugin dari WP dashboard. Jika CDN tidak terjangkau (timeout 3 detik), widget otomatis fallback ke `bundle.js` lokal — tidak ada downtime.
 - **Security — RPC Key Hardening**: Menghapus hardcoded Alchemy/Infura API key dari bundle frontend. Widget sekarang memakai public keyless RPC (Ankr, PublicNode, LlamaRPC, 1RPC, MaticVigil). Key lama wajib di-rotate/revoke di dashboard provider setelah rilis ini terpasang.
