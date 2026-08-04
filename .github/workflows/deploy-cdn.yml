@@ -12,6 +12,8 @@ on:
       - 'config-overrides.js'
       - 'package.json'
       - 'yarn.lock'
+      - 'litera.php'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
@@ -31,6 +33,11 @@ jobs:
         with:
           node-version: '22'
           cache: 'yarn'
+
+      - name: Enable corepack (yarn classic)
+        run: |
+          corepack enable
+          yarn --version
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
