@@ -29,3 +29,6 @@ yarn-error.log*
 ziQbUurF
 bundle.js
 bundle.js.LICENSE.txt
+
+# Local AI workspace config (tidak pernah di-commit)
+AGENTS.md
