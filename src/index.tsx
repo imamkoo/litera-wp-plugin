@@ -10,6 +10,8 @@ import { WagmiProvider } from 'wagmi'
 import {HeroUIProvider} from '@heroui/react'
 import {ToastProvider} from "@heroui/toast";
 import ErrorBoundary from './components/ErrorBoundary';
+import { PrivyProvider } from '@privy-io/react-auth';
+import { polygon } from 'viem/chains';
 
 const queryClient = new QueryClient()
 
@@ -34,19 +36,41 @@ const container = document.getElementById('my-react-plugin-root') || document.ge
 if (!container) {
   console.error("Litera Plugin: Could not find container element 'my-react-plugin-root'");
 }
+
+const privyAppId = process.env.REACT_APP_PRIVY_APP_ID || 'cmsg0934d00c40cl5dkdtbrnl';
+
 const root = ReactDOM.createRoot(container as HTMLElement);
 root.render(
   <React.StrictMode>
-     <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <HeroUIProvider>
-          <ToastProvider />
-          <ErrorBoundary>
-            <App />
-          </ErrorBoundary>
-        </HeroUIProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <PrivyProvider
+      appId={privyAppId}
+      config={{
+        loginMethods: ['email', 'google'],
+        appearance: {
+          theme: 'light',
+          accentColor: '#d07954',
+          showWalletLoginFirst: false,
+        },
+        defaultChain: polygon,
+        supportedChains: [polygon],
+        embeddedWallets: {
+          ethereum: {
+            createOnLogin: 'users-without-wallets',
+          },
+        },
+      }}
+    >
+       <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <HeroUIProvider>
+            <ToastProvider />
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
+          </HeroUIProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </PrivyProvider>
   </React.StrictMode>
 );
 

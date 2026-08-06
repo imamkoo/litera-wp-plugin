@@ -19,6 +19,8 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@walletconnect/ethereum-provider": "^2.23.1",
+    "@privy-io/react-auth": "^3.36.1",
+    "@stripe/stripe-js": "^9.13.0",
     "@web3modal/wagmi": "^4.1.11",
     "ajv": "^8.20.0",
     "axios": "^1.13.2",

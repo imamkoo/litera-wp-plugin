@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
+import { usePrivy, useLogout } from '@privy-io/react-auth';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
@@ -211,7 +212,12 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
 };
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
-  const { address, isConnected } = useAccount();
+  const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
+  const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser, login: privyLogin } = usePrivy();
+  const { logout: privyLogout } = useLogout();
+  const address = wagmiAddress || privyUser?.wallet?.address;
+  const isConnected = isWagmiConnected || privyAuthenticated;
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
   const [localUnlocked, setLocalUnlocked] = useState(false);
   const [sponsorUrl, setSponsorUrl] = useState<string | null>(null);
@@ -681,35 +687,113 @@ Expires: ${expiresAt}`;
 
   /* ─── Wallet Button (reusable) ─── */
   const renderWalletButton = () => (
-    <button
-      onClick={() => open()}
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-        padding: '10px 20px',
-        borderRadius: '14px',
-        background: 'var(--lw-wallet-bg)',
-        color: 'var(--lw-wallet-text)',
-        fontSize: '12px', fontWeight: 700,
-        border: '1px solid var(--lw-border)',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        marginTop: '8px',
-      }}
-    >
-      {isConnected ? (
-        <>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: 'rgba(240,78,55,0.12)', borderRadius: '8px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F04E37' }} />
-            <span style={{ fontWeight: 800, color: '#F04E37', fontSize: '12px' }}>
-              {userBalance !== undefined && userBalance !== null ? `${parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', { maximumFractionDigits: 2 })} LITE` : '0 LITE'}
+    <>
+      <button
+        onClick={() => {
+          if (isConnected) {
+            open();
+          } else {
+            setIsLoginModalOpen(true);
+          }
+        }}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          padding: '10px 20px',
+          borderRadius: '14px',
+          background: 'var(--lw-wallet-bg)',
+          color: 'var(--lw-wallet-text)',
+          fontSize: '12px', fontWeight: 700,
+          border: '1px solid var(--lw-border)',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          marginTop: '8px',
+        }}
+      >
+        {isConnected ? (
+          <>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: 'rgba(240,78,55,0.12)', borderRadius: '8px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F04E37' }} />
+              <span style={{ fontWeight: 800, color: '#F04E37', fontSize: '12px' }}>
+                {userBalance !== undefined && userBalance !== null ? `${parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', { maximumFractionDigits: 2 })} LITE` : '0 LITE'}
+              </span>
             </span>
-          </span>
-          <span style={{ fontSize: '11px', opacity: 0.7, fontFamily: 'monospace' }}>{address?.slice(0, 6)}...{address?.slice(-4)}</span>
-        </>
-      ) : (
-        <span>Connect Wallet</span>
+            <span style={{ fontSize: '11px', opacity: 0.7, fontFamily: 'monospace' }}>{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+          </>
+        ) : (
+          <span>Masuk ke Litera</span>
+        )}
+      </button>
+
+      {/* Login Modal Custom (Mirip Dashboard) */}
+      {isLoginModalOpen && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)'
+          }}
+          onClick={() => setIsLoginModalOpen(false)}
+        >
+          <div
+            style={{
+              position: 'relative', width: '100%', maxWidth: '390px',
+              borderRadius: '24px', backgroundColor: '#ffffff',
+              boxShadow: '0 30px 100px rgba(15,23,42,0.3)',
+              padding: '24px'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              style={{
+                position: 'absolute', top: '16px', right: '16px',
+                width: '32px', height: '32px', borderRadius: '50%',
+                backgroundColor: '#f3f4f6', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}
+              onClick={() => setIsLoginModalOpen(false)}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            </button>
+
+            <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: '#111' }}>Masuk ke Litera</h2>
+            <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 24px 0' }}>Pilih cara untuk mengakses artikel.</p>
+
+            <button
+              onClick={() => { setIsLoginModalOpen(false); privyLogin(); }}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: '16px',
+                padding: '16px', borderRadius: '16px',
+                backgroundColor: '#fff8f4', border: '1px solid rgba(208,121,84,0.3)',
+                cursor: 'pointer', marginBottom: '12px', textAlign: 'left'
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Email atau Google</div>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>Dompet Polygon dibuat otomatis.</div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => { setIsLoginModalOpen(false); open(); }}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: '16px',
+                padding: '16px', borderRadius: '16px',
+                backgroundColor: '#ffffff', border: '1px solid #e5e7eb',
+                cursor: 'pointer', textAlign: 'left'
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Hubungkan Dompet</div>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>MetaMask, Coinbase, dll.</div>
+              </div>
+            </button>
+            <div style={{ marginTop: '24px', borderTop: '1px solid #e5e7eb', paddingTop: '16px', textAlign: 'center' }}>
+              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Powered by Litera</span>
+            </div>
+          </div>
+        </div>
       )}
-    </button>
+    </>
   );
 
   /* ═══════════════════════════════════════════════════════
