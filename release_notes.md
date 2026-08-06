@@ -1,5 +1,11 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.0 (Cloud Wallet v3 Hybrid Auth - Privy Integration)
+- **Privy Hybrid Auth (Email / Google Login)**: Widget WordPress kini mendukung autentikasi cerdas menggunakan Privy (`@privy-io/react-auth`), setara dengan ekosistem Dashboard Litera.
+- **UI "Masuk ke Litera" Universal**: Tombol lama `Connect Wallet` telah digantikan dengan opsi ganda interaktif (*Email/Google* & *Hubungkan Dompet*).
+- **Auto Polygon Wallet Creation**: Pembaca yang login dengan email/Google otomatis mendapatkan dompet Polygon tanpa harus menginstal ekstensi browser seperti MetaMask.
+- **Sinkronisasi Session & Balance**: Saldo LITE dan status login kini tersinkronisasi secara instan antara Dashboard dan Plugin WP.
+
 ## v1.3.7 (Legacy Access Recovery — resolve ke production)
 - **Legacy Access Recovery**: Endpoint resolve (dual-contract access) yang tadinya menunjuk `dev.literaa.xyz` (sudah mati) kini diarahkan ke **production `literaa.xyz`**. Pembaca pemegang NFT generasi 1 (legacy) kembali bisa membuka artikel lama: widget resolve URL → cek `balanceOf` di ERC-1155 lama → buka akses. Ini melengkapi backend "baca dua kontrak" yang sudah live di production.
 - Semua referensi `dev.literaa.xyz` dihapus dari bundle (resolve + unlock legacy).
