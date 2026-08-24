@@ -46,6 +46,24 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const handleArticleChange = (event: Event) => {
+      const { permalink: nextUrl, title: nextTitle } = (event as CustomEvent<{
+        permalink: string;
+        title: string;
+      }>).detail;
+
+      setRawPermalink(nextUrl);
+      setPermalink(normalizeUrl(nextUrl));
+      setArticleTitle(nextTitle);
+      setResolvedData(null);
+      setResolveError(null);
+    };
+
+    window.addEventListener('litera:article-change', handleArticleChange);
+    return () => window.removeEventListener('litera:article-change', handleArticleChange);
+  }, []);
+
   // 1. On-chain lookup berdasarkan URL yang sudah dinormalisasi
   const { data: tokenIdRaw, isLoading, isError, error } = useReadContract({
     address: contractAddress,
@@ -67,6 +85,8 @@ function App() {
 
   // 0. Jika Writer V2 tidak menemukan artikel, coba endpoint /resolve
   useEffect(() => {
+    let cancelled = false;
+
     const fetchResolveEndpoint = async () => {
       if (isError || tokenId === 0) {
         if (isResolving || !rawPermalink) return;
@@ -82,6 +102,7 @@ function App() {
 
           if (response.ok) {
             const data = await response.json();
+            if (cancelled) return;
             if (data.success && data.data.tokenId > 0) {
               setResolvedData(data.data);
             } else {
@@ -91,9 +112,9 @@ function App() {
             setResolveError(`Backend error: ${response.status}`);
           }
         } catch (err: any) {
-          setResolveError(`Network error: ${err.message}`);
+          if (!cancelled) setResolveError(`Network error: ${err.message}`);
         } finally {
-          setIsResolving(false);
+          if (!cancelled) setIsResolving(false);
         }
       } else {
         // Reset jika Writer V2 berhasil
@@ -103,6 +124,9 @@ function App() {
     };
 
     fetchResolveEndpoint();
+    return () => {
+      cancelled = true;
+    };
   }, [isError, tokenId, rawPermalink, isResolving]);
 
   // 2. State Management "Wrong Network"
