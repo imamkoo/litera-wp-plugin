@@ -73,8 +73,21 @@ function App() {
     chainId: EXPECTED_CHAIN_ID,
     query: {
       enabled: !!permalink,
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+      retry: 1,
     }
   });
+
+  const [lookupTimedOut, setLookupTimedOut] = useState(false);
+  useEffect(() => {
+    if (!isLoading) {
+      setLookupTimedOut(false);
+      return;
+    }
+    const t = setTimeout(() => setLookupTimedOut(true), 2500);
+    return () => clearTimeout(t);
+  }, [isLoading, permalink]);
 
   console.log("DEBUG WAGMI - URL:", permalink);
   console.log("DEBUG WAGMI - TokenID Raw:", tokenIdRaw);
@@ -82,27 +95,33 @@ function App() {
   console.log("DEBUG WAGMI - ERROR DETAILS:", error);
 
   const tokenId = tokenIdRaw ? Number(tokenIdRaw) : 0;
+  const lookupFailed = lookupTimedOut || (isError && !tokenIdRaw);
 
   // 0. Jika Writer V2 tidak menemukan artikel, coba endpoint /resolve
   useEffect(() => {
     let cancelled = false;
 
     const fetchResolveEndpoint = async () => {
-      if (isError || tokenId === 0) {
+      if (lookupFailed || tokenId === 0) {
         if (isResolving || !rawPermalink) return;
 
         setIsResolving(true);
         setResolveError(null);
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+
         try {
           const response = await fetch(
             `https://literaa.xyz/api/v1/articles/resolve?url=${encodeURIComponent(rawPermalink)}`,
-            { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+            { method: 'GET', headers: { 'Content-Type': 'application/json' }, signal: controller.signal }
           );
 
+          clearTimeout(timeoutId);
+
+          if (cancelled) return;
           if (response.ok) {
             const data = await response.json();
-            if (cancelled) return;
             if (data.success && data.data.tokenId > 0) {
               setResolvedData(data.data);
             } else {
@@ -112,12 +131,13 @@ function App() {
             setResolveError(`Backend error: ${response.status}`);
           }
         } catch (err: any) {
-          if (!cancelled) setResolveError(`Network error: ${err.message}`);
+          clearTimeout(timeoutId);
+          if (cancelled) return;
+          setResolveError(`Network error: ${err.message || 'timeout'}`);
         } finally {
           if (!cancelled) setIsResolving(false);
         }
       } else {
-        // Reset jika Writer V2 berhasil
         setResolvedData(null);
         setResolveError(null);
       }
@@ -127,7 +147,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [isError, tokenId, rawPermalink, isResolving]);
+  }, [lookupFailed, tokenId, rawPermalink, isResolving]);
 
   // 2. State Management "Wrong Network"
   if (isConnected && chainId && chainId !== EXPECTED_CHAIN_ID) {
@@ -155,8 +175,8 @@ function App() {
     );
   }
 
-  // 3. State "Loading Skeleton"
-  if (isLoading || !permalink || isResolving) {
+  // 3. State "Loading Skeleton" — hanya tampil maksimal beberapa detik.
+  if ((isLoading || !permalink || isResolving) && !lookupFailed && !resolvedData && !resolveError) {
     return (
       <div className="App relative flex flex-col justify-center items-center py-12 px-6 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl border border-slate-200 dark:border-white/5 shadow-2xl dark:shadow-[0_0_50px_-15px_rgba(0,0,0,0.5)] my-8 overflow-hidden text-center transition-colors duration-500">
          <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-indigo-500/10 dark:from-blue-500/5 dark:to-indigo-500/5"></div>
