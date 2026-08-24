@@ -82,7 +82,7 @@ jobs:
           set -e
           sudo mkdir -p "${{ env.CDN_DIR }}"
           # Phase 1: bundle immutable dulu — verifikasi 200 baru flip manifest
-          sudo cp "/tmp/${BUILD_FILE}" "${{ env.CDN_DIR }}/${BUILD_FILE}"
+          sudo cp "${{ env.BUNDLE_SRC }}" "${{ env.CDN_DIR }}/${BUILD_FILE}"
           sudo chown www-data:www-data "${{ env.CDN_DIR }}/${BUILD_FILE}"
           CODE=$(curl -s -o /dev/null -w '%{http_code}' "https://cdn.literaa.xyz/${BUILD_FILE}")
           if [ "$CODE" != "200" ]; then
@@ -91,6 +91,20 @@ jobs:
             exit 1
           fi
           echo "Phase 1 OK — bundle live: ${BUILD_FILE} (HTTP ${CODE})"
+          # Phase 1b: universal embed loader — URL publik stabil (tanpa hash)
+          if [ -f public/litera-embed.js ]; then
+            sudo cp public/litera-embed.js "${{ env.CDN_DIR }}/litera-embed.js"
+            sudo chown www-data:www-data "${{ env.CDN_DIR }}/litera-embed.js"
+            EMBED_CODE=$(curl -s -o /dev/null -w '%{http_code}' "https://cdn.literaa.xyz/litera-embed.js")
+            if [ "$EMBED_CODE" != "200" ]; then
+              echo "::error::litera-embed.js belum serve 200 (HTTP ${EMBED_CODE}). Abort."
+              sudo rm -f "${{ env.CDN_DIR }}/litera-embed.js"
+              exit 1
+            fi
+            echo "Phase 1b OK — litera-embed.js live (HTTP ${EMBED_CODE})"
+          else
+            echo "::warning::public/litera-embed.js tidak ditemukan — lewati publish embed."
+          fi
           # Phase 2: flip manifest atomik
           sudo cp /tmp/manifest.json "${{ env.CDN_DIR }}/manifest.json.tmp"
           sudo mv "${{ env.CDN_DIR }}/manifest.json.tmp" "${{ env.CDN_DIR }}/manifest.json"
