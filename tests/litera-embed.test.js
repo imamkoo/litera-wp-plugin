@@ -57,7 +57,10 @@ function makeFakeDom({ existingRoot = null, scripts = [], readyState = 'complete
 const ROOT_ID = 'my-react-plugin-root';
 
 function runEmbed(dom) {
-  const windowStub = { location: { href: 'https://halaman-default.test/artikel' } };
+  const windowStub = {
+    location: { href: 'https://halaman-default.test/artikel' },
+    addEventListener() {},
+  };
   // eslint-disable-next-line no-new-func
   const fn = new Function('window', 'document', 'fetch', 'setTimeout', 'clearTimeout', SRC);
   fn(windowStub, dom.documentStub, () => Promise.resolve({ ok: true, json: () => Promise.resolve({ file: 'bundle.test.js' }) }), () => 0, () => {});

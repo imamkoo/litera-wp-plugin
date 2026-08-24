@@ -32,47 +32,59 @@ createWeb3Modal({
   ]
 })
 
-const container = document.getElementById('my-react-plugin-root') || document.getElementById('root');
-if (!container) {
-  console.error("Litera Plugin: Could not find container element 'my-react-plugin-root'");
-}
-
 const privyAppId = process.env.REACT_APP_PRIVY_APP_ID || 'cmsg0934d00c40cl5dkdtbrnl';
 
-const root = ReactDOM.createRoot(container as HTMLElement);
-root.render(
-  <React.StrictMode>
-    <PrivyProvider
-      appId={privyAppId}
-      config={{
-        loginMethods: ['email', 'google'],
-        appearance: {
-          theme: 'light',
-          accentColor: '#d07954',
-          showWalletLoginFirst: false,
-        },
-        defaultChain: polygon,
-        supportedChains: [polygon],
-        embeddedWallets: {
-          ethereum: {
-            createOnLogin: 'users-without-wallets',
+let mountedRoot: ReturnType<typeof ReactDOM.createRoot> | null = null;
+let mountedContainer: HTMLElement | null = null;
+
+function renderWidget(container: HTMLElement) {
+  if (mountedContainer === container && mountedRoot) return;
+  mountedRoot?.unmount();
+  mountedRoot = ReactDOM.createRoot(container);
+  mountedContainer = container;
+  mountedRoot.render(
+    <React.StrictMode>
+      <PrivyProvider
+        appId={privyAppId}
+        config={{
+          loginMethods: ['email', 'google'],
+          appearance: {
+            theme: 'light',
+            accentColor: '#d07954',
+            showWalletLoginFirst: false,
           },
-        },
-      }}
-    >
-       <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
-          <HeroUIProvider>
-            <ToastProvider />
-            <ErrorBoundary>
-              <App />
-            </ErrorBoundary>
-          </HeroUIProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </PrivyProvider>
-  </React.StrictMode>
-);
+          defaultChain: polygon,
+          supportedChains: [polygon],
+          embeddedWallets: {
+            ethereum: {
+              createOnLogin: 'users-without-wallets',
+            },
+          },
+        }}
+      >
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <HeroUIProvider>
+              <ToastProvider />
+              <ErrorBoundary>
+                <App />
+              </ErrorBoundary>
+            </HeroUIProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </PrivyProvider>
+    </React.StrictMode>
+  );
+}
+
+(window as Window & { literaMount?: (container: HTMLElement) => void }).literaMount = renderWidget;
+
+const container = document.getElementById('my-react-plugin-root') || document.getElementById('root');
+if (container) {
+  renderWidget(container);
+} else {
+  console.error("Litera Plugin: Could not find container element 'my-react-plugin-root'");
+}
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

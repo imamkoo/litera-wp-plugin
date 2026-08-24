@@ -102,44 +102,46 @@ function App() {
     let cancelled = false;
 
     const fetchResolveEndpoint = async () => {
-      if (lookupFailed || tokenId === 0) {
-        if (isResolving || !rawPermalink) return;
+      if (!rawPermalink) return;
 
-        setIsResolving(true);
-        setResolveError(null);
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-        try {
-          const response = await fetch(
-            `https://literaa.xyz/api/v1/articles/resolve?url=${encodeURIComponent(rawPermalink)}`,
-            { method: 'GET', headers: { 'Content-Type': 'application/json' }, signal: controller.signal }
-          );
-
-          clearTimeout(timeoutId);
-
-          if (cancelled) return;
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.data.tokenId > 0) {
-              setResolvedData(data.data);
-            } else {
-              setResolveError('Article not found in legacy system');
-            }
-          } else {
-            setResolveError(`Backend error: ${response.status}`);
-          }
-        } catch (err: any) {
-          clearTimeout(timeoutId);
-          if (cancelled) return;
-          setResolveError(`Network error: ${err.message || 'timeout'}`);
-        } finally {
-          if (!cancelled) setIsResolving(false);
-        }
-      } else {
+      if (!(lookupFailed || tokenId === 0)) {
         setResolvedData(null);
         setResolveError(null);
+        return;
+      }
+
+      setIsResolving(true);
+      setResolveError(null);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+      try {
+        const response = await fetch(
+          `https://literaa.xyz/api/v1/articles/resolve?url=${encodeURIComponent(rawPermalink)}`,
+          { method: 'GET', headers: { 'Content-Type': 'application/json' }, signal: controller.signal }
+        );
+
+        clearTimeout(timeoutId);
+        if (cancelled) return;
+
+        if (response.ok) {
+          const data = await response.json();
+          if (cancelled) return;
+          if (data.success && data.data.tokenId > 0) {
+            setResolvedData(data.data);
+          } else {
+            setResolveError('Article not found in legacy system');
+          }
+        } else {
+          setResolveError(`Backend error: ${response.status}`);
+        }
+      } catch (err: any) {
+        clearTimeout(timeoutId);
+        if (cancelled) return;
+        setResolveError(`Network error: ${err.message || 'timeout'}`);
+      } finally {
+        if (!cancelled) setIsResolving(false);
       }
     };
 
@@ -147,7 +149,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [lookupFailed, tokenId, rawPermalink, isResolving]);
+  }, [lookupFailed, tokenId, rawPermalink]);
 
   // 2. State Management "Wrong Network"
   if (isConnected && chainId && chainId !== EXPECTED_CHAIN_ID) {

@@ -81,6 +81,11 @@
       });
   }
 
+  function remountIfReady() {
+    var root = document.getElementById(ROOT_ID);
+    if (root && typeof window.literaMount === 'function') window.literaMount(root);
+  }
+
   function boot() {
     if (window[GUARD]) return;
     window[GUARD] = true;
@@ -96,6 +101,7 @@
     };
 
     loadBundle();
+    window.addEventListener('litera:article-change', remountIfReady);
   }
 
   if (document.readyState === 'loading') {
