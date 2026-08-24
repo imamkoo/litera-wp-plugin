@@ -46,21 +46,40 @@ function App() {
     }
   }, []);
 
+  // 1. On-chain lookup berdasarkan URL yang sudah dinormalisasi
+  const { data: tokenIdRaw, isLoading, isError, error } = useReadContract({
+    address: contractAddress,
+    abi: contractABI,
+    functionName: 'getIdFromArticleURL',
+    args: [permalink],
+    chainId: EXPECTED_CHAIN_ID,
+    query: {
+      enabled: !!permalink,
+    }
+  });
+
+  console.log("DEBUG WAGMI - URL:", permalink);
+  console.log("DEBUG WAGMI - TokenID Raw:", tokenIdRaw);
+  console.log("DEBUG WAGMI - isError:", isError);
+  console.log("DEBUG WAGMI - ERROR DETAILS:", error);
+
+  const tokenId = tokenIdRaw ? Number(tokenIdRaw) : 0;
+
   // 0. Jika Writer V2 tidak menemukan artikel, coba endpoint /resolve
   useEffect(() => {
     const fetchResolveEndpoint = async () => {
       if (isError || tokenId === 0) {
         if (isResolving || !rawPermalink) return;
-        
+
         setIsResolving(true);
         setResolveError(null);
-        
+
         try {
           const response = await fetch(
             `https://literaa.xyz/api/v1/articles/resolve?url=${encodeURIComponent(rawPermalink)}`,
             { method: 'GET', headers: { 'Content-Type': 'application/json' } }
           );
-          
+
           if (response.ok) {
             const data = await response.json();
             if (data.success && data.data.tokenId > 0) {
@@ -85,25 +104,6 @@ function App() {
 
     fetchResolveEndpoint();
   }, [isError, tokenId, rawPermalink, isResolving]);
-
-  // 1. On-chain lookup berdasarkan URL yang sudah dinormalisasi
-  const { data: tokenIdRaw, isLoading, isError, error } = useReadContract({
-    address: contractAddress,
-    abi: contractABI,
-    functionName: 'getIdFromArticleURL',
-    args: [permalink],
-    chainId: EXPECTED_CHAIN_ID,
-    query: {
-      enabled: !!permalink,
-    }
-  });
-
-  console.log("DEBUG WAGMI - URL:", permalink);
-  console.log("DEBUG WAGMI - TokenID Raw:", tokenIdRaw);
-  console.log("DEBUG WAGMI - isError:", isError);
-  console.log("DEBUG WAGMI - ERROR DETAILS:", error);
-
-  const tokenId = tokenIdRaw ? Number(tokenIdRaw) : 0;
 
   // 2. State Management "Wrong Network"
   if (isConnected && chainId && chainId !== EXPECTED_CHAIN_ID) {
