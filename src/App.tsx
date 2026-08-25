@@ -25,6 +25,35 @@ function App() {
   const [resolvedData, setResolvedData] = useState<ResolveResult | null>(null);
   const [isResolving, setIsResolving] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
+  const [connectionBlocked, setConnectionBlocked] = useState(false);
+
+  // Deteksi koneksi diblokir (Brave Shields / ad-blocker): probe health backend + RPC.
+  // Hanya tampil bila probe GAGAL di level jaringan (fetch throw), bukan HTTP error.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        await fetch('https://literaa.xyz/api/v1/health', { cache: 'no-store' });
+      } catch {
+        if (!cancelled) setConnectionBlocked(true);
+        return;
+      }
+      try {
+        await fetch(
+          'https://polygon-bor-rpc.publicnode.com',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 }),
+            cache: 'no-store',
+          },
+        );
+      } catch {
+        if (!cancelled) setConnectionBlocked(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     // Ambil URL dan Title dari injeksi plugin WordPress
@@ -151,7 +180,25 @@ function App() {
     };
   }, [lookupFailed, tokenId, rawPermalink]);
 
-  // 2. State Management "Wrong Network"
+  // 2. State "Wrong Network"
+  if (connectionBlocked) {
+    return (
+      <div className="App relative flex flex-col items-center p-8 bg-amber-50/90 dark:bg-slate-900/80 backdrop-blur-xl border border-amber-200 dark:border-amber-900/50 rounded-3xl shadow-[0_0_40px_-10px_rgba(245,158,11,0.3)] my-8 overflow-hidden text-center transition-colors duration-500">
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="w-14 h-14 mb-5 bg-amber-100 dark:bg-amber-950/50 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-inner border border-amber-200 dark:border-amber-900/30">
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+          </div>
+          <p className="text-amber-700 dark:text-amber-400 font-bold mb-2 uppercase tracking-[0.15em] text-sm">Koneksi Diblokir</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 max-w-xs leading-relaxed">Browser atau ekstensi (Brave Shields, ad-blocker, VPN) memblokir koneksi ke jaringan Litera.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-500 mb-6 leading-relaxed">
+            <strong>Brave:</strong> klik ikon singa di bilah alamat → matikan Shields untuk situs ini.<br />
+            <strong>Ad-blocker:</strong> nonaktifkan untuk situs ini, lalu muat ulang halaman.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (isConnected && chainId && chainId !== EXPECTED_CHAIN_ID) {
     return (
       <div className="App relative flex flex-col items-center p-8 bg-red-50/80 dark:bg-slate-900/80 backdrop-blur-xl border border-red-200 dark:border-red-900/50 rounded-3xl shadow-[0_0_40px_-10px_rgba(239,68,68,0.3)] my-8 overflow-hidden transition-colors duration-500">
