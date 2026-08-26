@@ -26,10 +26,14 @@ interface LiteraWidgetProps {
   contractAddress?: string;
 }
 
+// Gateway IPFS Litera sendiri jauh lebih cepat (~0.5s) dibanding ipfs.io (~13s),
+// yang sering membuat <img>/fetch metadata gagal atau timeout.
+const IPFS_GATEWAY = 'https://ipfs.literaa.xyz:8443/ipfs';
+
 const formatIpfsUrl = (url: string | undefined): string => {
   if (!url) return '';
-  if (url.startsWith('ipfs://')) return url.replace('ipfs://', 'https://ipfs.io/ipfs/');
-  if (url.startsWith('Qm') || url.startsWith('bafy')) return `https://ipfs.io/ipfs/${url}`;
+  if (url.startsWith('ipfs://')) return `${IPFS_GATEWAY}/${url.replace('ipfs://', '')}`;
+  if (url.startsWith('Qm') || url.startsWith('bafy')) return `${IPFS_GATEWAY}/${url}`;
   return url;
 };
 
@@ -390,7 +394,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
             setLocalUnlocked(true);
             return;
           }
-          const res = await axios.get(`https://ipfs.io/ipfs/${cidUnlockable}`, { timeout: 8000 });
+          const res = await axios.get(`${IPFS_GATEWAY}/${cidUnlockable}`, { timeout: 8000 });
           
           if (typeof res.data === 'string') {
             // It's an encrypted ciphertext!
@@ -414,7 +418,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       const fetchMetadata = async () => {
         try {
           const cid = tokenURI.replace('ipfs://', '');
-          const res = await axios.get(`https://ipfs.io/ipfs/${cid}`, { timeout: 8000 });
+          const res = await axios.get(`${IPFS_GATEWAY}/${cid}`, { timeout: 8000 });
           const extUrl = res.data?.properties?.external_url;
           if (extUrl && extUrl.length > 5) setSponsorUrl(extUrl);
 
@@ -623,7 +627,7 @@ Expires: ${expiresAt}`;
           return;
         }
 
-        const ipfsRes = await axios.get(`https://ipfs.io/ipfs/${cid}`, { timeout: 8000 });
+        const ipfsRes = await axios.get(`${IPFS_GATEWAY}/${cid}`, { timeout: 8000 });
         let parsedData = ipfsRes.data;
         if (typeof parsedData === 'string') {
           try {
@@ -1209,7 +1213,12 @@ Expires: ${expiresAt}`;
           {nftMedia.type === 'video' ? (
             <video src={nftMedia.url} style={{ width: '120px', height: '120px', borderRadius: '16px', objectFit: 'cover', border: '1px solid var(--lw-border)' }} autoPlay loop muted playsInline />
           ) : (
-            <img src={nftMedia.url} alt="NFT Media" style={{ width: '120px', height: '120px', borderRadius: '16px', objectFit: 'cover', border: '1px solid var(--lw-border)' }} />
+            <img
+              src={nftMedia.url}
+              alt="NFT Media"
+              style={{ width: '120px', height: '120px', borderRadius: '16px', objectFit: 'cover', border: '1px solid var(--lw-border)' }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
           )}
         </div>
       )}

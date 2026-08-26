@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.1 (Resilience: Blocked-Media Detection + Fast IPFS Gateway)
+- **Deteksi Media Diblokir**: Widget kini mendeteksi bila gateway IPFS (`ipfs.literaa.xyz:8443`) diblokir Brave Shields/ad-blocker dan menampilkan pesan jelas ("Koneksi Diblokir") dengan panduan menonaktifkan pemblokir — tidak lagi diam-diam gagal memuat gambar.
+- **Gateway IPFS Cepat**: Semua fetch metadata & media NFT dialihkan dari `ipfs.io` (lambat ~13s, sering timeout) ke gateway Litera `ipfs.literaa.xyz:8443` (~0.5s). Gambar NFT di artikel kini tampil jauh lebih cepat dan andal.
+- **Gambar gagal muat tidak merusak layout** (fallback rapi via onError).
+
 ## v1.4.0 (Cloud Wallet v3 Hybrid Auth - Privy Integration)
 - **Privy Hybrid Auth (Email / Google Login)**: Widget WordPress kini mendukung autentikasi cerdas menggunakan Privy (`@privy-io/react-auth`), setara dengan ekosistem Dashboard Litera.
 - **UI "Masuk ke Litera" Universal**: Tombol lama `Connect Wallet` telah digantikan dengan opsi ganda interaktif (*Email/Google* & *Hubungkan Dompet*).

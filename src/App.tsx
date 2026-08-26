@@ -27,7 +27,7 @@ function App() {
   const [resolveError, setResolveError] = useState<string | null>(null);
   const [connectionBlocked, setConnectionBlocked] = useState(false);
 
-  // Deteksi koneksi diblokir (Brave Shields / ad-blocker): probe health backend + RPC.
+  // Deteksi koneksi diblokir (Brave Shields / ad-blocker): probe health backend + RPC + gateway IPFS.
   // Hanya tampil bila probe GAGAL di level jaringan (fetch throw), bukan HTTP error.
   useEffect(() => {
     let cancelled = false;
@@ -47,6 +47,16 @@ function App() {
             body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 }),
             cache: 'no-store',
           },
+        );
+      } catch {
+        if (!cancelled) setConnectionBlocked(true);
+        return;
+      }
+      // Gateway IPFS Litera — sumber gambar/media NFT. Sering diblokir karena port 8443 non-standar.
+      try {
+        await fetch(
+          'https://ipfs.literaa.xyz:8443/ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
+          { method: 'HEAD', mode: 'no-cors', cache: 'no-store' },
         );
       } catch {
         if (!cancelled) setConnectionBlocked(true);
