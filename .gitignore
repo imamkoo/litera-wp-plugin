@@ -32,3 +32,10 @@ bundle.js.LICENSE.txt
 
 # Local AI workspace config (tidak pernah di-commit)
 AGENTS.md
+
+# Documentation & audit reports (workspace-local, tidak boleh ke GitHub)
+/docs/
+/audit-reports/
+*.md
+!README.md
+!release_notes.md

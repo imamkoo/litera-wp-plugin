@@ -1,5 +1,13 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.3 (Hotfix: Shortcode [LITERA] + RPC fallback + UI Redesign)
+- **Shortcode WP [LITERA]**: Menambahkan alias `[LITERA]` (uppercase) di `litera.php` agar widget tidak hilang saat ditulis kapital.
+- **RPC Fallback Fix**: Membuang `ankr` (butuh auth), `llamarpc`, dan `maticvigil` yang mati. Menggunakan `publicnode` dan `1rpc.io` yang stabil.
+- **UI Redesign**: Tombol "Connect Wallet to Collect" dengan gaya terracotta `#d07954` yang kontras dan jelas sebagai CTA login.
+
+## v1.4.2 (Hotfix: RPC endpoints — widget stuck on loading)
+- **Perbaikan widget stuck di loading skeleton**: RPC pertama (`rpc.ankr.com/polygon`) kini mengembalikan `Unauthorized` karena membutuhkan API key, dan `llamarpc`/`maticvigil` sudah tidak aktif. Semua referensi RPC mati dibuang dari `wagmiConfig`; widget kini memakai `polygon-bor-rpc.publicnode.com` + `1rpc.io/matic` (diverifikasi hidup & responsif). On-chain lookup artikel kembali normal.
+
 ## v1.4.1 (Resilience: Blocked-Media Detection + Fast IPFS Gateway)
 - **Deteksi Media Diblokir**: Widget kini mendeteksi bila gateway IPFS (`ipfs.literaa.xyz:8443`) diblokir Brave Shields/ad-blocker dan menampilkan pesan jelas ("Koneksi Diblokir") dengan panduan menonaktifkan pemblokir — tidak lagi diam-diam gagal memuat gambar.
 - **Gateway IPFS Cepat**: Semua fetch metadata & media NFT dialihkan dari `ipfs.io` (lambat ~13s, sering timeout) ke gateway Litera `ipfs.literaa.xyz:8443` (~0.5s). Gambar NFT di artikel kini tampil jauh lebih cepat dan andal.

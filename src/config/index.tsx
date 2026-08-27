@@ -22,12 +22,11 @@ export const config = defaultWagmiConfig({
   projectId,
   metadata,
   transports: {
+    // Keyless public RPC yang masih hidup (diverifikasi 2026-08-26).
+    // ankr.com/polygon (butuh API key → Unauthorized), llamarpc & maticvigil (mati) DIBUANG.
     [polygon.id]: fallback([
-        http('https://rpc.ankr.com/polygon'),
         http('https://polygon-bor-rpc.publicnode.com'),
-        http('https://polygon.llamarpc.com'),
         http('https://1rpc.io/matic'),
-        http('https://rpc-mainnet.maticvigil.com')
     ])
   }
 })

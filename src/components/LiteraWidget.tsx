@@ -222,6 +222,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const address = wagmiAddress || privyUser?.wallet?.address;
   const isConnected = isWagmiConnected || privyAuthenticated;
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
   const [localUnlocked, setLocalUnlocked] = useState(false);
   const [sponsorUrl, setSponsorUrl] = useState<string | null>(null);
@@ -697,19 +698,21 @@ Expires: ${expiresAt}`;
           if (isConnected) {
             open();
           } else {
+            setIsConnecting(true);
             setIsLoginModalOpen(true);
           }
         }}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-          padding: '10px 20px',
+          width: isConnected ? undefined : '100%',
+          padding: '13px 20px',
           borderRadius: '14px',
-          background: 'var(--lw-wallet-bg)',
-          color: 'var(--lw-wallet-text)',
-          fontSize: '12px', fontWeight: 700,
-          border: '1px solid var(--lw-border)',
+          background: isConnected ? 'var(--lw-wallet-bg)' : '#d07954',
+          color: isConnected ? 'var(--lw-wallet-text)' : '#ffffff',
+          fontSize: '14px', fontWeight: 700,
+          border: isConnected ? '1px solid var(--lw-border)' : '1px solid #d07954',
           cursor: 'pointer',
-          transition: 'all 0.2s ease',
+          transition: 'background-color 0.2s ease, transform 0.2s ease',
           marginTop: '8px',
         }}
       >
@@ -724,7 +727,7 @@ Expires: ${expiresAt}`;
             <span style={{ fontSize: '11px', opacity: 0.7, fontFamily: 'monospace' }}>{address?.slice(0, 6)}...{address?.slice(-4)}</span>
           </>
         ) : (
-          <span>Masuk ke Litera</span>
+          <span>{isConnecting ? 'Connecting…' : 'Connect Wallet to Collect'}</span>
         )}
       </button>
 
