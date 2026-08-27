@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.5 (Hotfix: login modal portal + non-WP CSP)
+- **Login modal portal**: custom "Masuk ke Litera" modal now renders via `createPortal` to `document.body`, so it is never trapped/cropped inside the widget container (fixes modal appearing inside the widget box on WordPress themes with transformed ancestors).
+- **Non-WP CSP**: `letmehearyou.id` CSP now allows `auth.privy.io`, `*.privy.io`, `cca-lite.coinbase.com`, WalletConnect relays, Web3Modal API, and `ipfs.literaa.xyz:8443` — fixes Privy/WalletConnect connection failures on embedded non-WP sites.
+
 ## v1.4.4 (Hotfix: reliable WordPress mount + remove false blocker)
 - **WordPress display fix**: widget now mounts on posts, pages, and custom post types, and can auto-create the mount container when shortcode/theme output misses it.
 - **Non-WP guard fix**: removed false-positive connection blocker so normal Brave/adblock conditions do not hide the widget.

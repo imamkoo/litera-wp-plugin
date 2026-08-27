@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
 import { usePrivy, useLogout } from '@privy-io/react-auth';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
@@ -731,19 +732,19 @@ Expires: ${expiresAt}`;
         )}
       </button>
 
-      {/* Login Modal Custom (Mirip Dashboard) */}
-      {isLoginModalOpen && (
+      {/* Login Modal Custom (Mirip Dashboard) — via portal ke document.body agar tidak terkurung widget */}
+      {isLoginModalOpen && createPortal(
         <div
           style={{
-            position: 'fixed', inset: 0, zIndex: 9999,
+            position: 'fixed', inset: 0, zIndex: 2147483647,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)'
           }}
-          onClick={() => setIsLoginModalOpen(false)}
+          onClick={() => { setIsLoginModalOpen(false); setIsConnecting(false); }}
         >
           <div
             style={{
-              position: 'relative', width: '100%', maxWidth: '390px',
+              position: 'relative', width: '90%', maxWidth: '390px',
               borderRadius: '24px', backgroundColor: '#ffffff',
               boxShadow: '0 30px 100px rgba(15,23,42,0.3)',
               padding: '24px'
@@ -757,7 +758,7 @@ Expires: ${expiresAt}`;
                 backgroundColor: '#f3f4f6', border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}
-              onClick={() => setIsLoginModalOpen(false)}
+              onClick={() => { setIsLoginModalOpen(false); setIsConnecting(false); }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
             </button>
@@ -798,7 +799,8 @@ Expires: ${expiresAt}`;
               <span style={{ fontSize: '12px', color: '#9ca3af' }}>Powered by Litera</span>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
