@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.4 (Hotfix: reliable WordPress mount + remove false blocker)
+- **WordPress display fix**: widget now mounts on posts, pages, and custom post types, and can auto-create the mount container when shortcode/theme output misses it.
+- **Non-WP guard fix**: removed false-positive connection blocker so normal Brave/adblock conditions do not hide the widget.
+- **Cache busting**: loader and embed manifest requests now use a timestamp query to avoid stale CDN/browser cache.
+
 ## v1.4.3 (Hotfix: Shortcode [LITERA] + RPC fallback + UI Redesign)
 - **Shortcode WP [LITERA]**: Menambahkan alias `[LITERA]` (uppercase) di `litera.php` agar widget tidak hilang saat ditulis kapital.
 - **RPC Fallback Fix**: Membuang `ankr` (butuh auth), `llamarpc`, dan `maticvigil` yang mati. Menggunakan `publicnode` dan `1rpc.io` yang stabil.

@@ -65,7 +65,7 @@
       if (window.literaLocalBundle) inject(window.literaLocalBundle);
     }, TIMEOUT_MS);
 
-    fetch(CDN_BASE + 'manifest.json', { cache: 'no-cache' })
+    fetch(CDN_BASE + 'manifest.json?t=' + Date.now(), { cache: 'no-cache' })
       .then(function (r) {
         if (!r.ok) throw new Error('manifest ' + r.status);
         return r.json();

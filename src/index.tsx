@@ -77,13 +77,68 @@ function renderWidget(container: HTMLElement) {
   );
 }
 
-(window as Window & { literaMount?: (container: HTMLElement) => void }).literaMount = renderWidget;
+function findOrCreateContainer(): HTMLElement | null {
+  // 1. Try standard container IDs or attributes
+  let el = document.getElementById('my-react-plugin-root') ||
+           document.getElementById('root') ||
+           document.getElementById('litera-widget-root') ||
+           document.querySelector('[data-litera-widget]');
 
-const container = document.getElementById('my-react-plugin-root') || document.getElementById('root');
-if (container) {
-  renderWidget(container);
-} else {
-  console.error("Litera Plugin: Could not find container element 'my-react-plugin-root'");
+  if (el) return el as HTMLElement;
+
+  // 2. If container doesn't exist, search for WordPress or generic article containers to auto-create it
+  const selectors = [
+    'article .entry-content',
+    '.entry-content',
+    'article',
+    '.post-content',
+    '.single-post',
+    'main#main',
+    'main',
+    '#content',
+    '.content',
+    'body'
+  ];
+
+  for (const sel of selectors) {
+    const parent = document.querySelector(sel);
+    if (parent) {
+      const newRoot = document.createElement('div');
+      newRoot.id = 'my-react-plugin-root';
+      parent.appendChild(newRoot);
+      return newRoot;
+    }
+  }
+
+  return null;
+}
+
+function initMount(): boolean {
+  const container = findOrCreateContainer();
+  if (container) {
+    renderWidget(container);
+    return true;
+  }
+  return false;
+}
+
+// 1. Try mounting immediately
+if (!initMount()) {
+  // 2. If DOM is still loading, listen for DOMContentLoaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      initMount();
+    });
+  }
+
+  // 3. Polling fallback for up to 5 seconds (every 100ms) for async themes / SPA hydration
+  let attempts = 0;
+  const timer = setInterval(() => {
+    attempts++;
+    if (initMount() || attempts >= 50) {
+      clearInterval(timer);
+    }
+  }, 100);
 }
 
 // If you want to start measuring performance in your app, pass a function

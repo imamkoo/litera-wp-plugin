@@ -7,7 +7,7 @@
  * Author URI: https://litera.id
  * Text Domain: litera
  * Domain Path: /languages
- * Version: 1.1.8
+ * Version: 1.4.4
  *
  * @package Litera_Plugin
  */
@@ -27,19 +27,27 @@ if (file_exists(plugin_dir_path(__FILE__) . 'includes/class-litera-updater.php')
 
 // Check if the shortcode is used on a single post page
 function my_react_plugin_enqueue_scripts() {
-    if (is_single()) {
+    if (is_singular() || is_single()) {
+        $loader_path = plugin_dir_path(__FILE__) . 'loader.js';
         $bundle_path = plugin_dir_path(__FILE__) . 'bundle.js';
 
-        // Safety check: only enqueue if bundle.js actually exists
-        if (!file_exists($bundle_path)) {
+        // Loader + local fallback bundle must both exist
+        if (!file_exists($loader_path) || !file_exists($bundle_path)) {
             return;
         }
 
-        wp_enqueue_script('my-react-plugin-script', plugin_dir_url(__FILE__) . 'bundle.js', [], filemtime($bundle_path), true);
+        wp_enqueue_script('my-react-plugin-script', plugin_dir_url(__FILE__) . 'loader.js', [], filemtime($loader_path), true);
+
+        // Local bundle URL injected before loader runs — fallback if CDN is unreachable.
+        wp_add_inline_script(
+            'my-react-plugin-script',
+            'window.literaLocalBundle = ' . wp_json_encode(plugin_dir_url(__FILE__) . 'bundle.js') . ';',
+            'before'
+        );
 
         global $post;
-        $permalink = esc_url(get_permalink($post->ID));
-        $title = esc_attr(get_the_title($post->ID));
+        $permalink = ($post && isset($post->ID)) ? esc_url(get_permalink($post->ID)) : esc_url(home_url($_SERVER['REQUEST_URI'] ?? ''));
+        $title = ($post && isset($post->ID)) ? esc_attr(get_the_title($post->ID)) : esc_attr(wp_get_document_title());
 
         // Pass both permalink and title to the JavaScript code
         wp_localize_script('my-react-plugin-script', 'myReactPluginData', array(
@@ -52,18 +60,16 @@ add_action('wp_enqueue_scripts', 'my_react_plugin_enqueue_scripts');
 
 // Allow users to place [litera_widget] anywhere in their post
 function litera_widget_shortcode() {
-    if (is_single()) {
-        return '<div id="my-react-plugin-root"></div>';
-    }
-    return '';
+    return '<div id="my-react-plugin-root"></div>';
 }
 add_shortcode('litera_widget', 'litera_widget_shortcode');
-add_shortcode('litera', 'litera_widget_shortcode'); // UX Improvement alias
-add_shortcode('litera_premium', 'litera_widget_shortcode'); // UX Improvement alias
+add_shortcode('litera', 'litera_widget_shortcode');
+add_shortcode('LITERA', 'litera_widget_shortcode');
+add_shortcode('litera_premium', 'litera_widget_shortcode');
 
 // Automatically append to content if shortcode is not used
 function my_react_plugin_add_button_after_post_content($content) {
-    if (is_single()) {
+    if (is_singular() || is_single()) {
         global $post, $page, $numpages;
 
         // Check if the shortcode exists anywhere in the ENTIRE post, not just the current page slice
