@@ -139,10 +139,8 @@ jobs:
           mkdir -p "${TEMP_DIR}/includes"
           cp litera.php bundle.js loader.js readme.txt "${TEMP_DIR}/"
           cp -r includes/ "${TEMP_DIR}/includes/"
-          cd /tmp
-          rm -f "${PLUGIN_SLUG}.zip"
-          zip -rq "${PLUGIN_SLUG}.zip" "${PLUGIN_SLUG}/" -x "*.DS_Store"
-          mv "${PLUGIN_SLUG}.zip" "${{ github.workspace }}/"
+          rm -f "${{ github.workspace }}/${PLUGIN_SLUG}.zip"
+          python3 -c "import shutil,os; shutil.make_archive(os.path.join(os.environ['GITHUB_WORKSPACE'],'litera-wp-plugin'),'zip',root_dir='/tmp',base_dir='litera-wp-plugin')"
           echo "Zip built: $(du -h "${{ github.workspace }}/${PLUGIN_SLUG}.zip" | cut -f1)"
 
       - name: Create GitHub Release
