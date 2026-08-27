@@ -13,12 +13,16 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - 'litera.php'
+      - 'readme.txt'
+      - 'release_notes.md'
       - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
   deploy-cdn:
     runs-on: self-hosted
+    permissions:
+      contents: write
     env:
       CDN_DIR: /var/www/html/wp
       BUNDLE_SRC: build/bundle.js
@@ -75,6 +79,7 @@ jobs:
           EOF
           echo "HASH=$HASH" >> "$GITHUB_ENV"
           echo "BUILD_FILE=$BUILD_FILE" >> "$GITHUB_ENV"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           cat /tmp/manifest.json
 
       - name: Two-phase deploy
@@ -123,6 +128,32 @@ jobs:
             exit 1
           } || echo "OK — 0 old keys di bundle served."
           echo "Deployment successful!"
+
+      - name: Package plugin zip
+        run: |
+          set -e
+          cp "${{ env.BUNDLE_SRC }}" bundle.js
+          PLUGIN_SLUG="litera-wp-plugin"
+          TEMP_DIR="/tmp/${PLUGIN_SLUG}"
+          rm -rf "${TEMP_DIR}"
+          mkdir -p "${TEMP_DIR}/includes"
+          cp litera.php bundle.js loader.js readme.txt "${TEMP_DIR}/"
+          cp -r includes/ "${TEMP_DIR}/includes/"
+          cd /tmp
+          rm -f "${PLUGIN_SLUG}.zip"
+          zip -rq "${PLUGIN_SLUG}.zip" "${PLUGIN_SLUG}/" -x "*.DS_Store"
+          mv "${PLUGIN_SLUG}.zip" "${{ github.workspace }}/"
+          echo "Zip built: $(du -h "${{ github.workspace }}/${PLUGIN_SLUG}.zip" | cut -f1)"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: v${{ env.VERSION }}
+          body_path: release_notes.md
+          files: litera-wp-plugin.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cloudflare purge (if token available)
         if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ZONE_ID != ''
