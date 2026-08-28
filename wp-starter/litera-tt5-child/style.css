@@ -1,0 +1,38 @@
+/*
+ Theme Name:   Litera TT5 (Twenty Twenty-Five Child)
+ Theme URI:    https://literaa.xyz
+ Description:  Tema WordPress paling ringan untuk portal konten Litera. Berbasis Twenty Twenty-Five (block theme bundled WP 6.7+), tanpa page builder, tanpa overhead. Widget NFT Litera otomatis dimuat di setiap artikel.
+ Author:       Litera / IMKOllective
+ Author URI:   https://literaa.xyz
+ Template:     twentytwentyfive
+ Version:      1.0.0
+ Requires at least: 6.7
+ License:      MIT
+ Text Domain:  litera-tt5-child
+*/
+
+/* ============================================
+   Minimal override — Twenty Twenty-Five
+   sudah sangat bersih, override hanya
+   jika benar-benar diperlukan.
+   ============================================ */
+
+/* Terracotta accent — brand color Litera */
+:root {
+    --litera-primary: #d07954;
+    --litera-primary-hover: #b86644;
+}
+
+/* Link color override (opsional — hapus jika tidak ingin) */
+a {
+    color: var(--litera-primary);
+}
+a:hover,
+a:focus-visible {
+    color: var(--litera-primary-hover);
+}
+
+/* Widget Litera container spacing */
+#my-react-plugin-root {
+    margin-top: 2rem;
+}
