@@ -110,6 +110,20 @@ jobs:
           else
             echo "::warning::public/litera-embed.js tidak ditemukan — lewati publish embed."
           fi
+          # Phase 1c: SDK helper untuk Web Builder — URL publik stabil (tanpa hash)
+          if [ -f public/litera-embed-sdk.js ]; then
+            sudo cp public/litera-embed-sdk.js "${{ env.CDN_DIR }}/litera-embed-sdk.js"
+            sudo chown www-data:www-data "${{ env.CDN_DIR }}/litera-embed-sdk.js"
+            SDK_CODE=$(curl -s -o /dev/null -w '%{http_code}' "https://cdn.literaa.xyz/litera-embed-sdk.js")
+            if [ "$SDK_CODE" != "200" ]; then
+              echo "::error::litera-embed-sdk.js belum serve 200 (HTTP ${SDK_CODE}). Abort."
+              sudo rm -f "${{ env.CDN_DIR }}/litera-embed-sdk.js"
+              exit 1
+            fi
+            echo "Phase 1c OK — litera-embed-sdk.js live (HTTP ${SDK_CODE})"
+          else
+            echo "::warning::public/litera-embed-sdk.js tidak ditemukan — lewati publish SDK."
+          fi
           # Phase 2: flip manifest atomik
           sudo cp /tmp/manifest.json "${{ env.CDN_DIR }}/manifest.json.tmp"
           sudo mv "${{ env.CDN_DIR }}/manifest.json.tmp" "${{ env.CDN_DIR }}/manifest.json"
