@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.7 (Fix: wallet extension conflict bisa membuat widget kosong total)
+- **try/catch di `createWeb3Modal`**: pada profil browser dengan beberapa wallet extension aktif sekaligus (MetaMask + lainnya rebutan `window.ethereum`), inisialisasi bisa melempar error sebelum React sempat mount apapun sehingga widget hilang total tanpa pesan (terverifikasi: normal profile stuck, incognito lancar — ciri konflik extension, bukan cache/CDN). Error sekarang tercatat di console dan proses mount widget tetap lanjut.
+
 ## v1.4.6 (Fix: loading skeleton escape-hatch & timeout guard)
 - **Escape-hatch untuk skeleton loading**: mengatasi kondisi widget stuck di animasi loading biru (pulse/ping) ketika `permalink` terlambat atau gagal terbaca dari host (akibat race-condition script, blocking extension, atau browser strict privacy seperti Brave). Ditambahkan batas waktu 4 detik terpisah agar widget tidak pernah stuck selamanya dan menampilkan tombol "Coba Lagi".
 

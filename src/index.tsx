@@ -15,22 +15,33 @@ import { polygon } from 'viem/chains';
 
 const queryClient = new QueryClient()
 
-createWeb3Modal({
-  wagmiConfig: config,
-  projectId,
-  enableAnalytics: true,
-  themeMode: 'light',
-  themeVariables: {
-    '--w3m-accent': '#d07954',
-    '--w3m-border-radius-master': '12px'
-  },
-  featuredWalletIds: [
-    '3779261cbca0986756cd7e7c9f8072051db27dd7573f3246ebdb998e3b4a2f8b', // Bitget
-    'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96', // MetaMask
-    '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0', // Trust Wallet
-    '1ae92b26df02f0abca6304df07081e6c6eb18c7d01eb017d121c5462fc48f219', // OKX
-  ]
-})
+// Bootstrapping ini menyentuh window.ethereum (discovery multi-wallet extension).
+// Beberapa kombinasi extension wallet (MetaMask + lainnya) bisa saling konflik
+// saat rebutan mendefinisikan window.ethereum, melempar error SEBELUM React
+// sempat mount apapun -> ErrorBoundary React tidak menangkapnya, kotak jadi
+// kosong tanpa pesan. try/catch di sini memastikan error tercatat dan proses
+// mount widget tetap lanjut (fitur connect wallet mungkin degradasi, tapi
+// widget tidak hilang total).
+try {
+  createWeb3Modal({
+    wagmiConfig: config,
+    projectId,
+    enableAnalytics: true,
+    themeMode: 'light',
+    themeVariables: {
+      '--w3m-accent': '#d07954',
+      '--w3m-border-radius-master': '12px'
+    },
+    featuredWalletIds: [
+      '3779261cbca0986756cd7e7c9f8072051db27dd7573f3246ebdb998e3b4a2f8b', // Bitget
+      'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96', // MetaMask
+      '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0', // Trust Wallet
+      '1ae92b26df02f0abca6304df07081e6c6eb18c7d01eb017d121c5462fc48f219', // OKX
+    ]
+  })
+} catch (err) {
+  console.error('[Litera Widget] createWeb3Modal gagal (kemungkinan konflik wallet extension):', err);
+}
 
 const privyAppId = process.env.REACT_APP_PRIVY_APP_ID || 'cmsg0934d00c40cl5dkdtbrnl';
 
