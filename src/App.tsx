@@ -113,59 +113,71 @@ function App() {
   const tokenId = tokenIdRaw ? Number(tokenIdRaw) : 0;
   const lookupFailed = lookupTimedOut || (isError && !tokenIdRaw);
 
-  // 0. Jika Writer V2 tidak menemukan artikel, coba endpoint /resolve
+  // 0. Jika Writer V2 tidak menemukan artikel (on-chain lookup selesai dan tokenId === 0),
+  // baru coba endpoint /resolve sebagai fallback sistem legacy.
   useEffect(() => {
     let cancelled = false;
 
-    const fetchResolveEndpoint = async () => {
-      if (!rawPermalink) return;
+    // Jika tokenId sudah ditemukan on-chain (V2), pastikan resolving dimatikan
+    if (tokenId > 0) {
+      setIsResolving(false);
+      setResolvedData(null);
+      setResolveError(null);
+      return;
+    }
 
-      if (!(lookupFailed || tokenId === 0)) {
-        setResolvedData(null);
-        setResolveError(null);
-        return;
-      }
+    // Jangan panggil resolve jika on-chain lookup masih berlangsung
+    if (isLoading || !rawPermalink) {
+      return;
+    }
 
+    // Jika lookup on-chain sudah selesai dan gagal/0, baru fetch backend resolve
+    if (lookupFailed || tokenId === 0) {
       setIsResolving(true);
       setResolveError(null);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-      try {
-        const response = await fetch(
-          `https://literaa.xyz/api/v1/articles/resolve?url=${encodeURIComponent(rawPermalink)}`,
-          { method: 'GET', headers: { 'Content-Type': 'application/json' }, signal: controller.signal }
-        );
+      const fetchResolveEndpoint = async () => {
+        try {
+          const response = await fetch(
+            `https://literaa.xyz/api/v1/articles/resolve?url=${encodeURIComponent(rawPermalink)}`,
+            { method: 'GET', headers: { 'Content-Type': 'application/json' }, signal: controller.signal }
+          );
 
-        clearTimeout(timeoutId);
-        if (cancelled) return;
-
-        if (response.ok) {
-          const data = await response.json();
+          clearTimeout(timeoutId);
           if (cancelled) return;
-          if (data.success && data.data.tokenId > 0) {
-            setResolvedData(data.data);
-          } else {
-            setResolveError('Article not found in legacy system');
-          }
-        } else {
-          setResolveError(`Backend error: ${response.status}`);
-        }
-      } catch (err: any) {
-        clearTimeout(timeoutId);
-        if (cancelled) return;
-        setResolveError(`Network error: ${err.message || 'timeout'}`);
-      } finally {
-        if (!cancelled) setIsResolving(false);
-      }
-    };
 
-    fetchResolveEndpoint();
-    return () => {
-      cancelled = true;
-    };
-  }, [lookupFailed, tokenId, rawPermalink]);
+          if (response.ok) {
+            const data = await response.json();
+            if (cancelled) return;
+            if (data.success && data.data?.tokenId > 0) {
+              setResolvedData(data.data);
+            } else {
+              setResolveError('Article not found in legacy system');
+            }
+          } else {
+            setResolveError(`Backend error: ${response.status}`);
+          }
+        } catch (err: any) {
+          clearTimeout(timeoutId);
+          if (cancelled) return;
+          setResolveError(`Network error: ${err.message || 'timeout'}`);
+        } finally {
+          setIsResolving(false);
+        }
+      };
+
+      fetchResolveEndpoint();
+
+      return () => {
+        cancelled = true;
+        controller.abort();
+        setIsResolving(false);
+      };
+    }
+  }, [isLoading, lookupFailed, tokenId, rawPermalink]);
 
 
 

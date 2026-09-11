@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.8 (Fix: isResolving race-condition causing loading skeleton to hang)
+- **Fix isResolving race-condition**: sebelumnya fetch `/resolve` dijalankan saat mount awal ketika `tokenId === 0` (saat on-chain V2 masih loading). Ketika on-chain V2 selesai dan mengembalikan `tokenId = 8n`, effect re-run dan return dini tanpa mereset `isResolving(false)`, sementara fetch lama di-cancel sehingga cleanup finally tidak pernah mematikan `isResolving`. Akibatnya widget tersangkut di loading skeleton meskipun on-chain token ID sudah berhasil terbaca. Sekarang resolve hanya dijalankan jika on-chain lookup sudah selesai (`!isLoading`) dan gagal, dan jika `tokenId > 0`, `isResolving` langsung dimatikan.
+
 ## v1.4.7 (Fix: wallet extension conflict bisa membuat widget kosong total)
 - **try/catch di `createWeb3Modal`**: pada profil browser dengan beberapa wallet extension aktif sekaligus (MetaMask + lainnya rebutan `window.ethereum`), inisialisasi bisa melempar error sebelum React sempat mount apapun sehingga widget hilang total tanpa pesan (terverifikasi: normal profile stuck, incognito lancar — ciri konflik extension, bukan cache/CDN). Error sekarang tercatat di console dan proses mount widget tetap lanjut.
 
