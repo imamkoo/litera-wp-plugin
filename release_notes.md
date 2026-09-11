@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.6 (Fix: loading skeleton escape-hatch & timeout guard)
+- **Escape-hatch untuk skeleton loading**: mengatasi kondisi widget stuck di animasi loading biru (pulse/ping) ketika `permalink` terlambat atau gagal terbaca dari host (akibat race-condition script, blocking extension, atau browser strict privacy seperti Brave). Ditambahkan batas waktu 4 detik terpisah agar widget tidak pernah stuck selamanya dan menampilkan tombol "Coba Lagi".
+
 ## v1.4.5 (Hotfix: login modal portal + non-WP CSP)
 - **Login modal portal**: custom "Masuk ke Litera" modal now renders via `createPortal` to `document.body`, so it is never trapped/cropped inside the widget container (fixes modal appearing inside the widget box on WordPress themes with transformed ancestors).
 - **Non-WP CSP**: `letmehearyou.id` CSP now allows `auth.privy.io`, `*.privy.io`, `cca-lite.coinbase.com`, WalletConnect relays, Web3Modal API, and `ipfs.literaa.xyz:8443` — fixes Privy/WalletConnect connection failures on embedded non-WP sites.

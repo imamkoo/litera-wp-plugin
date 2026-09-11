@@ -89,6 +89,22 @@ function App() {
     return () => clearTimeout(t);
   }, [isLoading, permalink]);
 
+  // Escape hatch terpisah: skeleton juga tampil selama `!permalink` (menunggu
+  // injeksi window.myReactPluginData dari loader). Karena `isLoading` di atas
+  // hanya jalan setelah permalink terisi (enabled: !!permalink), kasus di mana
+  // permalink GAGAL terisi (race condition script, extension browser yang
+  // menunda eksekusi, dll) tidak pernah punya batas waktu sendiri -> skeleton
+  // nyangkut abadi. Timer ini menutup gap tersebut.
+  const [permalinkTimedOut, setPermalinkTimedOut] = useState(false);
+  useEffect(() => {
+    if (permalink) {
+      setPermalinkTimedOut(false);
+      return;
+    }
+    const t = setTimeout(() => setPermalinkTimedOut(true), 4000);
+    return () => clearTimeout(t);
+  }, [permalink]);
+
   console.log("DEBUG WAGMI - URL:", permalink);
   console.log("DEBUG WAGMI - TokenID Raw:", tokenIdRaw);
   console.log("DEBUG WAGMI - isError:", isError);
@@ -179,7 +195,9 @@ function App() {
   }
 
   // 3. State "Loading Skeleton" — hanya tampil maksimal beberapa detik.
-  if ((isLoading || !permalink || isResolving) && !lookupFailed && !resolvedData && !resolveError) {
+  // `!permalinkTimedOut` memastikan skeleton tetap punya batas waktu meski
+  // pemicunya `!permalink` (bukan `isLoading` dari on-chain query).
+  if ((isLoading || (!permalink && !permalinkTimedOut) || isResolving) && !lookupFailed && !resolvedData && !resolveError) {
     return (
       <div className="App relative flex flex-col justify-center items-center py-12 px-6 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl border border-slate-200 dark:border-white/5 shadow-2xl dark:shadow-[0_0_50px_-15px_rgba(0,0,0,0.5)] my-8 overflow-hidden text-center transition-colors duration-500">
          <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-indigo-500/10 dark:from-blue-500/5 dark:to-indigo-500/5"></div>
@@ -190,6 +208,28 @@ function App() {
                  <div className="h-6 w-6 bg-blue-500 rounded-full animate-ping"></div>
                </div>
             </div>
+         </div>
+      </div>
+    );
+  }
+
+  // 3b. State "Gagal Memuat" - permalink tidak pernah terisi setelah timeout.
+  // Terpisah dari "Not Published" karena ini bukan status artikel di Litera,
+  // melainkan widget gagal membaca URL artikel dari halaman (loader/extension
+  // browser/race condition), jadi tombol "Coba Lagi" lebih tepat daripada
+  // menyesatkan pembaca dengan pesan "belum diterbitkan sebagai NFT".
+  if (!permalink && permalinkTimedOut) {
+    return (
+      <div className="App flex justify-center items-center p-6 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-300 dark:border-slate-600 my-8 shadow-sm transition-colors duration-500">
+         <div className="flex items-center gap-3">
+           <svg className="w-5 h-5 text-slate-500 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+           <p className="text-slate-700 dark:text-slate-200 font-semibold text-sm tracking-wide">Widget Litera gagal memuat halaman ini.</p>
+           <button
+             onClick={() => window.location.reload()}
+             className="ml-2 shrink-0 text-xs font-bold text-[#d07954] hover:underline"
+           >
+             Coba Lagi
+           </button>
          </div>
       </div>
     );
