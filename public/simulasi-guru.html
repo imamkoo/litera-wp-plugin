@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulasi Rumah Digital Guru — Pengujian POV Guru/Publisher</title>
+  <style>
+    :root {
+      --primary: #d07954;
+      --primary-hover: #b86644;
+      --bg: #fdfbf9;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding-bottom: 60px;
+    }
+
+    /* BAR PANDUAN PENGUJIAN QA / GURU */
+    .qa-control-panel {
+      background: #0f172a;
+      color: #fff;
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      border-bottom: 2px solid var(--primary);
+    }
+    .qa-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .qa-badge {
+      background: var(--primary);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .qa-title {
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .qa-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .qa-btn {
+      background: rgba(255,255,255,0.1);
+      color: #e2e8f0;
+      border: 1px solid rgba(255,255,255,0.2);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .qa-btn:hover {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+    .qa-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .qa-modal-btn {
+      background: #3b82f6;
+      border-color: #3b82f6;
+      color: #fff;
+    }
+    .qa-modal-btn:hover {
+      background: #2563eb;
+    }
+
+    /* HEADER WEBSITE GURU */
+    .site-header {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+    }
+    .site-header-inner {
+      max-width: 820px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #e0f2fe;
+      color: #0284c7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      border: 2px solid #bae6fd;
+    }
+    .brand-info h1 {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .brand-info p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .domain-chip {
+      font-size: 12px;
+      font-weight: 600;
+      background: #f1f5f9;
+      padding: 4px 10px;
+      border-radius: 6px;
+      color: #475569;
+    }
+
+    /* CONTAINER ARTIKEL */
+    .article-container {
+      max-width: 820px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .article-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    .category-tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+    .article-title {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+    .article-content p {
+      font-size: 17px;
+      color: #334155;
+      margin-bottom: 20px;
+      line-height: 1.8;
+    }
+    .article-content h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 32px 0 16px;
+      color: #0f172a;
+    }
+
+    /* AREA WIDGET LITERA */
+    .widget-wrapper {
+      margin-top: 40px;
+      padding-top: 32px;
+      border-top: 2px dashed #cbd5e1;
+    }
+    .widget-header-explainer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding: 10px 14px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .current-url-display {
+      font-family: monospace;
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    /* SIMULASI MODAL PENGATURAN BUILDER */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-box {
+      background: #fff;
+      width: 100%;
+      max-width: 520px;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .modal-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-family: monospace;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BAR KENDALI PENGUJIAN (SIMULASI POV GURU/PUBLISHER) -->
+  <div class="qa-control-panel">
+    <div class="qa-inner">
+      <div class="qa-title">
+        <span class="qa-badge">POV Guru / Tester</span>
+        <span>Simulasi Website: <strong>gururatna.id</strong></span>
+      </div>
+
+      <div class="qa-actions">
+        <!-- Tombol Buka Simulasi Pengaturan API Key -->
+        <button class="qa-btn qa-modal-btn" onclick="openSettingsModal()">⚙️ Simulasi Input API Key di Builder</button>
+
+        <!-- Tombol Skenario 1: Artikel Belum Dibuat NFT -->
+        <button id="btn-unpub" class="qa-btn active" onclick="switchScenario('unpub')">
+          1. Artikel Baru (Belum ada NFT)
+        </button>
+
+        <!-- Tombol Skenario 2: Artikel Sudah Didaftarkan di Creator Studio -->
+        <button id="btn-pub" class="qa-btn" onclick="switchScenario('pub')">
+          2. Artikel Ber-NFT (Sudah Terdaftar On-Chain)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER WEBSITE GURU (PERSIS RUMAH DIGITAL GURU PANDI) -->
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a href="#" class="brand">
+        <div class="brand-avatar">RP</div>
+        <div class="brand-info">
+          <h1>Ratna Prameswari, S.Pd.</h1>
+          <p>Guru Bahasa Indonesia · Rumah Digital Guru PANDI × UPI</p>
+        </div>
+      </a>
+      <div class="domain-chip">🌐 gururatna.id</div>
+    </div>
+  </header>
+
+  <!-- BODY ARTIKEL GURU -->
+  <main class="article-container">
+    <article class="article-card">
+      <span class="category-tag">Catatan Kelas & Literasi</span>
+      <h1 class="article-title">Hati-hati dengan Spasi: Mengapa Tanda Baca Mengubah Makna Tulisan</h1>
+      
+      <div class="article-meta">
+        <span>Ditulis oleh: <strong>Ratna Prameswari</strong></span>
+        <span>•</span>
+        <span>11 September 2026</span>
+        <span>•</span>
+        <span>3 menit baca</span>
+      </div>
+
+      <div class="article-content">
+        <p>
+          Pagi tadi di kelas IX-B, sebuah percakapan menarik bermula dari kalimat sederhana di papan tulis: 
+          <em>"Kucing makan tikus mati"</em>. Saya bertanya kepada anak-anak, siapa yang mati? Kucingnya atau tikusnya?
+        </p>
+        <p>
+          Sebagian siswa serentak menjawab tikusnya. Namun, seorang murid di sudut kelas dengan jeli menyela: 
+          "Bisa jadi kucingnya yang mati setelah memakan tikus, Bu!" Keributan kecil yang hangat pun tercipta. 
+          Dari sanalah kami belajar betapa krusialnya letak jeda, koma, dan intonasi dalam sebuah gagasan.
+        </p>
+        <h2>Literasi di Era Digital</h2>
+        <p>
+          Di ruang digital, spasi dan tanda baca bukan sekadar kaidah tata bahasa formal. Ia adalah etika bertutur. 
+          Sebuah pesan instan tanpa tanda baca dapat memicu salah paham antarguru, orang tua, maupun peserta didik. 
+          Mendokumentasikan refleksi sederhana ini di website pribadi adalah ikhtiar kecil saya untuk merawat 
+          kebiasaan berpikir kritis sebelum jari menekan tombol kirim.
+        </p>
+      </div>
+
+      <!-- AREA WIDGET LITERA (PERSIS CARA KERJA EMBED DI SITUS GURU) -->
+      <div class="widget-wrapper">
+        <div class="widget-header-explainer">
+          <span>Komponen Widget Litera NFT (Otomatis Terpasang)</span>
+          <span>Target URL: <span id="current-url" class="current-url-display">https://gururatna.id/ceritaku/hati-hati-dengan-spasi</span></span>
+        </div>
+
+        <!-- Target Root Widget -->
+        <div id="litera-nft-widget" data-litera-article="https://gururatna.id/ceritaku/hati-hati-dengan-spasi"></div>
+      </div>
+    </article>
+  </main>
+
+  <!-- MODAL SIMULASI PENGATURAN WEB BUILDER -->
+  <div id="settings-modal" class="modal-backdrop">
+    <div class="modal-box">
+      <h3 class="modal-title">⚙️ Pengaturan Web Builder PANDI</h3>
+      <p class="modal-subtitle">Simulasi menu <strong>Integrasi Litera NFT</strong> di dalam akun guru (cukup diisi SEKALI):</p>
+
+      <div class="form-group">
+        <label>Domain Pribadi Guru:</label>
+        <input type="text" class="form-input" value="gururatna.id" disabled />
+      </div>
+
+      <div class="form-group">
+        <label>Litera Publisher API Key:</label>
+        <input type="text" id="api-key-input" class="form-input" value="lit_sk_qa_7e6713b4c136331de157a4c18eb26d673baf343f93728c5b" />
+        <small style="color: #64748b; font-size: 11px; display: block; margin-top: 4px;">
+          Didapatkan dari Dashboard Litera -> API Keys (Status Publisher: APPROVED)
+        </small>
+      </div>
+
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; font-size: 12px; color: #166534; margin-bottom: 16px;">
+        ✅ <strong>Status Integrasi:</strong> Kunci aktif & domain <code>gururatna.id</code> telah terdaftar di allowlist CORS Litera. Setiap artikel yang Anda terbitkan otomatis terpasang widget NFT!
+      </div>
+
+      <div class="modal-footer">
+        <button class="qa-btn" style="background:#64748b;" onclick="closeSettingsModal()">Tutup</button>
+        <button class="qa-btn" style="background:#16a34a; border-color:#16a34a;" onclick="saveSettingsSimulation()">Simpan & Hubungkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT UNIVERSAL LOADER LITERA ASLI DARI PRODUKSI CDN -->
+  <script src="https://cdn.literaa.xyz/litera-embed.js" async></script>
+
+  <script>
+    const URL_UNPUBLISHED = "https://gururatna.id/ceritaku/hati-hati-dengan-spasi";
+    // URL artikel yang sudah terbit di blockchain on-chain (Polygon):
+    const URL_PUBLISHED = "https://litera.id/peran-penting-desentralisasi-dalam-membentuk-masa-depan-ai";
+
+    function switchScenario(type) {
+      const btnUnpub = document.getElementById('btn-unpub');
+      const btnPub = document.getElementById('btn-pub');
+      const urlDisplay = document.getElementById('current-url');
+
+      if (type === 'unpub') {
+        btnUnpub.classList.add('active');
+        btnPub.classList.remove('active');
+        urlDisplay.textContent = URL_UNPUBLISHED;
+
+        // Kirim event perubahan artikel ke widget Litera yang sedang aktif
+        window.dispatchEvent(new CustomEvent("litera:article-change", {
+          detail: {
+            permalink: URL_UNPUBLISHED,
+            title: "Hati-hati dengan Spasi: Mengapa Tanda Baca Mengubah Makna Tulisan"
+          }
+        }));
+      } else {
+        btnPub.classList.add('active');
+        btnUnpub.classList.remove('active');
+        urlDisplay.textContent = URL_PUBLISHED;
+
+        // Kirim event perubahan artikel ke widget Litera yang sedang aktif
+        window.dispatchEvent(new CustomEvent("litera:article-change", {
+          detail: {
+            permalink: URL_PUBLISHED,
+            title: "Peran Penting Desentralisasi dalam Membentuk Masa Depan AI"
+          }
+        }));
+      }
+    }
+
+    function openSettingsModal() {
+      document.getElementById('settings-modal').style.display = 'flex';
+    }
+    function closeSettingsModal() {
+      document.getElementById('settings-modal').style.display = 'none';
+    }
+    function saveSettingsSimulation() {
+      alert("✅ Pengaturan Tersimpan! Backend Web Builder telah mendaftarkan domain gururatna.id ke Litera. Seluruh artikel guru otomatis terintegrasi.");
+      closeSettingsModal();
+    }
+  </script>
+</body>
+</html>
