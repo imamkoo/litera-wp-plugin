@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.9 (Fix: deteksi on-chain hasMinted + penanganan error transaksi minting)
+- **Deteksi `hasMinted` on-chain**: menambahkan pengecekan `hasMinted(address, tokenId)` langsung ke smart contract Writer. Jika wallet user sudah pernah mencetak/mengklaim NFT artikel tersebut, widget otomatis menganggap user memiliki akses (`hasAccess = true`) dan tidak memicu transaksi mint ulang yang akan gagal di blockchain.
+- **Pesan error transaksi ramah pengguna**: menangkap kegagalan transaksi minting (`useWaitForTransactionReceipt` & `useWriteContract`) dan menampilkan pesan informatif yang jelas (misal: saldo gas POL tidak cukup, transaksi dibatalkan user, atau kuota habis) daripada stuck di animasi loading.
+
 ## v1.4.8 (Fix: isResolving race-condition causing loading skeleton to hang)
 - **Fix isResolving race-condition**: sebelumnya fetch `/resolve` dijalankan saat mount awal ketika `tokenId === 0` (saat on-chain V2 masih loading). Ketika on-chain V2 selesai dan mengembalikan `tokenId = 8n`, effect re-run dan return dini tanpa mereset `isResolving(false)`, sementara fetch lama di-cancel sehingga cleanup finally tidak pernah mematikan `isResolving`. Akibatnya widget tersangkut di loading skeleton meskipun on-chain token ID sudah berhasil terbaca. Sekarang resolve hanya dijalankan jika on-chain lookup sudah selesai (`!isLoading`) dan gagal, dan jika `tokenId > 0`, `isResolving` langsung dimatikan.
 

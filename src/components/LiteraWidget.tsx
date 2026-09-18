@@ -253,8 +253,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const { writeContract: approveWrite, data: approveHash, isPending: isApprovingReq } = useWriteContract();
   const { isLoading: isApprovingTx, isSuccess: isApproveSuccess } = useWaitForTransactionReceipt({ hash: approveHash });
 
-  const { writeContract: mintWrite, data: mintHash, isPending: isMintingReq } = useWriteContract();
-  const { isLoading: isMintingTx, isSuccess: isMintSuccess, data: mintReceipt } = useWaitForTransactionReceipt({ hash: mintHash });
+  const { writeContract: mintWrite, data: mintHash, isPending: isMintingReq, error: mintReqError } = useWriteContract();
+  const { isLoading: isMintingTx, isSuccess: isMintSuccess, data: mintReceipt, isError: isMintTxError, error: mintTxError } = useWaitForTransactionReceipt({ hash: mintHash });
 
   const { writeContract: unlockWrite, data: unlockHash, isPending: isUnlockingReq } = useWriteContract();
   const { isLoading: isUnlockingTx, isSuccess: isUnlockSuccess } = useWaitForTransactionReceipt({ hash: unlockHash });
@@ -278,7 +278,18 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     chainId: activeChainId,
     query: { enabled: !!address && tokenId > 0 }
   });
-  const ownsNFT = balanceData ? Number(balanceData) > 0 : false;
+
+  const { data: hasMintedData } = useReadContract({
+    address: contractAddress,
+    abi: contractABI,
+    functionName: 'hasMinted',
+    args: [address as `0x${string}`, BigInt(tokenId)],
+    chainId: activeChainId,
+    query: { enabled: !!address && tokenId > 0 && !isLegacy }
+  });
+
+  const alreadyMinted = Boolean(hasMintedData);
+  const ownsNFT = (balanceData ? Number(balanceData) > 0 : false) || alreadyMinted;
 
   // Skip articleInfo query for legacy (Writer legacy doesn't have this function)
   const { data: articleInfo, isLoading: isArticleLoading } = useReadContract({
@@ -559,7 +570,21 @@ Expires: ${expiresAt}`;
       // Reload page immediately to show the NFT ownership state
       window.location.reload();
     }
-  }, [isMintingReq, isMintingTx, isMintSuccess]);
+    if (mintReqError || isMintTxError) {
+      const err = mintReqError || mintTxError;
+      const rawMsg = err?.message || 'Mint transaction failed';
+      let friendlyMsg = 'Gagal mencetak NFT. Pastikan dompet Anda memiliki sedikit POL (Polygon) untuk biaya gas jaringan.';
+      if (rawMsg.toLowerCase().includes('already minted')) {
+        friendlyMsg = 'Alamat dompet ini sudah pernah mencetak/mengklaim NFT artikel ini.';
+      } else if (rawMsg.toLowerCase().includes('reject') || rawMsg.toLowerCase().includes('denied')) {
+        friendlyMsg = 'Transaksi dibatalkan di dompet.';
+      } else if (rawMsg.toLowerCase().includes('insufficient funds')) {
+        friendlyMsg = 'Saldo dompet tidak mencukupi untuk biaya gas jaringan Polygon.';
+      }
+      setErrorMessage(friendlyMsg);
+      setStep('error');
+    }
+  }, [isMintingReq, isMintingTx, isMintSuccess, mintReqError, isMintTxError, mintTxError]);
 
   const handleBuy = async () => {
     try {
