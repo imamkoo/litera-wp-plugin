@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.13 (Revert unsupported cross-domain hosted collection flow)
+- Login email/Google tetap berada di artikel; jika origin Privy tidak diizinkan, widget mengarahkan pembaca menggunakan Hubungkan Dompet tanpa berpindah halaman.
+- Menghapus route `/collect` yang belum dapat meneruskan sesi embedded wallet secara aman lintas origin.
+
 ## v1.4.12 (Seamless hosted authentication fallback)
 - **Transisi otomatis ke Litera:** jika login email/Google Privy gagal di domain pihak ketiga, widget menampilkan loader singkat lalu membuka halaman koleksi resmi pada tab yang sama. Setelah mint selesai, pembaca otomatis kembali ke artikel asal.
 
