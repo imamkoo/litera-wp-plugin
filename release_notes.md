@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.12 (Seamless hosted authentication fallback)
+- **Transisi otomatis ke Litera:** jika login email/Google Privy gagal di domain pihak ketiga, widget menampilkan loader singkat lalu membuka halaman koleksi resmi pada tab yang sama. Setelah mint selesai, pembaca otomatis kembali ke artikel asal.
+
 ## v1.4.11 (Fix: fallback lintas-domain saat login Privy diblokir)
 - **Tombol "Lanjutkan di literaa.xyz"**: jika login email/Google gagal di domain pihak ketiga (Privy Allowed Origins / pemblokir cookie), widget menampilkan tombol yang membuka halaman koleksi resmi di tab baru. Seluruh alur kuis, mint, dan unlock berjalan di origin terdaftar.
 
