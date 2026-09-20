@@ -861,6 +861,19 @@ Expires: ${expiresAt}`;
         {loginError && (
           <div style={{ fontSize: '12px', color: '#92400e', backgroundColor: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '12px', padding: '12px 14px', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6, textAlign: 'left' }}>
             {loginError}
+            <button
+              onClick={() => {
+                const pluginData = (window as any).myReactPluginData;
+                const articleUrl = (pluginData && pluginData.permalink) || window.location.href;
+                const collectUrl =
+                  'https://literaa.xyz/collect?article=' + encodeURIComponent(articleUrl) +
+                  (tokenId > 0 ? '&tokenId=' + tokenId : '');
+                window.open(collectUrl, '_blank', 'noopener');
+              }}
+              style={{ display: 'block', width: '100%', marginTop: '10px', padding: '10px 12px', borderRadius: '10px', border: 'none', backgroundColor: '#d07954', color: '#ffffff', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              Lanjutkan di literaa.xyz
+            </button>
           </div>
         )}
         {renderWalletButton()}
