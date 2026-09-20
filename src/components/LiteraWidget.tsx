@@ -226,14 +226,23 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [isRedirectingToLitera, setIsRedirectingToLitera] = useState(false);
+  const redirectToHostedCollect = () => {
+    const pluginData = (window as any).myReactPluginData;
+    const articleUrl = (pluginData && pluginData.permalink) || window.location.href;
+    const collectUrl =
+      'https://literaa.xyz/collect?article=' + encodeURIComponent(articleUrl) +
+      (tokenId > 0 ? '&tokenId=' + tokenId : '');
+    setIsLoginModalOpen(false);
+    setIsRedirectingToLitera(true);
+    // Beri konteks pada pembaca sebelum pindah ke origin resmi untuk auth.
+    window.setTimeout(() => window.location.assign(collectUrl), 900);
+  };
   const { login: privyLoginWithError } = useLogin({
     onError: (err: any) => {
       console.error('[Litera Widget] Privy login gagal:', err);
-      setLoginError(
-        'Login gagal. Umumnya karena: (1) pemblokir iklan/Brave Shields memblokir auth.privy.io — matikan untuk situs ini; ' +
-        '(2) domain situs belum didaftarkan di dashboard Privy; ' +
-        '(3) cookie pihak ketiga diblokir — izinkan atau coba Chrome.'
-      );
+      setLoginError('Login akan dilanjutkan melalui halaman aman Litera. Anda akan kembali ke artikel ini setelah selesai.');
+      redirectToHostedCollect();
     },
   });
   const handlePrivyLogin = () => {
@@ -861,19 +870,12 @@ Expires: ${expiresAt}`;
         {loginError && (
           <div style={{ fontSize: '12px', color: '#92400e', backgroundColor: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '12px', padding: '12px 14px', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6, textAlign: 'left' }}>
             {loginError}
-            <button
-              onClick={() => {
-                const pluginData = (window as any).myReactPluginData;
-                const articleUrl = (pluginData && pluginData.permalink) || window.location.href;
-                const collectUrl =
-                  'https://literaa.xyz/collect?article=' + encodeURIComponent(articleUrl) +
-                  (tokenId > 0 ? '&tokenId=' + tokenId : '');
-                window.open(collectUrl, '_blank', 'noopener');
-              }}
-              style={{ display: 'block', width: '100%', marginTop: '10px', padding: '10px 12px', borderRadius: '10px', border: 'none', backgroundColor: '#d07954', color: '#ffffff', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
-            >
-              Lanjutkan di literaa.xyz
-            </button>
+          </div>
+        )}
+        {isRedirectingToLitera && (
+          <div style={{ fontSize: '12px', color: 'var(--lw-text-secondary)', background: 'var(--lw-bg-inner)', border: '1px solid var(--lw-border)', borderRadius: '12px', padding: '12px 14px', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6, textAlign: 'center' }}>
+            <Loader2Icon size={16} style={{ display: 'inline-block', marginRight: '6px', verticalAlign: '-3px', animation: 'spin 1s linear infinite' }} />
+            Menyiapkan halaman Litera. Anda akan kembali ke artikel ini setelah selesai.
           </div>
         )}
         {renderWalletButton()}
