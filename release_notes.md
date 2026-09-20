@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.10 (Fix: error handler Privy login di widget)
+- **Error handler `useLogin.onError`**: menangkap kegagalan modal login Privy (mis. Brave Shields / cookie pihak ketiga terblokir / origin belum terdaftar) dan menampilkan pesan panduan ramah pengguna di dalam widget, bukan silent error atau modal rusak.
+- **Badge warna yellow**: menambahkan dukungan warna `yellow` pada komponen `Badge` untuk label artikel Legacy Generasi 1.
+
 ## v1.4.9 (Fix: deteksi on-chain hasMinted + penanganan error transaksi minting)
 - **Deteksi `hasMinted` on-chain**: menambahkan pengecekan `hasMinted(address, tokenId)` langsung ke smart contract Writer. Jika wallet user sudah pernah mencetak/mengklaim NFT artikel tersebut, widget otomatis menganggap user memiliki akses (`hasAccess = true`) dan tidak memicu transaksi mint ulang yang akan gagal di blockchain.
 - **Pesan error transaksi ramah pengguna**: menangkap kegagalan transaksi minting (`useWaitForTransactionReceipt` & `useWriteContract`) dan menampilkan pesan informatif yang jelas (misal: saldo gas POL tidak cukup, transaksi dibatalkan user, atau kuota habis) daripada stuck di animasi loading.

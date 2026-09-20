@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
-import { usePrivy, useLogout } from '@privy-io/react-auth';
+import { usePrivy, useLogout, useLogin } from '@privy-io/react-auth';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
@@ -200,9 +200,10 @@ const WidgetShell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 /** Badge component */
-const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 'red' | 'blue' }> = ({ children, color = 'orange' }) => {
+const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 'red' | 'blue' | 'yellow' }> = ({ children, color = 'orange' }) => {
   const colors: Record<string, { bg: string; border: string; text: string; dot: string }> = {
     orange: { bg: 'var(--lw-badge-bg)', border: 'var(--lw-badge-border)', text: 'var(--lw-badge-text)', dot: '#F04E37' },
+    yellow: { bg: 'rgba(234,179,8,0.1)', border: 'rgba(234,179,8,0.3)', text: '#ca8a04', dot: '#eab308' },
     green: { bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.15)', text: '#10b981', dot: '#10b981' },
     red: { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.15)', text: '#ef4444', dot: '#ef4444' },
     blue: { bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.15)', text: '#3b82f6', dot: '#3b82f6' },
@@ -218,12 +219,28 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
-  const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser, login: privyLogin } = usePrivy();
+  const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser } = usePrivy();
   const { logout: privyLogout } = useLogout();
   const address = wagmiAddress || privyUser?.wallet?.address;
   const isConnected = isWagmiConnected || privyAuthenticated;
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const { login: privyLoginWithError } = useLogin({
+    onError: (err: any) => {
+      console.error('[Litera Widget] Privy login gagal:', err);
+      setLoginError(
+        'Login gagal. Umumnya karena: (1) pemblokir iklan/Brave Shields memblokir auth.privy.io — matikan untuk situs ini; ' +
+        '(2) domain situs belum didaftarkan di dashboard Privy; ' +
+        '(3) cookie pihak ketiga diblokir — izinkan atau coba Chrome.'
+      );
+    },
+  });
+  const handlePrivyLogin = () => {
+    setLoginError(null);
+    setIsLoginModalOpen(false);
+    privyLoginWithError();
+  };
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
   const [localUnlocked, setLocalUnlocked] = useState(false);
   const [sponsorUrl, setSponsorUrl] = useState<string | null>(null);
@@ -792,7 +809,7 @@ Expires: ${expiresAt}`;
             <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 24px 0' }}>Pilih cara untuk mengakses artikel.</p>
 
             <button
-              onClick={() => { setIsLoginModalOpen(false); privyLogin(); }}
+              onClick={() => { handlePrivyLogin(); }}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: '16px',
                 padding: '16px', borderRadius: '16px',
@@ -841,6 +858,11 @@ Expires: ${expiresAt}`;
         </div>
         <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Exclusive Collectible</h3>
         <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>Connect your Web3 wallet to collect this article and unlock premium perks.</p>
+        {loginError && (
+          <div style={{ fontSize: '12px', color: '#92400e', backgroundColor: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '12px', padding: '12px 14px', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6, textAlign: 'left' }}>
+            {loginError}
+          </div>
+        )}
         {renderWalletButton()}
         <PoweredByLitera />
       </WidgetShell>
