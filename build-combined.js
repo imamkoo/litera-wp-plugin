@@ -26,19 +26,25 @@ config.module.rules.forEach((rule) => {
   }
 });
 
-// 3. Matikan SplitChunks (Agar jadi 1 file bundle.js)
+// 3. SplitChunks: izinkan chunk async (dynamic import) terpisah dari bundle
+// utama. Sebelumnya semua dipaksa jadi 1 file (maxChunks: 1) yang membuat
+// Reown AppKit (~5MB: x402, fiat-onramp, wallet UI) masuk ke bundle utama
+// padahal hanya dibutuhkan saat user klik connect wallet.
+// chunks: 'async' hanya memisahkan dynamic import; entry tetap 1 file.
 config.optimization.splitChunks = {
-  cacheGroups: {
-    default: false,
-  },
+  chunks: 'async',
+  minSize: 20000,
+  cacheGroups: { defaultVendors: false, default: false },
 };
 config.optimization.runtimeChunk = false;
 
-const webpack = require('webpack');
-config.plugins.push(new webpack.optimize.LimitChunkCountPlugin({
-  maxChunks: 1,
-}));
+// Bundle utama tetap 1 file bernama bundle.js (dibutuhkan litera.php).
+// Catatan: JANGAN pakai LimitChunkCountPlugin({maxChunks:1}) — plugin itu
+// memaksa SEMUA chunk (termasuk async) menyatu, membatalkan lazy-load
+// Web3Modal. chunks:'async' di splitChunks sudah menjamin entry tetap 1
+// file sementara dynamic import terpisah sebagai [name].chunk.js.
 
 // 4. Output harus konsisten namanya di root directory agar sesuai dengan litera.php
+// Chunk async dapat hash konten (cache-busting CDN yang benar).
 config.output.filename = 'bundle.js';
-config.output.chunkFilename = '[name].chunk.js';
+config.output.chunkFilename = '[name].[contenthash:8].chunk.js';

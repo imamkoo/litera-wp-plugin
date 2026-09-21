@@ -3,7 +3,7 @@ import './App.css';
 import LiteraWidget from './components/LiteraWidget';
 import { useReadContract, useAccount } from 'wagmi';
 import { contractABI, contractAddress, activeChainId, activeNetworkName } from './shared/contracts/ContractConfig';
-import { useWeb3Modal } from '@web3modal/wagmi/react';
+import { openWeb3ModalSafe } from './web3modal-lazy';
 import { normalizeUrl } from './shared/utils/urlNormalizer';
 
 interface ResolveResult {
@@ -14,7 +14,6 @@ interface ResolveResult {
 
 function App() {
   const { isConnected, chainId } = useAccount();
-  const { open } = useWeb3Modal();
   const [permalink, setPermalink] = useState<string>('');
   const [articleTitle, setArticleTitle] = useState<string>('Litera Digital Asset');
 
@@ -192,7 +191,7 @@ function App() {
           <p className="text-red-600 dark:text-red-400 font-bold mb-2 uppercase tracking-[0.15em] text-sm">Wrong Network Detected</p>
           <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 text-center max-w-xs leading-relaxed">Please switch to <span className="font-bold text-slate-800 dark:text-slate-200">{activeNetworkName}</span> to use the Litera widget.</p>
           <button
-            onClick={() => open({ view: 'Networks' })}
+            onClick={() => openWeb3ModalSafe({ view: 'Networks' })}
             className="group relative flex items-center justify-center py-3 px-6 rounded-2xl bg-red-600 dark:bg-red-500/20 text-white dark:text-red-400 font-bold hover:scale-[1.02] transition-all duration-300 shadow-xl overflow-hidden mt-2 z-10 border border-transparent dark:border-red-500/30"
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-red-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

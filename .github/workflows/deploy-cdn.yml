@@ -95,6 +95,16 @@ jobs:
             exit 1
           fi
           echo "Phase 1 OK — bundle live: ${BUILD_FILE} (HTTP ${CODE})"
+          # Phase 1a: async chunks (web3modal/reown lazy-load) — bundle utama
+          # men-nya via dynamic import; harus ikut terdeploy ke CDN.
+          if ls build/*.chunk.js 1>/dev/null 2>&1; then
+            sudo cp build/*.chunk.js "${{ env.CDN_DIR }}/"
+            sudo chown www-data:www-data "${{ env.CDN_DIR }}/"*.chunk.js
+            CHUNK_COUNT=$(ls build/*.chunk.js | wc -l)
+            echo "Phase 1a OK — ${CHUNK_COUNT} async chunk(s) deployed"
+          else
+            echo "::warning::Tidak ada async chunk — lazy-load Web3Modal tidak aktif?"
+          fi
           # Phase 1b: universal embed loader — URL publik stabil (tanpa hash)
           if [ -f public/litera-embed.js ]; then
             sudo cp public/litera-embed.js "${{ env.CDN_DIR }}/litera-embed.js"
@@ -146,6 +156,10 @@ jobs:
         run: |
           set -e
           cp "${{ env.BUNDLE_SRC }}" bundle.js
+          # Async chunks (web3modal lazy-load) juga harus masuk zip WP.
+          if ls build/*.chunk.js 1>/dev/null 2>&1; then
+            cp build/*.chunk.js .
+          fi
           PLUGIN_SLUG="litera-wp-plugin"
           TEMP_DIR="/tmp/${PLUGIN_SLUG}"
           rm -rf "${TEMP_DIR}"

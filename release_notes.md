@@ -1,5 +1,14 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.25 (Bundle Diet: 8.7MB → 3.3MB via Web3Modal Lazy-Load)
+- **Root Cause:** Bundle widget 8.7MB karena `createWeb3Modal` (`@web3modal/wagmi`) di-import statis di `index.tsx`. Import ini menarik seluruh Reown AppKit — x402 client, FiatOnramp screens, wallet UI, @wagmi/connectors — ~5MB kode yang hanya dipakai saat user klik "connect wallet". Padahal 99% pembaca hanya pakai login email/Google via Privy.
+- **Lazy-Load:** `createWeb3Modal` dipindah ke `src/web3modal-lazy.ts` sebagai `import('@web3modal/wagmi/react')` (dynamic). `openWeb3ModalSafe()` adalah jalur aman: load chunk dulu bila belum, lalu `modalInstance.open()`. Tidak memakai hook di luar komponen ( Rules-of-hooks aman).
+- **wagmi config tanpa Reown:** `defaultWagmiConfig` (yang membawa Reown) diganti `createConfig` wagmi murni — fungsi RPC/chain tetap, dependency Reown hilang dari jalur utama.
+- **SplitChunks async diaktifkan kembali:** `build-combined.js` sebelumnya memaksa `LimitChunkCountPlugin({maxChunks:1})` yang menyatukan SEMUA chunk termasuk async. Kini `chunks:'async'` memisahkan dynamic import sebagai `[name].[contenthash:8].chunk.js`; entry tetap 1 file `bundle.js` (kontrak `litera.php` dipertahankan).
+- **Hasil:** bundle utama **8.7MB → 3.31MB (gzip 0.89MB)**, turun 62%. Pada koneksi 2.3MB/s: 4.0s → 1.5s First Contentful Paint. 69% kode sekarang async, dimuat hanya saat user butuh connect wallet.
+- **CI:** `deploy-cdn.yml` menyalin `build/*.chunk.js` ke CDN + memasukkannya ke zip plugin WP (lazy-load jalan di kedua jalur distribusi).
+- **Verifikasi:** typecheck clean (hanya pre-existing ES-target warnings), build OK, 84/84 chunk-map entry valid, http serving test 200 OK.
+
 ## v1.4.24 (Resilient CDN Loader: Retry Loop & Visible Failure Notice)
 - **Root Cause Fix — "Widget kadang tidak muncul":** CDN `cdn.literaa.xyz` bersifat intermiten (HTTP 522 origin-unreachable dan timeout hingga 9s+ terjadi secara acak). Loader lama memiliki `done`-guard yang menelan race condition: bila `fetch manifest` membutuhkan waktu lebih dari 3 detik (timeout lama), callback `.then` memanggil `inject()` yang langsung `return` karena `done === true`, sehingga bundle tidak pernah disuntikkan dan widget hilang sepenuhnya tanpa pesan apa pun.
 - **Retry Loop:** Manifest kini diambil hingga 4 percobaan dengan backoff eksponensial (700ms × n). Setiap percobaan independen — kegagalan transient (522, timeout, koneksi terputus) ditangani tanpa kehilangan widget.

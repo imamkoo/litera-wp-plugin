@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
 import { usePrivy, useLogout, useLogin } from '@privy-io/react-auth';
-import { useWeb3Modal } from '@web3modal/wagmi/react';
+import { openWeb3ModalSafe } from '../web3modal-lazy';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon, CopyIcon, LogOutIcon, CheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
 import axios from 'axios';
@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.24';
+const WIDGET_VERSION = '1.4.25';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   useEffect(() => {
@@ -408,7 +408,6 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const [publisherName, setPublisherName] = useState<string | null>(null);
   const [authorName, setAuthorName] = useState<string | null>(null);
   const [articleCid, setArticleCid] = useState<string | null>(null);
-  const { open } = useWeb3Modal();
   const { signMessageAsync } = useSignMessage();
 
   // Determine contract addresses based on generation
@@ -1139,7 +1138,7 @@ Expires: ${expiresAt}`;
             )}
 
             <button
-              onClick={() => { setIsLoginModalOpen(false); open(); }}
+              onClick={() => { setIsLoginModalOpen(false); openWeb3ModalSafe(); }}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: '16px',
                 padding: '16px', borderRadius: '16px',

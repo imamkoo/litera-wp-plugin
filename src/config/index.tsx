@@ -1,4 +1,4 @@
-import { defaultWagmiConfig } from '@web3modal/wagmi/react/config'
+import { createConfig } from 'wagmi'
 import { polygon } from 'wagmi/chains'
 import { http, fallback } from 'wagmi'
 
@@ -35,10 +35,15 @@ export function isPrivyOriginAllowed(): boolean {
   return PRIVY_ALLOWED_ORIGINS.includes(window.location.origin)
 }
 
-export const config = defaultWagmiConfig({
+// Catatan: defaultWagmiConfig (@web3modal/wagmi) sebelumnya membawa seluruh
+// Reown AppKit (~5MB: x402, fiat-onramp, wallet UI) ke bundle widget.
+// Widget hanya butuh email/Google login via Privy; connect wallet Web3
+// di-lazy-load di Web3ModalLazy hanya saat user benar-benar klik connect.
+// createConfig wagmi murni menggantikannya tanpa kehilangan fungsi.
+export const config = createConfig({
   chains,
-  projectId,
-  metadata,
+  multiInjectedProviderDiscovery: true,
+  ssr: false,
   transports: {
     // Keyless public RPC yang masih hidup (diverifikasi 2026-08-26).
     // ankr.com/polygon (butuh API key → Unauthorized), llamarpc & maticvigil (mati) DIBUANG.
