@@ -1087,11 +1087,6 @@ Expires: ${expiresAt}`;
         </div>
         <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Exclusive Collectible</h3>
         <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>Connect your Web3 wallet to collect this article and unlock premium perks.</p>
-        {loginError && (
-          <div style={{ fontSize: '12px', color: '#92400e', backgroundColor: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '12px', padding: '12px 14px', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6, textAlign: 'left' }}>
-            {loginError}
-          </div>
-        )}
         {renderWalletButton()}
         <PoweredByLitera />
       </WidgetShell>

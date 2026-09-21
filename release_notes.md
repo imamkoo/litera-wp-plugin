@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.19 (Remove Persistent Warning Box on Widget)
+- Menghapus kotak peringatan kuning "Login email/Google tidak tersedia di situs ini" yang sebelumnya menetap setelah logout atau saat modal ditutup, mengembalikan tampilan widget yang bersih dan minimalis.
+
 ## v1.4.18 (Clean Disconnect Modal Copywriting)
 - Menghapus badge teknis "Cloud Wallet (Privy)" dari modal akun agar tidak membingungkan pengguna umum.
 - Memperbaiki copywriting tombol aksi menjadi "Putuskan Koneksi" yang lebih lugas dan standar.
