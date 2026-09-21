@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.20 (Industry-standard login flow: pure auth page + mobile OAuth redirect)
+- **Desktop:** popup kini membuka halaman login murni (`/widget-auth`) bukan halaman NFT. Setelah login, kepemilikan di-resolve on-chain: sudah punya → handshake & close; belum punya → redirect ke halaman NFT untuk quiz/mint.
+- **Mobile:** tidak lagi memakai popup yang tidak reliable. Menggunakan full-page redirect OAuth-style ke literaa.xyz, lalu kembali ke artikel dengan `?lite_addr=0x…` yang otomatis dibaca dan dibersihkan oleh widget.
+
 ## v1.4.19 (Remove Persistent Warning Box on Widget)
 - Menghapus kotak peringatan kuning "Login email/Google tidak tersedia di situs ini" yang sebelumnya menetap setelah logout atau saat modal ditutup, mengembalikan tampilan widget yang bersih dan minimalis.
 

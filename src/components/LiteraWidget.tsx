@@ -263,24 +263,45 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
 
   const popupRef = useRef<Window | null>(null);
 
-  const openCloudWalletPopup = () => {
-    setLoginError(null);
-    setIsLoginModalOpen(false);
-    setIsConnecting(true);
+  const isMobileDevice = () => {
+    if (typeof window === 'undefined') return false;
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      || (window.innerWidth <= 768 && 'ontouchstart' in window);
+  };
+
+  const buildWidgetAuthUrl = () => {
     const contract = generation === 'legacy' && legacyContractAddress
       ? legacyContractAddress
       : Erc1155Adress;
     const params = new URLSearchParams({
-      widget: '1',
       article: window.location.href,
+      tokenId: String(tokenId ?? ''),
+      contract,
       ...(generation === 'legacy' ? { gen: 'legacy' } : {}),
     });
+    return `${LITERA_ORIGIN}/widget-auth?${params.toString()}`;
+  };
+
+  const openCloudWalletPopup = () => {
+    setLoginError(null);
+    setIsLoginModalOpen(false);
+    // Mobile: popup window.open tidak reliable (blocked / opener null).
+    // Gunakan full-page redirect OAuth-style; setelah login user kembali ke artikel.
+    if (isMobileDevice()) {
+      try {
+        sessionStorage.setItem('litera_pending_article', window.location.href);
+        sessionStorage.setItem('litera_pending_tokenid', String(tokenId ?? ''));
+      } catch (e) {}
+      window.location.href = buildWidgetAuthUrl();
+      return;
+    }
+    setIsConnecting(true);
     const w = Math.max(380, Math.min(460, window.innerWidth - 40));
     const h = Math.max(560, Math.min(760, window.innerHeight - 60));
     const left = window.screenX + (window.outerWidth - w) / 2;
     const top = window.screenY + (window.outerHeight - h) / 2;
     popupRef.current = window.open(
-      `${LITERA_ORIGIN}/nfts/${contract}/${tokenId}?${params.toString()}`,
+      buildWidgetAuthUrl(),
       'litera-cloud-wallet',
       `width=${w},height=${h},left=${left},top=${top}`
     );
@@ -307,6 +328,28 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
   }, [tokenId]);
+
+  // Mobile OAuth-style return: setelah login di literaa.xyz, user di-redirect
+  // kembali ke artikel dengan ?lite_addr=0x... di URL. Baca, simpan, bersihkan URL.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    const addr = url.searchParams.get('lite_addr');
+    if (addr && /^0x[a-fA-F0-9]{40}$/.test(addr)) {
+      setCloudWalletAddress(addr);
+      const owned = url.searchParams.get('lite_owned') === '1';
+      if (owned) {
+        setLocalUnlocked(true);
+      }
+      url.searchParams.delete('lite_addr');
+      url.searchParams.delete('lite_owned');
+      window.history.replaceState({}, document.title, url.toString());
+    }
+    try {
+      sessionStorage.removeItem('litera_pending_article');
+      sessionStorage.removeItem('litera_pending_tokenid');
+    } catch (e) {}
+  }, []);
 
   // Deteksi popup ditutup tanpa postMessage (mis. user tekan X / block popup)
   useEffect(() => {
