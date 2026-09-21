@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.18 (Clean Disconnect Modal Copywriting)
+- Menghapus badge teknis "Cloud Wallet (Privy)" dari modal akun agar tidak membingungkan pengguna umum.
+- Memperbaiki copywriting tombol aksi menjadi "Putuskan Koneksi" yang lebih lugas dan standar.
+
 ## v1.4.17 (Modal Disconnect via Portal to avoid container clipping)
 - Mengubah popover disconnect menjadi **Modal Dialog via Portal** ke `document.body` agar tidak terpotong oleh `overflow: hidden` pada container widget.
 - Menampilkan dialog akun rapi dengan tombol salin alamat, jenis dompet, saldo LITE, dan tombol Putuskan Dompet / Keluar.

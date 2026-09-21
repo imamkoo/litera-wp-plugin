@@ -883,18 +883,9 @@ Expires: ${expiresAt}`;
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <span style={{
-                fontSize: '11px',
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                padding: '4px 10px',
-                borderRadius: '8px',
-                backgroundColor: cloudWalletAddress || privyAuthenticated ? '#fef3c7' : '#e0e7ff',
-                color: cloudWalletAddress || privyAuthenticated ? '#b45309' : '#3730a3'
-              }}>
-                {cloudWalletAddress || privyAuthenticated ? 'Cloud Wallet (Privy)' : 'Web3 Wallet'}
-              </span>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#111827' }}>
+                Akun Terhubung
+              </h3>
               <button
                 onClick={() => setIsDisconnectModalOpen(false)}
                 style={{
@@ -913,10 +904,6 @@ Expires: ${expiresAt}`;
                 ✕
               </button>
             </div>
-
-            <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 16px 0', color: '#111827' }}>
-              Akun Terhubung
-            </h3>
 
             <div style={{
               display: 'flex',
@@ -992,7 +979,7 @@ Expires: ${expiresAt}`;
               onMouseOver={e => (e.currentTarget.style.backgroundColor = '#fecaca')}
               onMouseOut={e => (e.currentTarget.style.backgroundColor = '#fee2e2')}
             >
-              <LogOutIcon size={16} /> Putuskan Dompet / Keluar
+              <LogOutIcon size={16} /> Putuskan Koneksi
             </button>
           </div>
         </div>,
