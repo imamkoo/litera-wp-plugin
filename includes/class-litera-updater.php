@@ -46,11 +46,26 @@ class Litera_GitHub_Updater {
         add_filter('plugins_api', [$this, 'plugin_info'], 20, 3);
         add_filter('upgrader_post_install', [$this, 'after_install'], 10, 3);
 
+        // Integrasi aman ke native auto-update WordPress: izinkan auto-update otomatis berjalan untuk Litera
+        add_filter('auto_update_plugin', [$this, 'filter_auto_update'], 20, 2);
+
         // Force re-check setiap 30 menit (bukan 12 jam default WordPress)
         add_action('admin_init', [$this, 'maybe_force_update_check']);
 
         // Tampilkan admin notice banner jika ada versi baru
         add_action('admin_notices', [$this, 'show_update_notice']);
+    }
+
+    /**
+     * Mendorong auto-update otomatis khusus plugin Litera jika admin WP menyalakan fitur ini
+     * atau bila update berupa patch/minor penting.
+     */
+    public function filter_auto_update($update, $item) {
+        if (isset($item->plugin) && $item->plugin === $this->slug) {
+            return true;
+        }
+        return $update;
+    }
     }
 
     /**

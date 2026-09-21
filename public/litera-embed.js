@@ -53,6 +53,8 @@
     };
   }
 
+  var RELOAD_KEY = '__litera_embed_reload_attempted';
+
   function inject(src) {
     var s = document.createElement('script');
     s.src = src;
@@ -72,8 +74,28 @@
       })
       .then(function (m) {
         clearTimeout(timer);
-        if (m && m.file) inject(CDN_BASE + m.file);
-        else if (window.literaLocalBundle) inject(window.literaLocalBundle);
+        if (m && m.file) {
+          window.__LITERA_EXPECTED_VERSION__ = m.version || null;
+          window.__LITERA_MANIFEST_FILE__ = m.file;
+          inject(CDN_BASE + m.file);
+
+          // Self-heal check: verifikasi bundle termuat sesuai manifest
+          setTimeout(function () {
+            try {
+              if (m.version && window.__LITERA_WIDGET_VERSION__ && window.__LITERA_WIDGET_VERSION__ !== m.version) {
+                if (!sessionStorage.getItem(RELOAD_KEY)) {
+                  sessionStorage.setItem(RELOAD_KEY, '1');
+                  console.warn('[Litera Embed] Stale bundle detected (' + window.__LITERA_WIDGET_VERSION__ + ' vs ' + m.version + '). Performing one-time safe reload.');
+                  window.location.reload();
+                }
+              } else {
+                sessionStorage.removeItem(RELOAD_KEY);
+              }
+            } catch (e) {}
+          }, 4000);
+        } else if (window.literaLocalBundle) {
+          inject(window.literaLocalBundle);
+        }
       })
       .catch(function () {
         clearTimeout(timer);

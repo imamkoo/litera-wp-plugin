@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.22 (Runtime Self-Heal & Native WordPress Auto-Update Bridge)
+- **Self-Heal Cache Guard:** Loader dan Universal Embed (`litera-embed.js`) secara berkala memverifikasi versi bundle yang aktif dengan `manifest.json`. Bila terdeteksi browser memuat bundle lama, sistem melakukan reload aman 1-kali untuk menyegarkan cache secara otomatis.
+- **Header Telemetri Versi:** Mengirimkan header `X-Litera-Ui-Version: 1.4.22` pada request penting (submit kuis, unlockable key).
+- **Native WordPress Auto-Update Filter:** Mengintegrasikan filter `auto_update_plugin` khusus slug Litera sehingga WordPress secara otomatis dapat memperbarui file PHP plugin saat update background berjalan.
+
 ## v1.4.21 (Clean Auth Handshake & In-Article Native Collect Flow)
 - Popup `/widget-auth` hanya bertugas login Privy + verifikasi session, menampilkan animasi centang sukses, dan langsung menutup diri.
 - Seluruh flow verifikasi kepemilikan, kuis, minting, dan unlock dijalankan langsung secara native di dalam widget halaman artikel.

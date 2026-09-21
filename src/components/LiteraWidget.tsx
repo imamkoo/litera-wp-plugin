@@ -218,7 +218,15 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
+const WIDGET_VERSION = '1.4.22';
+
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).__LITERA_WIDGET_VERSION__ = WIDGET_VERSION;
+    }
+  }, []);
+
   const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
   const { disconnect: wagmiDisconnect } = useDisconnect();
   const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser } = usePrivy();
@@ -686,7 +694,8 @@ Expires: ${expiresAt}`;
           headers: {
             'x-wallet-address': address,
             'x-signature': signature,
-            'x-message': encodeURIComponent(messagePayload)
+            'x-message': encodeURIComponent(messagePayload),
+            'X-Litera-Ui-Version': WIDGET_VERSION,
           }
         });
         const responseData = res.data?.data || res.data;
@@ -814,6 +823,10 @@ Expires: ${expiresAt}`;
         // 2. Fetch AES key from backend
         const res = await axios.post(`https://literaa.xyz/api/v1/nfts/${tokenId}/get-unlockable-key`, {
           signature: signature
+        }, {
+          headers: {
+            'X-Litera-Ui-Version': WIDGET_VERSION,
+          }
         });
         const aesKey = res.data?.aesKey || res.data?.data?.aesKey;
 
