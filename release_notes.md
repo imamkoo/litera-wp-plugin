@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.16 (Account Popover, Explicit Disconnect & Already-Owned Auto-Unlock)
+- **Account Popover standar industri:** Saat terhubung, klik badge akun membuka Popover elegan berisikan alamat lengkap dengan tombol Salin (Copy), saldo LITE, tipe koneksi (Web3 Wallet / Cloud Wallet), dan tombol tegas "Putuskan Dompet / Keluar".
+- **Disconnect multi-session:** Memutus sesi Wagmi, Privy, dan cloud wallet secara tuntas agar akun tidak lagi tersangkut di browser atau tab lain.
+- **Inbound handshake already-owned:** Langsung membuka materi eksklusif saat popup auth mendeteksi pembaca telah memiliki NFT tersebut.
+
 ## v1.4.15 (Cloud wallet popup for cross-origin domains)
 - **Popup flow untuk email/Google login:** di domain eksternal (WordPress, BikinWeb, dll), tombol "Email atau Google" membuka popup ke literaa.xyz (origin yang di-allow Privy). Login + quiz + mint berjalan di popup, lalu postMessage balik ke widget.
 - **Deteksi origin Privy:** widget secara otomatis menampilkan "Email atau Google" sebagai tombol inline hanya jika domain di-allow Privy (literaa.xyz, localhost, dll). Domain lain menampilkan tombol popup.

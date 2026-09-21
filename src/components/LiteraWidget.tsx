@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
+import { useAccount, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
 import { usePrivy, useLogout, useLogin } from '@privy-io/react-auth';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
-import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon } from 'lucide-react';
+import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon, CopyIcon, LogOutIcon, CheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
@@ -220,14 +220,51 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
+  const { disconnect: wagmiDisconnect } = useDisconnect();
   const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser } = usePrivy();
   const { logout: privyLogout } = useLogout();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [cloudWalletAddress, setCloudWalletAddress] = useState<string | null>(null);
+  const [isAccountPopoverOpen, setIsAccountPopoverOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+
   const address = wagmiAddress || privyUser?.wallet?.address || cloudWalletAddress || undefined;
   const isConnected = isWagmiConnected || privyAuthenticated || !!cloudWalletAddress;
+
+  const handleDisconnect = () => {
+    try { wagmiDisconnect(); } catch (e) {}
+    try { privyLogout(); } catch (e) {}
+    setCloudWalletAddress(null);
+    setUnlockedContent(null);
+    setLocalUnlocked(false);
+    setIsAccountPopoverOpen(false);
+    setIsConnecting(false);
+  };
+
+  const handleCopyAddress = () => {
+    if (!address) return;
+    navigator.clipboard.writeText(address);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  // Close popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+        setIsAccountPopoverOpen(false);
+      }
+    };
+    if (isAccountPopoverOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isAccountPopoverOpen]);
   const { login: privyLoginWithError } = useLogin({
     onError: (err: any) => {
       console.error('[Litera Widget] Privy login gagal:', err);
@@ -275,6 +312,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
         setIsLoginModalOpen(false);
         if (payload.address) {
           setCloudWalletAddress(payload.address);
+        }
+        if (payload.alreadyOwned || payload.minted) {
+          setLocalUnlocked(true);
         }
       } else if (payload.type === 'LITERA_CLOUD_LOGIN_CLOSED') {
         setIsConnecting(false);
@@ -790,11 +830,11 @@ Expires: ${expiresAt}`;
 
   /* ─── Wallet Button (reusable) ─── */
   const renderWalletButton = () => (
-    <>
+    <div style={{ position: 'relative', width: isConnected ? 'auto' : '100%' }}>
       <button
         onClick={() => {
           if (isConnected) {
-            open();
+            setIsAccountPopoverOpen(!isAccountPopoverOpen);
           } else {
             setIsConnecting(true);
             setIsLoginModalOpen(true);
@@ -828,6 +868,126 @@ Expires: ${expiresAt}`;
           <span>{isConnecting ? 'Connecting…' : 'Connect Wallet to Collect'}</span>
         )}
       </button>
+
+      {/* Account Popover (Industry standard Disconnect & Account Details) */}
+      {isConnected && isAccountPopoverOpen && (
+        <div
+          ref={popoverRef}
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            right: 0,
+            left: 0,
+            minWidth: '280px',
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08)',
+            border: '1px solid #e5e7eb',
+            padding: '16px',
+            zIndex: 99999,
+            color: '#1f2937',
+            textAlign: 'left',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <span style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              padding: '3px 8px',
+              borderRadius: '6px',
+              backgroundColor: cloudWalletAddress || privyAuthenticated ? '#fef3c7' : '#e0e7ff',
+              color: cloudWalletAddress || privyAuthenticated ? '#b45309' : '#3730a3'
+            }}>
+              {cloudWalletAddress || privyAuthenticated ? 'Cloud Wallet (Privy)' : 'Web3 Wallet'}
+            </span>
+            <button
+              onClick={() => setIsAccountPopoverOpen(false)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#9ca3af' }}
+            >
+              ✕
+            </button>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: '#f9fafb',
+            borderRadius: '12px',
+            padding: '10px 12px',
+            marginBottom: '12px',
+            border: '1px solid #f3f4f6'
+          }}>
+            <div>
+              <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '2px' }}>Alamat Terhubung</div>
+              <div style={{ fontSize: '13px', fontWeight: 700, fontFamily: 'monospace', color: '#111827' }}>
+                {address?.slice(0, 8)}...{address?.slice(-6)}
+              </div>
+            </div>
+            <button
+              onClick={handleCopyAddress}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: '#ffffff',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '6px 10px',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: isCopied ? '#16a34a' : '#374151',
+                cursor: 'pointer'
+              }}
+            >
+              {isCopied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
+              {isCopied ? 'Tersalin' : 'Salin'}
+            </button>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '8px 12px',
+            backgroundColor: '#fff8f4',
+            borderRadius: '12px',
+            marginBottom: '14px',
+            border: '1px solid rgba(208,121,84,0.2)'
+          }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280' }}>Saldo LITE</span>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#d07954' }}>
+              {userBalance !== undefined && userBalance !== null ? `${parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', { maximumFractionDigits: 2 })} LITE` : '0 LITE'}
+            </span>
+          </div>
+
+          <button
+            onClick={handleDisconnect}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '11px',
+              borderRadius: '12px',
+              backgroundColor: '#fee2e2',
+              color: '#dc2626',
+              border: '1px solid #fca5a5',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'background-color 0.15s ease'
+            }}
+            onMouseOver={e => (e.currentTarget.style.backgroundColor = '#fecaca')}
+            onMouseOut={e => (e.currentTarget.style.backgroundColor = '#fee2e2')}
+          >
+            <LogOutIcon size={15} /> Putuskan Dompet / Keluar
+          </button>
+        </div>
+      )}
 
       {/* Login Modal Custom (Mirip Dashboard) — via portal ke document.body agar tidak terkurung widget */}
       {isLoginModalOpen && createPortal(
@@ -916,7 +1076,7 @@ Expires: ${expiresAt}`;
         </div>,
         document.body
       )}
-    </>
+    </div>
   );
 
   /* ═══════════════════════════════════════════════════════
