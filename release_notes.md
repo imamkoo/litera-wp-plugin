@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.14 (Direct Web3 wallet connect for frictionless embed)
+- Tombol koneksi langsung membuka Web3Modal (MetaMask, Trust Wallet, WalletConnect, dll) secara instan.
+- Menghilangkan perantara modal Privy yang rentan gagal origin pada domain eksternal sehingga tidak ada lagi error "Something went wrong".
+
 ## v1.4.13 (Revert unsupported cross-domain hosted collection flow)
 - Login email/Google tetap berada di artikel; jika origin Privy tidak diizinkan, widget mengarahkan pembaca menggunakan Hubungkan Dompet tanpa berpindah halaman.
 - Menghapus route `/collect` yang belum dapat meneruskan sesi embedded wallet secara aman lintas origin.

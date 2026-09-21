@@ -737,8 +737,9 @@ Expires: ${expiresAt}`;
           if (isConnected) {
             open();
           } else {
-            setIsConnecting(true);
-            setIsLoginModalOpen(true);
+            // Langsung buka Web3Modal (MetaMask, Trust Wallet, WalletConnect, dll)
+            // 100% bebas dari batasan origin Privy dan tidak memicu "Something went wrong"
+            open();
           }
         }}
         style={{
@@ -853,12 +854,7 @@ Expires: ${expiresAt}`;
           <svg style={{ width: '24px', height: '24px', color: 'var(--lw-text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
         <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Exclusive Collectible</h3>
-        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>Connect your Web3 wallet to collect this article and unlock premium perks.</p>
-        {loginError && (
-          <div style={{ fontSize: '12px', color: '#92400e', backgroundColor: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '12px', padding: '12px 14px', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6, textAlign: 'left' }}>
-            {loginError}
-          </div>
-        )}
+        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>Hubungkan dompet Web3 Anda untuk mengoleksi artikel ini dan membuka materi eksklusif.</p>
         {renderWalletButton()}
         <PoweredByLitera />
       </WidgetShell>
