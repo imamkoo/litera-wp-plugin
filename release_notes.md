@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.15 (Cloud wallet popup for cross-origin domains)
+- **Popup flow untuk email/Google login:** di domain eksternal (WordPress, BikinWeb, dll), tombol "Email atau Google" membuka popup ke literaa.xyz (origin yang di-allow Privy). Login + quiz + mint berjalan di popup, lalu postMessage balik ke widget.
+- **Deteksi origin Privy:** widget secara otomatis menampilkan "Email atau Google" sebagai tombol inline hanya jika domain di-allow Privy (literaa.xyz, localhost, dll). Domain lain menampilkan tombol popup.
+- **Fallback Web3Modal:** "Hubungkan Dompet" tetap inline tanpa popup, bebas origin.
+
 ## v1.4.14 (Direct Web3 wallet connect for frictionless embed)
 - Tombol koneksi langsung membuka Web3Modal (MetaMask, Trust Wallet, WalletConnect, dll) secara instan.
 - Menghilangkan perantara modal Privy yang rentan gagal origin pada domain eksternal sehingga tidak ada lagi error "Something went wrong".

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
 import { usePrivy, useLogout, useLogin } from '@privy-io/react-auth';
@@ -19,6 +19,7 @@ import {
   activeNetworkName,
   activeChainId
 } from '../shared/contracts/ContractConfig';
+import { LITERA_ORIGIN, isPrivyOriginAllowed } from '../config';
 
 interface LiteraWidgetProps {
   tokenId: number;
@@ -221,11 +222,12 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
   const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser } = usePrivy();
   const { logout: privyLogout } = useLogout();
-  const address = wagmiAddress || privyUser?.wallet?.address;
-  const isConnected = isWagmiConnected || privyAuthenticated;
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [cloudWalletAddress, setCloudWalletAddress] = useState<string | null>(null);
+  const address = wagmiAddress || privyUser?.wallet?.address || cloudWalletAddress || undefined;
+  const isConnected = isWagmiConnected || privyAuthenticated || !!cloudWalletAddress;
   const { login: privyLoginWithError } = useLogin({
     onError: (err: any) => {
       console.error('[Litera Widget] Privy login gagal:', err);
@@ -237,6 +239,63 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     setIsLoginModalOpen(false);
     privyLoginWithError();
   };
+
+  const popupRef = useRef<Window | null>(null);
+
+  const openCloudWalletPopup = () => {
+    setLoginError(null);
+    setIsLoginModalOpen(false);
+    setIsConnecting(true);
+    const contract = generation === 'legacy' && legacyContractAddress
+      ? legacyContractAddress
+      : Erc1155Adress;
+    const params = new URLSearchParams({
+      widget: '1',
+      article: window.location.href,
+      ...(generation === 'legacy' ? { gen: 'legacy' } : {}),
+    });
+    const w = Math.max(380, Math.min(460, window.innerWidth - 40));
+    const h = Math.max(560, Math.min(760, window.innerHeight - 60));
+    const left = window.screenX + (window.outerWidth - w) / 2;
+    const top = window.screenY + (window.outerHeight - h) / 2;
+    popupRef.current = window.open(
+      `${LITERA_ORIGIN}/nfts/${contract}/${tokenId}?${params.toString()}`,
+      'litera-cloud-wallet',
+      `width=${w},height=${h},left=${left},top=${top}`
+    );
+  };
+
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== LITERA_ORIGIN) return;
+      const payload = e.data;
+      if (!payload || typeof payload !== 'object') return;
+      if (payload.type === 'LITERA_CLOUD_LOGIN_SUCCESS') {
+        setIsConnecting(false);
+        setIsLoginModalOpen(false);
+        if (payload.address) {
+          setCloudWalletAddress(payload.address);
+        }
+      } else if (payload.type === 'LITERA_CLOUD_LOGIN_CLOSED') {
+        setIsConnecting(false);
+      }
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [tokenId]);
+
+  // Deteksi popup ditutup tanpa postMessage (mis. user tekan X / block popup)
+  useEffect(() => {
+    if (!isConnecting || !popupRef.current) return;
+    const timer = setInterval(() => {
+      if (popupRef.current?.closed) {
+        popupRef.current = null;
+        setIsConnecting(false);
+        clearInterval(timer);
+      }
+    }, 500);
+    return () => clearInterval(timer);
+  }, [isConnecting]);
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
   const [localUnlocked, setLocalUnlocked] = useState(false);
   const [sponsorUrl, setSponsorUrl] = useState<string | null>(null);
@@ -737,9 +796,8 @@ Expires: ${expiresAt}`;
           if (isConnected) {
             open();
           } else {
-            // Langsung buka Web3Modal (MetaMask, Trust Wallet, WalletConnect, dll)
-            // 100% bebas dari batasan origin Privy dan tidak memicu "Something went wrong"
-            open();
+            setIsConnecting(true);
+            setIsLoginModalOpen(true);
           }
         }}
         style={{
@@ -805,20 +863,37 @@ Expires: ${expiresAt}`;
             <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: '#111' }}>Masuk ke Litera</h2>
             <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 24px 0' }}>Pilih cara untuk mengakses artikel.</p>
 
-            <button
-              onClick={() => { handlePrivyLogin(); }}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: '16px',
-                padding: '16px', borderRadius: '16px',
-                backgroundColor: '#fff8f4', border: '1px solid rgba(208,121,84,0.3)',
-                cursor: 'pointer', marginBottom: '12px', textAlign: 'left'
-              }}
-            >
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Email atau Google</div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>Dompet Polygon dibuat otomatis.</div>
-              </div>
-            </button>
+            {isPrivyOriginAllowed() ? (
+              <button
+                onClick={() => { handlePrivyLogin(); }}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: '16px',
+                  padding: '16px', borderRadius: '16px',
+                  backgroundColor: '#fff8f4', border: '1px solid rgba(208,121,84,0.3)',
+                  cursor: 'pointer', marginBottom: '12px', textAlign: 'left'
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Email atau Google</div>
+                  <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>Dompet Polygon dibuat otomatis.</div>
+                </div>
+              </button>
+            ) : (
+              <button
+                onClick={() => { openCloudWalletPopup(); }}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: '16px',
+                  padding: '16px', borderRadius: '16px',
+                  backgroundColor: '#fff8f4', border: '1px solid rgba(208,121,84,0.3)',
+                  cursor: 'pointer', marginBottom: '12px', textAlign: 'left'
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Email atau Google</div>
+                  <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>Login aman di literaa.xyz, kembali otomatis ke artikel.</div>
+                </div>
+              </button>
+            )}
 
             <button
               onClick={() => { setIsLoginModalOpen(false); open(); }}
@@ -854,7 +929,12 @@ Expires: ${expiresAt}`;
           <svg style={{ width: '24px', height: '24px', color: 'var(--lw-text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
         <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Exclusive Collectible</h3>
-        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>Hubungkan dompet Web3 Anda untuk mengoleksi artikel ini dan membuka materi eksklusif.</p>
+        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>Connect your Web3 wallet to collect this article and unlock premium perks.</p>
+        {loginError && (
+          <div style={{ fontSize: '12px', color: '#92400e', backgroundColor: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '12px', padding: '12px 14px', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6, textAlign: 'left' }}>
+            {loginError}
+          </div>
+        )}
         {renderWalletButton()}
         <PoweredByLitera />
       </WidgetShell>

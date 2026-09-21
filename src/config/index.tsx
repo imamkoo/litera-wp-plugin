@@ -17,6 +17,24 @@ export const metadata = {
 
 export const chains = [polygon] as const
 
+export const LITERA_ORIGIN = 'https://literaa.xyz'
+
+const PRIVY_ALLOWED_ORIGINS = [
+  'https://literaa.xyz',
+  'https://www.literaa.xyz',
+  'https://app.litera.id',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://litera-test.local',
+  'https://litera-test.local',
+]
+
+export function isPrivyOriginAllowed(): boolean {
+  if (typeof window === 'undefined') return false
+  return PRIVY_ALLOWED_ORIGINS.includes(window.location.origin)
+}
+
 export const config = defaultWagmiConfig({
   chains,
   projectId,
