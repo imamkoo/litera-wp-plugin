@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.21 (Clean Auth Handshake & In-Article Native Collect Flow)
+- Popup `/widget-auth` hanya bertugas login Privy + verifikasi session, menampilkan animasi centang sukses, dan langsung menutup diri.
+- Seluruh flow verifikasi kepemilikan, kuis, minting, dan unlock dijalankan langsung secara native di dalam widget halaman artikel.
+
 ## v1.4.20 (Industry-standard login flow: pure auth page + mobile OAuth redirect)
 - **Desktop:** popup kini membuka halaman login murni (`/widget-auth`) bukan halaman NFT. Setelah login, kepemilikan di-resolve on-chain: sudah punya → handshake & close; belum punya → redirect ke halaman NFT untuk quiz/mint.
 - **Mobile:** tidak lagi memakai popup yang tidak reliable. Menggunakan full-page redirect OAuth-style ke literaa.xyz, lalu kembali ke artikel dengan `?lite_addr=0x…` yang otomatis dibaca dan dibersihkan oleh widget.
