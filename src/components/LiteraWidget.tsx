@@ -270,6 +270,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   };
 
   const popupRef = useRef<Window | null>(null);
+  const authNonceRef = useRef<string | null>(null);
 
   const isMobileDevice = () => {
     if (typeof window === 'undefined') return false;
@@ -281,10 +282,18 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     const contract = generation === 'legacy' && legacyContractAddress
       ? legacyContractAddress
       : Erc1155Adress;
+    const nonce = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+    authNonceRef.current = nonce;
+    try {
+      sessionStorage.setItem('litera_auth_nonce', nonce);
+    } catch (e) {}
+
     const params = new URLSearchParams({
       article: window.location.href,
       tokenId: String(tokenId ?? ''),
       contract,
+      auth: 'email',
+      state: nonce,
       ...(generation === 'legacy' ? { gen: 'legacy' } : {}),
     });
     return `${LITERA_ORIGIN}/widget-auth?${params.toString()}`;
@@ -304,12 +313,13 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       return;
     }
     setIsConnecting(true);
+    const authUrl = buildWidgetAuthUrl();
     const w = Math.max(380, Math.min(460, window.innerWidth - 40));
     const h = Math.max(560, Math.min(760, window.innerHeight - 60));
     const left = window.screenX + (window.outerWidth - w) / 2;
     const top = window.screenY + (window.outerHeight - h) / 2;
     popupRef.current = window.open(
-      buildWidgetAuthUrl(),
+      authUrl,
       'litera-cloud-wallet',
       `width=${w},height=${h},left=${left},top=${top}`
     );
@@ -321,6 +331,13 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       const payload = e.data;
       if (!payload || typeof payload !== 'object') return;
       if (payload.type === 'LITERA_CLOUD_LOGIN_SUCCESS') {
+        // Validasi state/nonce jika ada untuk menjamin pesan berasal dari alur login yang sah
+        const expectedNonce = authNonceRef.current || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('litera_auth_nonce') : null);
+        if (expectedNonce && payload.state && payload.state !== expectedNonce) {
+          console.warn('[Litera Widget] Nonce state mismatch. Aborting handshake.');
+          setIsConnecting(false);
+          return;
+        }
         setIsConnecting(false);
         setIsLoginModalOpen(false);
         if (payload.address) {
@@ -329,6 +346,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
         if (payload.alreadyOwned || payload.minted) {
           setLocalUnlocked(true);
         }
+        try {
+          sessionStorage.removeItem('litera_auth_nonce');
+        } catch (err) {}
       } else if (payload.type === 'LITERA_CLOUD_LOGIN_CLOSED') {
         setIsConnecting(false);
       }
@@ -343,19 +363,29 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     if (typeof window === 'undefined') return;
     const url = new URL(window.location.href);
     const addr = url.searchParams.get('lite_addr');
+    const returnedState = url.searchParams.get('lite_state');
+    const expectedNonce = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('litera_auth_nonce') : null;
+
     if (addr && /^0x[a-fA-F0-9]{40}$/.test(addr)) {
-      setCloudWalletAddress(addr);
-      const owned = url.searchParams.get('lite_owned') === '1';
-      if (owned) {
-        setLocalUnlocked(true);
+      // Validasi nonce state jika tersimpan
+      if (expectedNonce && returnedState && returnedState !== expectedNonce) {
+        console.warn('[Litera Widget] Mobile OAuth state mismatch. Ignoring return.');
+      } else {
+        setCloudWalletAddress(addr);
+        const owned = url.searchParams.get('lite_owned') === '1';
+        if (owned) {
+          setLocalUnlocked(true);
+        }
       }
       url.searchParams.delete('lite_addr');
       url.searchParams.delete('lite_owned');
+      url.searchParams.delete('lite_state');
       window.history.replaceState({}, document.title, url.toString());
     }
     try {
       sessionStorage.removeItem('litera_pending_article');
       sessionStorage.removeItem('litera_pending_tokenid');
+      sessionStorage.removeItem('litera_auth_nonce');
     } catch (e) {}
   }, []);
 

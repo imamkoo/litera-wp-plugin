@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.23 (Industry-Standard Account Chooser & Nonce State Verification)
+- **Account Chooser (prompt=select_account):** Bila browser sudah memiliki sesi wallet aktif di `literaa.xyz`, popup autentikasi menampilkan dialog konfirmasi eksplisit ("Lanjutkan dengan akun ini" atau "Gunakan akun/email lain") dan tidak lagi menyematkan wallet lama secara diam-diam.
+- **Validasi State/Nonce:** Request autentikasi menyertakan nonce acak satu-kali-pakai untuk mencegah serangan inject/pemalsuan pesan session lintas-origin.
+
 ## v1.4.22 (Runtime Self-Heal & Native WordPress Auto-Update Bridge)
 - **Self-Heal Cache Guard:** Loader dan Universal Embed (`litera-embed.js`) secara berkala memverifikasi versi bundle yang aktif dengan `manifest.json`. Bila terdeteksi browser memuat bundle lama, sistem melakukan reload aman 1-kali untuk menyegarkan cache secara otomatis.
 - **Header Telemetri Versi:** Mengirimkan header `X-Litera-Ui-Version: 1.4.22` pada request penting (submit kuis, unlockable key).

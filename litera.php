@@ -7,7 +7,7 @@
  * Author URI: https://litera.id
  * Text Domain: litera
  * Domain Path: /languages
- * Version: 1.4.22
+ * Version: 1.4.23
  *
  * @package Litera_Plugin
  */
