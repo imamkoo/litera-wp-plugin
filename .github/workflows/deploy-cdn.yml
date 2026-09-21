@@ -172,8 +172,8 @@ jobs:
           curl -fsSL -X POST "https://api.cloudflare.com/client/v4/zones/${{ env.CLOUDFLARE_ZONE_ID }}/purge_cache" \
             -H "Authorization: Bearer ${{ env.CLOUDFLARE_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --data '{"files":["https://cdn.literaa.xyz/manifest.json"]}'
-          echo "Cloudflare cache purged."
+            --data '{"files":["https://cdn.literaa.xyz/manifest.json","https://cdn.literaa.xyz/litera-embed.js","https://cdn.literaa.xyz/litera-embed-sdk.js"]}'
+          echo "Cloudflare cache purged (manifest + embed + sdk)."
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
