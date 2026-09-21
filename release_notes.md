@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.17 (Modal Disconnect via Portal to avoid container clipping)
+- Mengubah popover disconnect menjadi **Modal Dialog via Portal** ke `document.body` agar tidak terpotong oleh `overflow: hidden` pada container widget.
+- Menampilkan dialog akun rapi dengan tombol salin alamat, jenis dompet, saldo LITE, dan tombol Putuskan Dompet / Keluar.
+
 ## v1.4.16 (Account Popover, Explicit Disconnect & Already-Owned Auto-Unlock)
 - **Account Popover standar industri:** Saat terhubung, klik badge akun membuka Popover elegan berisikan alamat lengkap dengan tombol Salin (Copy), saldo LITE, tipe koneksi (Web3 Wallet / Cloud Wallet), dan tombol tegas "Putuskan Dompet / Keluar".
 - **Disconnect multi-session:** Memutus sesi Wagmi, Privy, dan cloud wallet secara tuntas agar akun tidak lagi tersangkut di browser atau tab lain.
