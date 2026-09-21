@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.22';
+const WIDGET_VERSION = '1.4.24';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   useEffect(() => {

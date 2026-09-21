@@ -1,5 +1,13 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.24 (Resilient CDN Loader: Retry Loop & Visible Failure Notice)
+- **Root Cause Fix — "Widget kadang tidak muncul":** CDN `cdn.literaa.xyz` bersifat intermiten (HTTP 522 origin-unreachable dan timeout hingga 9s+ terjadi secara acak). Loader lama memiliki `done`-guard yang menelan race condition: bila `fetch manifest` membutuhkan waktu lebih dari 3 detik (timeout lama), callback `.then` memanggil `inject()` yang langsung `return` karena `done === true`, sehingga bundle tidak pernah disuntikkan dan widget hilang sepenuhnya tanpa pesan apa pun.
+- **Retry Loop:** Manifest kini diambil hingga 4 percobaan dengan backoff eksponensial (700ms × n). Setiap percobaan independen — kegagalan transient (522, timeout, koneksi terputus) ditangani tanpa kehilangan widget.
+- **Race Condition Fixed:** Mengganti flag `done` dengan dua flag terpisah — `injected` (sudah disuntikkan) dan `loaded` (bundle berhasil dieksekusi, via `script.onload`). Timeout kini diperpanjang ke 6s, dan saat timeout mencoba bundle lokal terlebih dahulu, lalu tetap melanjutkan percobaan manifest di background.
+- **Bundle Load Failure Handling:** `script.onerror` kini menangani kegagalan pemuatan bundle — mundur ke `window.literaLocalBundle` bila tersedia.
+- **Visible Failure Notice:** Jika seluruh upaya habis dan bundle lokal tidak ada/tidak bisa dimuat, ditampilkan pesan ramah "Widget Litera gagal termuat. [Coba lagi]" dengan tombol retry manual — bukan kotak kosong yang mudah disangka "tidak ada widget" oleh pembaca.
+- **Universal Embed Paritas:** `public/litera-embed.js` mendapatkan perlakuan yang sama; fixture test disinkronkan.
+
 ## v1.4.23 (Industry-Standard Account Chooser & Nonce State Verification)
 - **Account Chooser (prompt=select_account):** Bila browser sudah memiliki sesi wallet aktif di `literaa.xyz`, popup autentikasi menampilkan dialog konfirmasi eksplisit ("Lanjutkan dengan akun ini" atau "Gunakan akun/email lain") dan tidak lagi menyematkan wallet lama secara diam-diam.
 - **Validasi State/Nonce:** Request autentikasi menyertakan nonce acak satu-kali-pakai untuk mencegah serangan inject/pemalsuan pesan session lintas-origin.
