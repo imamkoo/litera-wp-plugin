@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.30 (Fix TDZ ReferenceError 'Cannot access b before initialization')
+- **Root Cause — "Litera Plugin encountered an error: Cannot access 'b' before initialization":** Pada `LiteraWidget.tsx` v1.4.29, pemanggilan hook `useEffect(..., [isLoginModalOpen])` dan `useEffect(..., [tokenId])` ditaruh di bagian atas fungsi komponen sebelum variabel state `isLoginModalOpen`, `localUnlocked`, `unlockedContent`, `step`, dll. dideklarasikan (Temporal Dead Zone). Saat render, JavaScript mengevaluasi array dependensi `[isLoginModalOpen]` sebelum deklarasi `const [isLoginModalOpen, setIsLoginModalOpen]`, memicu `ReferenceError: Cannot access 'b' before initialization` (di mana `b` adalah nama minified untuk `isLoginModalOpen`).
+- **Perbaikan:** Menata ulang seluruh deklarasi state, hook Wagmi/Privy, derived values, dan refs secara ketat di baris teratas fungsi komponen `LiteraWidget` sebelum seluruh handler dan `useEffect`.
+- **Hasil:** Error boundary tidak lagi terpicu; widget ter-mount dan render mulus 100%.
+
 ## v1.4.29 (Fix Absolute CDN PublicPath for Async Chunks & Clean Preload)
 - **Root Cause — "Di mobile langsung ada peringatan gagal muat dialog dompet":** Pada webpack build lama, `publicPath` di-set default `"/"` (relative root host). Akibatnya, saat widget di-embed di domain pihak ketiga (mis. `letmehearyou.id`), browser mencoba memuat async chunk dari `https://letmehearyou.id/*.chunk.js` yang menghasilkan 404 ChunkLoadError. Padahal seluruh chunk async dideploy di `https://cdn.literaa.xyz/*.chunk.js`.
 - **Perbaikan `build-combined.js`:** Menambahkan `config.output.publicPath = 'https://cdn.literaa.xyz/'` secara eksplisit, sehingga seluruh dynamic import runtime webpack memuat chunk langsung dari CDN Litera terlepas dari domain host yang meng-embed widget.

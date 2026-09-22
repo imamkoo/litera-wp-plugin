@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
 import { usePrivy, useLogout, useLogin } from '@privy-io/react-auth';
-import { openWeb3ModalSafe, mountWeb3Modal, getWeb3ModalLoadState } from '../web3modal-lazy';
+import { openWeb3ModalSafe, mountWeb3Modal } from '../web3modal-lazy';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon, CopyIcon, LogOutIcon, CheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
 import axios from 'axios';
@@ -218,27 +218,65 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.29';
+const WIDGET_VERSION = '1.4.30';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
+  // --- Wagmi & Privy Auth Hooks ---
+  const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
+  const { disconnect: wagmiDisconnect } = useDisconnect();
+  const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser } = usePrivy();
+  const { logout: privyLogout } = useLogout();
+  const { signMessageAsync } = useSignMessage();
+
+  // --- Modal & Connection States ---
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [cloudWalletAddress, setCloudWalletAddress] = useState<string | null>(null);
+  const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [web3ModalLoading, setWeb3ModalLoading] = useState(false);
+  const [web3ModalError, setWeb3ModalError] = useState<string | null>(null);
+
+  // --- Content & Metadata States ---
+  const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
+  const [localUnlocked, setLocalUnlocked] = useState(false);
+  const [sponsorUrl, setSponsorUrl] = useState<string | null>(null);
+  const [nftMedia, setNftMedia] = useState<{ url: string, type: 'image' | 'video' } | null>(null);
+  const [publisherName, setPublisherName] = useState<string | null>(null);
+  const [authorName, setAuthorName] = useState<string | null>(null);
+  const [articleCid, setArticleCid] = useState<string | null>(null);
+
+  // --- Quiz & Auth States ---
+  const [step, setStep] = useState<'idle' | 'checking_auth' | 'quiz_intro' | 'quiz_active' | 'quiz_evaluating' | 'quiz_result' | 'mint_ready' | 'minting' | 'receipt' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [quizResult, setQuizResult] = useState<any | null>(null);
+
+  // --- Refs ---
+  const popupRef = useRef<Window | null>(null);
+  const authNonceRef = useRef<string | null>(null);
+
+  // --- Derived Auth & Contract Values ---
+  const address = wagmiAddress || privyUser?.wallet?.address || cloudWalletAddress || undefined;
+  const isConnected = isWagmiConnected || privyAuthenticated || !!cloudWalletAddress;
+  const nftContractAddress = generation === 'legacy' && legacyContractAddress ? legacyContractAddress : Erc1155Adress;
+  const isLegacy = generation === 'legacy';
+
+  // --- Effects ---
   useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).__LITERA_WIDGET_VERSION__ = WIDGET_VERSION;
     }
   }, []);
 
-  // MOBILE FIX: Preload Web3Modal chunk seketika setelah widget ter-mount.
-  // Browser mobile hanya mengizinkan modal/popup terbuka SYNCHRONOUS dalam user
-  // gesture. Tanpa preload, import() async membuat gesture kedaluwarsa → popup
-  // diblokir total saat user klik "Hubungkan Dompet". Preload memastikan chunk
-  // sudah ada di memori sebelum user sempat mengklik.
-  const [web3ModalLoading, setWeb3ModalLoading] = useState(false);
-  const [web3ModalError, setWeb3ModalError] = useState<string | null>(null);
-  const web3ModalReadyRef = useRef(false);
+  // Inject theme CSS on mount
+  useEffect(() => { injectThemeCSS(); }, []);
 
+  // Preload Web3Modal chunk saat modal login dibuka
   useEffect(() => {
-    // Hanya preload chunk Web3Modal saat user membuka modal login (bukan di background mount).
-    // Ini menghemat data mobile dan menghindari error flash sebelum user berniat klik wallet.
     if (isLoginModalOpen) {
       setWeb3ModalLoading(true);
       setWeb3ModalError(null);
@@ -265,20 +303,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     setErrorMessage('');
   }, [tokenId]);
 
-  const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
-  const { disconnect: wagmiDisconnect } = useDisconnect();
-  const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser } = usePrivy();
-  const { logout: privyLogout } = useLogout();
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
-  const [cloudWalletAddress, setCloudWalletAddress] = useState<string | null>(null);
-  const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-
-  const address = wagmiAddress || privyUser?.wallet?.address || cloudWalletAddress || undefined;
-  const isConnected = isWagmiConnected || privyAuthenticated || !!cloudWalletAddress;
-
+  // --- Action Handlers ---
   const handleDisconnect = () => {
     try { wagmiDisconnect(); } catch (e) {}
     try { privyLogout(); } catch (e) {}
@@ -295,12 +320,14 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
   };
+
   const { login: privyLoginWithError } = useLogin({
     onError: (err: any) => {
       console.error('[Litera Widget] Privy login gagal:', err);
       setLoginError('Login email/Google tidak tersedia di situs ini. Gunakan “Hubungkan Dompet” untuk melanjutkan tanpa meninggalkan artikel.');
     },
   });
+
   const handlePrivyLogin = () => {
     setLoginError(null);
     setIsLoginModalOpen(false);
@@ -310,15 +337,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const handleConnectWallet = () => {
     setLoginError(null);
     setIsLoginModalOpen(false);
-    // Bila modal sudah siap (preloaded), open() berjalan synchronous dalam
-    // gesture ini → mobile browser mengizinkannya. Bila belum siap, UI
-    // menunjukkan loading state via web3ModalLoading.
     openWeb3ModalSafe();
   };
-
-
-  const popupRef = useRef<Window | null>(null);
-  const authNonceRef = useRef<string | null>(null);
 
   const isMobileDevice = () => {
     if (typeof window === 'undefined') return false;
@@ -350,8 +370,6 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const openCloudWalletPopup = () => {
     setLoginError(null);
     setIsLoginModalOpen(false);
-    // Mobile: popup window.open tidak reliable (blocked / opener null).
-    // Gunakan full-page redirect OAuth-style; setelah login user kembali ke artikel.
     if (isMobileDevice()) {
       try {
         sessionStorage.setItem('litera_pending_article', window.location.href);
@@ -379,7 +397,6 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       const payload = e.data;
       if (!payload || typeof payload !== 'object') return;
       if (payload.type === 'LITERA_CLOUD_LOGIN_SUCCESS') {
-        // Validasi state/nonce jika ada untuk menjamin pesan berasal dari alur login yang sah
         const expectedNonce = authNonceRef.current || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('litera_auth_nonce') : null);
         if (expectedNonce && payload.state && payload.state !== expectedNonce) {
           console.warn('[Litera Widget] Nonce state mismatch. Aborting handshake.');
@@ -405,8 +422,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     return () => window.removeEventListener('message', onMessage);
   }, [tokenId]);
 
-  // Mobile OAuth-style return: setelah login di literaa.xyz, user di-redirect
-  // kembali ke artikel dengan ?lite_addr=0x... di URL. Baca, simpan, bersihkan URL.
+  // Mobile OAuth-style return
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const url = new URL(window.location.href);
@@ -415,7 +431,6 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     const expectedNonce = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('litera_auth_nonce') : null;
 
     if (addr && /^0x[a-fA-F0-9]{40}$/.test(addr)) {
-      // Validasi nonce state jika tersimpan
       if (expectedNonce && returnedState && returnedState !== expectedNonce) {
         console.warn('[Litera Widget] Mobile OAuth state mismatch. Ignoring return.');
       } else {
@@ -437,9 +452,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     } catch (e) {}
   }, []);
 
-  // Deteksi popup ditutup tanpa postMessage (mis. user tekan X / block popup)
-  // Saat terdeteksi, kirim CLOSED ke diri sendiri agar tombol "Connecting…"
-  // di-reset. Tanpa ini tombol stuck selamanya setelah user batal login.
+  // Watchdog popup close
   useEffect(() => {
     if (!isConnecting || !popupRef.current) return;
     const timer = setInterval(() => {
@@ -452,29 +465,6 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     }, 500);
     return () => clearInterval(timer);
   }, [isConnecting]);
-  const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
-  const [localUnlocked, setLocalUnlocked] = useState(false);
-  const [sponsorUrl, setSponsorUrl] = useState<string | null>(null);
-  const [nftMedia, setNftMedia] = useState<{ url: string, type: 'image' | 'video' } | null>(null);
-  const [publisherName, setPublisherName] = useState<string | null>(null);
-  const [authorName, setAuthorName] = useState<string | null>(null);
-  const [articleCid, setArticleCid] = useState<string | null>(null);
-  const { signMessageAsync } = useSignMessage();
-
-  // Determine contract addresses based on generation
-  const nftContractAddress = generation === 'legacy' && legacyContractAddress ? legacyContractAddress : Erc1155Adress;
-  const isLegacy = generation === 'legacy';
-
-  // --- Quiz & Auth States ---
-  const [step, setStep] = useState<'idle' | 'checking_auth' | 'quiz_intro' | 'quiz_active' | 'quiz_evaluating' | 'quiz_result' | 'mint_ready' | 'minting' | 'receipt' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [questions, setQuestions] = useState<any[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [quizResult, setQuizResult] = useState<any | null>(null);
-
-  // --- Inject theme CSS on mount ---
-  useEffect(() => { injectThemeCSS(); }, []);
 
   // --- Contracts Write ---
   const { writeContract: approveWrite, data: approveHash, isPending: isApprovingReq } = useWriteContract();
