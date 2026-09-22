@@ -172,17 +172,17 @@ window.addEventListener('litera:article-change', () => {
   setTimeout(checkAndRemount, 50);
 });
 
-if (typeof history !== 'undefined') {
-  const origPushState = history.pushState;
-  const origReplaceState = history.replaceState;
+if (typeof window !== 'undefined' && window.history) {
+  const origPushState = window.history.pushState;
+  const origReplaceState = window.history.replaceState;
 
-  history.pushState = function (...args) {
+  window.history.pushState = function (...args) {
     const res = origPushState.apply(this, args);
     setTimeout(checkAndRemount, 50);
     return res;
   };
 
-  history.replaceState = function (...args) {
+  window.history.replaceState = function (...args) {
     const res = origReplaceState.apply(this, args);
     setTimeout(checkAndRemount, 50);
     return res;
