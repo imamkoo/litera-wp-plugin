@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.29 (Fix Absolute CDN PublicPath for Async Chunks & Clean Preload)
+- **Root Cause — "Di mobile langsung ada peringatan gagal muat dialog dompet":** Pada webpack build lama, `publicPath` di-set default `"/"` (relative root host). Akibatnya, saat widget di-embed di domain pihak ketiga (mis. `letmehearyou.id`), browser mencoba memuat async chunk dari `https://letmehearyou.id/*.chunk.js` yang menghasilkan 404 ChunkLoadError. Padahal seluruh chunk async dideploy di `https://cdn.literaa.xyz/*.chunk.js`.
+- **Perbaikan `build-combined.js`:** Menambahkan `config.output.publicPath = 'https://cdn.literaa.xyz/'` secara eksplisit, sehingga seluruh dynamic import runtime webpack memuat chunk langsung dari CDN Litera terlepas dari domain host yang meng-embed widget.
+- **Perbaikan Preload di `LiteraWidget.tsx`:** Preload Web3Modal dipindah hanya saat modal login dibuka (`isLoginModalOpen === true`) alih-alih background idle mount. Ini menghemat bandwidth mobile dan mengeliminasi error banner prematur sebelum user berinteraksi.
+
 ## v1.4.28 (Mobile Connect Wallet: Preload Chunk & Error Visibility)
 - **Root Cause — "Di mobile, klik Connect Wallet tidak muncul popup apa pun":** Browser mobile (iOS Safari, Chrome Android) menghendaki `window.open()` / pembukaan modal terjadi **synchronous dalam user gesture**. `openWeb3ModalSafe()` lama memanggil `import('@web3modal/wagmi/react')` (dynamic import, async) di dalam `onClick` — saat chunk selesai dimuat, gesture user sudah kedaluwarsa dan browser **memblokir modal total**. Tambahan `.catch(() => {})` menelan error, membuat user tidak melihat feedback apa pun.
 - **Perbaikan Plugin:**

@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.28';
+const WIDGET_VERSION = '1.4.29';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   useEffect(() => {
@@ -237,30 +237,22 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const web3ModalReadyRef = useRef(false);
 
   useEffect(() => {
-    const initial = getWeb3ModalLoadState();
-    if (initial.error) setWeb3ModalError(initial.error);
-
-    // Hanya preload jika user DIARTIKAN akan butuh modal (sudah pernah interact)
-    // atau browser mendukung requestIdleCallback. Preload di idle callback
-    // menghindari membebani first paint.
-    const start = () => {
-      if (web3ModalReadyRef.current) return;
+    // Hanya preload chunk Web3Modal saat user membuka modal login (bukan di background mount).
+    // Ini menghemat data mobile dan menghindari error flash sebelum user berniat klik wallet.
+    if (isLoginModalOpen) {
       setWeb3ModalLoading(true);
+      setWeb3ModalError(null);
       mountWeb3Modal()
+        .then(() => {
+          setWeb3ModalError(null);
+        })
         .catch((err) => {
-          console.warn('[Litera Widget] Web3Modal preload gagal:', err);
-          setWeb3ModalError('Gagal memuat dialog dompet. Coba lagi atau gunakan Email/Google.');
+          console.warn('[Litera Widget] Web3Modal load gagal:', err);
+          setWeb3ModalError('Gagal memuat dialog dompet. Silakan gunakan opsi Email atau Google.');
         })
         .finally(() => setWeb3ModalLoading(false));
-    };
-
-    if (typeof (window as any).requestIdleCallback === 'function') {
-      const id = (window as any).requestIdleCallback(start, { timeout: 3000 });
-      return () => { try { (window as any).cancelIdleCallback(id); } catch (e) {} };
     }
-    const t = setTimeout(start, 1200);
-    return () => clearTimeout(t);
-  }, []);
+  }, [isLoginModalOpen]);
 
   // Reset state lokal kuis & unlock ketika berpindah artikel (SPA navigation)
   useEffect(() => {

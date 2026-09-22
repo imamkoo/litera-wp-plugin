@@ -46,5 +46,10 @@ config.optimization.runtimeChunk = false;
 
 // 4. Output harus konsisten namanya di root directory agar sesuai dengan litera.php
 // Chunk async dapat hash konten (cache-busting CDN yang benar).
+// CRITICAL: publicPath HARUS 'https://cdn.literaa.xyz/' karena bundle di-embed
+// di domain pihak ketiga (WordPress, Next.js, Web Builder). Jika publicPath '/',
+// webpack akan me-resolve URL async chunk ke domain host (mis. letmehearyou.id/*.chunk.js)
+// yang berujung 404 ChunkLoadError ("Gagal memuat dialog dompet").
+config.output.publicPath = 'https://cdn.literaa.xyz/';
 config.output.filename = 'bundle.js';
 config.output.chunkFilename = '[name].[contenthash:8].chunk.js';
