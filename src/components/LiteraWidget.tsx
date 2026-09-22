@@ -390,12 +390,15 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   }, []);
 
   // Deteksi popup ditutup tanpa postMessage (mis. user tekan X / block popup)
+  // Saat terdeteksi, kirim CLOSED ke diri sendiri agar tombol "Connecting…"
+  // di-reset. Tanpa ini tombol stuck selamanya setelah user batal login.
   useEffect(() => {
     if (!isConnecting || !popupRef.current) return;
     const timer = setInterval(() => {
       if (popupRef.current?.closed) {
         popupRef.current = null;
         setIsConnecting(false);
+        setIsLoginModalOpen(false);
         clearInterval(timer);
       }
     }, 500);
