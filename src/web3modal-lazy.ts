@@ -18,7 +18,7 @@
 // popup diblokir total. Itulah sebabnya chunk HARUS di-preload jauh sebelum user
 // klik (lihat preloadWeb3Modal() di LiteraWidget), sehingga open() jalan sync.
 
-import { config, projectId } from './config';
+import { config, metadata, projectId } from './config';
 
 type ModalInstance = {
   open: (opts?: any) => Promise<void>;
@@ -74,7 +74,8 @@ export function mountWeb3Modal(): Promise<void> {
       modalInstance = mod.createWeb3Modal({
         wagmiConfig: config,
         projectId,
-        enableAnalytics: true,
+        metadata,
+        enableAnalytics: false,
         themeMode: 'light',
         themeVariables: {
           '--w3m-accent': '#d07954',
