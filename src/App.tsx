@@ -23,6 +23,7 @@ function App() {
   const [rawPermalink, setRawPermalink] = useState<string>('');
   const [resolvedData, setResolvedData] = useState<ResolveResult | null>(null);
   const [isResolving, setIsResolving] = useState(false);
+  const [resolveAttempted, setResolveAttempted] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
 
   const syncArticle = () => {
@@ -52,6 +53,7 @@ function App() {
         if (prev !== normalized) {
           setResolvedData(null);
           setResolveError(null);
+          setResolveAttempted(false);
           setLookupTimedOut(false);
           setPermalinkTimedOut(false);
           return normalized;
@@ -79,6 +81,7 @@ function App() {
         if (detail.title) setArticleTitle(detail.title);
         setResolvedData(null);
         setResolveError(null);
+        setResolveAttempted(false);
         setLookupTimedOut(false);
         setPermalinkTimedOut(false);
       } else {
@@ -100,7 +103,7 @@ function App() {
   }, []);
 
   // 1. On-chain lookup berdasarkan URL yang sudah dinormalisasi
-  const { data: tokenIdRaw, isLoading, isError, error } = useReadContract({
+  const { data: tokenIdRaw, isLoading, isFetching, status, isError, error } = useReadContract({
     address: contractAddress,
     abi: contractABI,
     functionName: 'getIdFromArticleURL',
@@ -162,7 +165,7 @@ function App() {
     }
 
     // Jangan panggil resolve jika on-chain lookup masih berlangsung
-    if (isLoading || !rawPermalink) {
+    if (isLoading || isFetching || (status as string) === 'pending' || !rawPermalink) {
       return;
     }
 
@@ -201,6 +204,7 @@ function App() {
           setResolveError(`Network error: ${err.message || 'timeout'}`);
         } finally {
           setIsResolving(false);
+          setResolveAttempted(true);
         }
       };
 
@@ -212,7 +216,7 @@ function App() {
         setIsResolving(false);
       };
     }
-  }, [isLoading, lookupFailed, tokenId, rawPermalink]);
+  }, [isLoading, isFetching, status, lookupFailed, tokenId, rawPermalink]);
 
 
 
@@ -241,10 +245,14 @@ function App() {
     );
   }
 
-  // 3. State "Loading Skeleton" — hanya tampil maksimal beberapa detik.
-  // `!permalinkTimedOut` memastikan skeleton tetap punya batas waktu meski
-  // pemicunya `!permalink` (bukan `isLoading` dari on-chain query).
-  if ((isLoading || (!permalink && !permalinkTimedOut) || isResolving) && !lookupFailed && !resolvedData && !resolveError) {
+  const isOnChainLoading = isLoading || isFetching || (status as string) === 'pending';
+  const isChainDone = !isOnChainLoading && (status as string) !== 'pending';
+
+  // Jika on-chain selesai dan menghasilkan tokenId === 0, tapi backend fallback /resolve belum selesai mencoba:
+  const isWaitingFallback = isChainDone && tokenId === 0 && !resolveAttempted && !lookupFailed && !resolvedData;
+
+  // 3. State "Loading Skeleton" — tampil saat on-chain ATAU fallback resolve masih mencari token
+  if ((isOnChainLoading || (!permalink && !permalinkTimedOut) || isResolving || isWaitingFallback) && !lookupFailed && !resolvedData && !resolveError) {
     return (
       <div className="App relative flex flex-col justify-center items-center py-12 px-6 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl border border-slate-200 dark:border-white/5 shadow-2xl dark:shadow-[0_0_50px_-15px_rgba(0,0,0,0.5)] my-8 overflow-hidden text-center transition-colors duration-500">
          <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-indigo-500/10 dark:from-blue-500/5 dark:to-indigo-500/5"></div>
@@ -282,8 +290,8 @@ function App() {
     );
   }
 
-  // 4. State "Not Published" - hanya jika tidak ada hasil dari resolve
-  if ((isError || tokenId === 0) && !resolvedData) {
+  // 4. State "Not Published" - HANYA jika on-chain DAN fallback resolve SUDAH selesai dan terbukti tidak ada NFT
+  if (isChainDone && !isResolving && (resolveAttempted || lookupFailed || resolveError) && tokenId === 0 && !resolvedData) {
     return (
       <div className="App flex justify-center items-center p-6 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-300 dark:border-slate-600 my-8 shadow-sm transition-colors duration-500">
          <div className="flex items-center gap-3">

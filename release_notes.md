@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.27 (Eliminate Flash of 'Not Published' State on Article Load)
+- **Root Cause Fix — "Flash banner 'Artikel ini belum diterbitkan sebagai NFT' sebelum widget NFT muncul":** Saat pertama kali artikel dibuka, terdapat race condition di mana query on-chain V2 selesai atau belum mengembalikan `tokenId`, sementara effect fallback resolve belum sempat berjalan. Pada saat itu, state evaluasi langsung menyimpulkan `tokenId === 0` dan merender pesan "Artikel ini belum diterbitkan" selama ~200-500ms sebelum widget NFT yang sesungguhnya termuat.
+- **Perbaikan:** Menambahkan penanda `resolveAttempted` dan guard `isChainDone` & `isWaitingFallback`. Loading skeleton tetap ditampilkan selama proses verifikasi on-chain maupun fallback resolve backend masih berlangsung. Status "Artikel ini belum diterbitkan sebagai NFT di Litera" HANYA boleh muncul jika on-chain DAN fallback resolve keduanya benar-benar telah selesai dan membuktikan bahwa artikel tersebut tidak memiliki NFT terdaftar.
+- **Hasil:** Transisi visual mulus dari Skeleton langsung ke Exclusive Collectible (Image 1 -> Image 3) tanpa pernah memunculkan pesan peringatan palsu di tengah-tengah (Image 2).
+
 ## v1.4.26 (Native SPA & React/Next.js Client Navigation Support)
 - **Root Cause Fix — "Pindah artikel di React/Next.js tanpa reload page membuat widget tidak muncul cepat":** Pada aplikasi berbasis SPA (seperti Next.js, React Router, atau tema modern), perpindahan halaman/artikel tidak memicu reload dokumen utuh melainkan manipulasi DOM client-side (`history.pushState`). Bundle lama hanya mencari container `#my-react-plugin-root` satu kali saat script dimuat lalu pasif, dan referensi container lama terlepas dari dokumen tanpa di-mount ulang.
 - **Global API `window.literaMount`:** Menampilkan fungsi `literaMount(target?: HTMLElement | string)` secara global ke `window` sehingga wrapper SPA (seperti komponen Next.js pada `letmehearyou.id` atau platform web builder) dapat me-mount ulang widget ke container aktif secara instan.
