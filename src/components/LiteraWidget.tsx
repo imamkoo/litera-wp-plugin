@@ -275,14 +275,42 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   // Inject theme CSS on mount
   useEffect(() => { injectThemeCSS(); }, []);
 
-  // Reset status "Connecting…" saat modal Web3Modal ditutup (mis. user tekan X atau klik luar)
+  // Mirror wagmi connection state ke ref agar watchdog baca nilai terbaru
+  // tanpa harus jadi dependency useEffect (mencegah restart interval sia-sia).
+  const wagmiConnectedRef = useRef(false);
+  useEffect(() => { wagmiConnectedRef.current = isWagmiConnected; }, [isWagmiConnected]);
+
+  // Watchdog reset isConnecting:
+  //   - Saat wagmi.isConnected berubah ke true → user berhasil connect → reset.
+  //   - Setelah 60 detik tanpa connect → diasumsikan user menutup modal tanpa melanjutkan → reset.
+  // Tidak lagi bergantung pada subscribeState Reown yang tidak reliable.
   useEffect(() => {
-    return subscribeWeb3ModalOpen((isOpen) => {
-      if (!isOpen) {
-        setIsConnecting(false);
+    if (!isConnecting) return;
+    let cancelled = false;
+    let ticked = 0;
+    const MAX_TICKS = 60;
+    const id = setInterval(() => {
+      if (cancelled) return;
+      ticked++;
+      if (wagmiConnectedRef.current) {
+        clearInterval(id);
+        if (!cancelled) {
+          setIsConnecting(false);
+          setIsLoginModalOpen(false);
+          setLoginError(null);
+        }
+        return;
       }
-    });
-  }, []);
+      if (ticked >= MAX_TICKS) {
+        clearInterval(id);
+        if (!cancelled) {
+          setIsConnecting(false);
+          setIsLoginModalOpen(false);
+        }
+      }
+    }, 1000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [isConnecting]);
 
   // Preload Web3Modal chunk saat modal login dibuka
   useEffect(() => {
@@ -346,7 +374,10 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const handleConnectWallet = () => {
     setLoginError(null);
     setIsLoginModalOpen(false);
-    setIsConnecting(true);
+    // Watchdog (lihat useEffect isConnecting) akan reset state setelah
+    // wagmi terkoneksi atau setelah 60 detik tanpa koneksi.
+    // Tidak ada flag teks "Connecting…" pada tombol — modal Reown sudah
+    // menjadi feedback visual bagi pengguna.
     openWeb3ModalSafe();
   };
 
@@ -984,7 +1015,7 @@ Expires: ${expiresAt}`;
             <span style={{ fontSize: '11px', opacity: 0.7, fontFamily: 'monospace' }}>{address?.slice(0, 6)}...{address?.slice(-4)}</span>
           </>
         ) : (
-          <span>{isConnecting ? 'Connecting…' : 'Connect Wallet to Collect'}</span>
+          <span>Connect Wallet to Collect</span>
         )}
       </button>
 
