@@ -11,19 +11,55 @@
 // jadi setelah chunk ini load & createWeb3Modal jalan, hook di mana pun
 // langsung bekerja. openWeb3ModalSafe() adalah jalur aman memanggil open()
 // tanpa harus tahu apakah modal sudah terdaftar.
+//
+// MOBILE: browser mobile (iOS Safari, Chrome Android) mewajibkan window.open()
+// / modal terbuka SYNCHRONOUS dalam user gesture. Karena dynamic import bersifat
+// async, gesture user sudah kedaluwarsa saat modalInstance.open() dipanggil ->
+// popup diblokir total. Itulah sebabnya chunk HARUS di-preload jauh sebelum user
+// klik (lihat preloadWeb3Modal() di LiteraWidget), sehingga open() jalan sync.
 
 import { config, projectId } from './config';
 
+type ModalInstance = { open: (opts?: any) => Promise<void> };
+
 let loadPromise: Promise<void> | null = null;
-let modalInstance: { open: (opts?: any) => Promise<void> } | null = null;
+let modalInstance: ModalInstance | null = null;
+
+export type Web3ModalLoadState = { loading: boolean; error: string | null };
+let loadState: Web3ModalLoadState = { loading: false, error: null };
+const stateListeners = new Set<(s: Web3ModalLoadState) => void>();
+
+function notifyState() {
+  stateListeners.forEach((fn) => {
+    try { fn(loadState); } catch (e) {}
+  });
+}
+
+export function getWeb3ModalLoadState(): Web3ModalLoadState {
+  return loadState;
+}
+
+export function subscribeWeb3ModalState(fn: (s: Web3ModalLoadState) => void): () => void {
+  stateListeners.add(fn);
+  return () => { stateListeners.delete(fn); };
+}
+
+export function isWeb3ModalReady(): boolean {
+  return !!modalInstance;
+}
+
+// Alias lama (kompatibilitas panggilan yang sudah ada).
+export const preloadWeb3Modal = mountWeb3Modal;
 
 export function mountWeb3Modal(): Promise<void> {
+  if (modalInstance) return Promise.resolve();
   if (loadPromise) return loadPromise;
+
+  loadState = { loading: true, error: null };
+  notifyState();
+
   loadPromise = import('@web3modal/wagmi/react')
     .then((mod) => {
-      // createWeb3Modal mengembalikan instance modal dengan metode open()
-      // secara langsung — tidak perlu lewat hook useWeb3Modal (yang hanya
-      // bisa dipanggil di dalam komponen React).
       modalInstance = mod.createWeb3Modal({
         wagmiConfig: config,
         projectId,
@@ -39,17 +75,23 @@ export function mountWeb3Modal(): Promise<void> {
           '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0', // Trust Wallet
           '1ae92b26df02f0abca6304df07081e6c6eb18c7d01eb017d121c5462fc48f219', // OKX
         ],
-      }) as { open: (opts?: any) => Promise<void> };
+      }) as ModalInstance;
+      loadState = { loading: false, error: null };
+      notifyState();
     })
     .catch((err) => {
       console.error('[Litera Widget] Web3Modal gagal dimuat (chunk network error):', err);
       loadPromise = null;
+      loadState = { loading: false, error: 'Gagal memuat dialog dompet. Coba lagi atau gunakan Email/Google.' };
+      notifyState();
       throw err;
     });
   return loadPromise;
 }
 
-// Jalur aman: load chunk (bila belum), lalu open modal.
+// Jalur aman: bila modal sudah siap, open() dipanggil SYNCHRONOUS dalam user
+// gesture (mobile-friendly). Bila belum, muat chunk dulu lalu buka — di jalur
+// ini gesture sudah hilang, jadi UI harus menunjukkan loading & error state.
 export function openWeb3ModalSafe(opts?: any): void {
   if (modalInstance) {
     modalInstance.open(opts).catch((e) => console.warn('[Litera Widget] open gagal:', e));
@@ -57,5 +99,7 @@ export function openWeb3ModalSafe(opts?: any): void {
   }
   mountWeb3Modal().then(() => {
     modalInstance?.open(opts).catch((e) => console.warn('[Litera Widget] open gagal:', e));
-  }).catch(() => {});
+  }).catch(() => {
+    // Error state sudah disimpan di loadState; subscriber UI menampilkannya.
+  });
 }

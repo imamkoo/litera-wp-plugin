@@ -1,5 +1,13 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.28 (Mobile Connect Wallet: Preload Chunk & Error Visibility)
+- **Root Cause — "Di mobile, klik Connect Wallet tidak muncul popup apa pun":** Browser mobile (iOS Safari, Chrome Android) menghendaki `window.open()` / pembukaan modal terjadi **synchronous dalam user gesture**. `openWeb3ModalSafe()` lama memanggil `import('@web3modal/wagmi/react')` (dynamic import, async) di dalam `onClick` — saat chunk selesai dimuat, gesture user sudah kedaluwarsa dan browser **memblokir modal total**. Tambahan `.catch(() => {})` menelan error, membuat user tidak melihat feedback apa pun.
+- **Perbaikan Plugin:**
+  1. **Preload chunk Web3Modal seawal mungkin** (`requestIdleCallback` / fallback `setTimeout`) begitu widget ter-mount, sehingga saat user klik "Hubungkan Dompet", `modalInstance.open()` berjalan **synchronous** dalam gesture → mobile browser mengizinkannya.
+  2. **Loading state & error visible:** Tombol menampilkan "Memuat dompet…" selama chunk belum siap dan pesan error eksplisit bila chunk gagal dimuat (sebelumnya ditelan diam-diam).
+  3. State load di-cache di `web3modal-lazy.ts` dengan subscriber pattern agar UI reaktif.
+- **Perbaikan Dashboard (`WalletButton.tsx`):** Saat wagmi/Privy masih hydrating (lambat di mobile), tombol sebelumnya adalah skeleton pasif yang **tidak bisa diklik**. Sekarang tetap merender tombol aktif "Masuk ke Litera" (Privy login tidak butuh wagmi mounted); indikator "Memuat…" hanya menonaktifkan sementara sampai Privy ready.
+
 ## v1.4.27 (Eliminate Flash of 'Not Published' State on Article Load)
 - **Root Cause Fix — "Flash banner 'Artikel ini belum diterbitkan sebagai NFT' sebelum widget NFT muncul":** Saat pertama kali artikel dibuka, terdapat race condition di mana query on-chain V2 selesai atau belum mengembalikan `tokenId`, sementara effect fallback resolve belum sempat berjalan. Pada saat itu, state evaluasi langsung menyimpulkan `tokenId === 0` dan merender pesan "Artikel ini belum diterbitkan" selama ~200-500ms sebelum widget NFT yang sesungguhnya termuat.
 - **Perbaikan:** Menambahkan penanda `resolveAttempted` dan guard `isChainDone` & `isWaitingFallback`. Loading skeleton tetap ditampilkan selama proses verifikasi on-chain maupun fallback resolve backend masih berlangsung. Status "Artikel ini belum diterbitkan sebagai NFT di Litera" HANYA boleh muncul jika on-chain DAN fallback resolve keduanya benar-benar telah selesai dan membuktikan bahwa artikel tersebut tidak memiliki NFT terdaftar.

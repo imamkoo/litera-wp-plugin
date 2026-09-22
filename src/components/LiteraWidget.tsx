@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
 import { usePrivy, useLogout, useLogin } from '@privy-io/react-auth';
-import { openWeb3ModalSafe } from '../web3modal-lazy';
+import { openWeb3ModalSafe, mountWeb3Modal, getWeb3ModalLoadState } from '../web3modal-lazy';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon, CopyIcon, LogOutIcon, CheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
 import axios from 'axios';
@@ -218,13 +218,48 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.27';
+const WIDGET_VERSION = '1.4.28';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).__LITERA_WIDGET_VERSION__ = WIDGET_VERSION;
     }
+  }, []);
+
+  // MOBILE FIX: Preload Web3Modal chunk seketika setelah widget ter-mount.
+  // Browser mobile hanya mengizinkan modal/popup terbuka SYNCHRONOUS dalam user
+  // gesture. Tanpa preload, import() async membuat gesture kedaluwarsa → popup
+  // diblokir total saat user klik "Hubungkan Dompet". Preload memastikan chunk
+  // sudah ada di memori sebelum user sempat mengklik.
+  const [web3ModalLoading, setWeb3ModalLoading] = useState(false);
+  const [web3ModalError, setWeb3ModalError] = useState<string | null>(null);
+  const web3ModalReadyRef = useRef(false);
+
+  useEffect(() => {
+    const initial = getWeb3ModalLoadState();
+    if (initial.error) setWeb3ModalError(initial.error);
+
+    // Hanya preload jika user DIARTIKAN akan butuh modal (sudah pernah interact)
+    // atau browser mendukung requestIdleCallback. Preload di idle callback
+    // menghindari membebani first paint.
+    const start = () => {
+      if (web3ModalReadyRef.current) return;
+      setWeb3ModalLoading(true);
+      mountWeb3Modal()
+        .catch((err) => {
+          console.warn('[Litera Widget] Web3Modal preload gagal:', err);
+          setWeb3ModalError('Gagal memuat dialog dompet. Coba lagi atau gunakan Email/Google.');
+        })
+        .finally(() => setWeb3ModalLoading(false));
+    };
+
+    if (typeof (window as any).requestIdleCallback === 'function') {
+      const id = (window as any).requestIdleCallback(start, { timeout: 3000 });
+      return () => { try { (window as any).cancelIdleCallback(id); } catch (e) {} };
+    }
+    const t = setTimeout(start, 1200);
+    return () => clearTimeout(t);
   }, []);
 
   // Reset state lokal kuis & unlock ketika berpindah artikel (SPA navigation)
@@ -279,6 +314,16 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     setIsLoginModalOpen(false);
     privyLoginWithError();
   };
+
+  const handleConnectWallet = () => {
+    setLoginError(null);
+    setIsLoginModalOpen(false);
+    // Bila modal sudah siap (preloaded), open() berjalan synchronous dalam
+    // gesture ini → mobile browser mengizinkannya. Bila belum siap, UI
+    // menunjukkan loading state via web3ModalLoading.
+    openWeb3ModalSafe();
+  };
+
 
   const popupRef = useRef<Window | null>(null);
   const authNonceRef = useRef<string | null>(null);
@@ -1152,19 +1197,33 @@ Expires: ${expiresAt}`;
             )}
 
             <button
-              onClick={() => { setIsLoginModalOpen(false); openWeb3ModalSafe(); }}
+              onClick={() => { handleConnectWallet(); }}
+              disabled={web3ModalLoading}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: '16px',
                 padding: '16px', borderRadius: '16px',
                 backgroundColor: '#ffffff', border: '1px solid #e5e7eb',
-                cursor: 'pointer', textAlign: 'left'
+                cursor: web3ModalLoading ? 'not-allowed' : 'pointer', textAlign: 'left',
+                opacity: web3ModalLoading ? 0.7 : 1,
               }}
             >
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Hubungkan Dompet</div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>MetaMask, Coinbase, dll.</div>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>
+                  {web3ModalLoading ? 'Memuat dompet…' : 'Hubungkan Dompet'}
+                </div>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>
+                  {web3ModalLoading ? 'Menyiapkan dialog, mohon tunggu sebentar.' : 'MetaMask, Coinbase, dll.'}
+                </div>
               </div>
+              {web3ModalLoading && (
+                <Loader2Icon size={18} style={{ animation: 'spin 1s linear infinite', color: '#d07954' }} />
+              )}
             </button>
+            {web3ModalError && (
+              <div style={{ marginTop: '12px', padding: '10px 12px', borderRadius: '12px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', fontSize: '12px', color: '#b91c1c', textAlign: 'left' }}>
+                {web3ModalError}
+              </div>
+            )}
             <div style={{ marginTop: '24px', borderTop: '1px solid #e5e7eb', paddingTop: '16px', textAlign: 'center' }}>
               <span style={{ fontSize: '12px', color: '#9ca3af' }}>Powered by Litera</span>
             </div>
