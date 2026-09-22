@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.25';
+const WIDGET_VERSION = '1.4.26';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   useEffect(() => {
@@ -226,6 +226,17 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       (window as any).__LITERA_WIDGET_VERSION__ = WIDGET_VERSION;
     }
   }, []);
+
+  // Reset state lokal kuis & unlock ketika berpindah artikel (SPA navigation)
+  useEffect(() => {
+    setLocalUnlocked(false);
+    setUnlockedContent(null);
+    setStep('idle');
+    setQuestions([]);
+    setAnswers({});
+    setQuizResult(null);
+    setErrorMessage('');
+  }, [tokenId]);
 
   const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
   const { disconnect: wagmiDisconnect } = useDisconnect();

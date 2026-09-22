@@ -112,5 +112,11 @@
       });
   }
 
+  function remountIfReady() {
+    var root = document.getElementById('my-react-plugin-root') || document.getElementById('litera-widget-root');
+    if (root && typeof window.literaMount === 'function') window.literaMount(root);
+  }
+  window.addEventListener('litera:article-change', remountIfReady);
+
   attempt(1);
 })();

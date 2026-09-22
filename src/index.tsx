@@ -26,8 +26,18 @@ let mountedRoot: ReturnType<typeof ReactDOM.createRoot> | null = null;
 let mountedContainer: HTMLElement | null = null;
 
 function renderWidget(container: HTMLElement) {
-  if (mountedContainer === container && mountedRoot) return;
-  mountedRoot?.unmount();
+  // Jika container sama, root ada, dan elemen masih terpasang di dokumen, jangan unmount
+  if (mountedContainer === container && mountedRoot && document.body.contains(container)) return;
+
+  if (mountedRoot) {
+    try {
+      mountedRoot.unmount();
+    } catch (e) {
+      console.warn('[Litera Widget] Unmount error on container replacement:', e);
+    }
+    mountedRoot = null;
+  }
+
   mountedRoot = ReactDOM.createRoot(container);
   mountedContainer = container;
   mountedRoot.render(
@@ -110,23 +120,97 @@ function initMount(): boolean {
   return false;
 }
 
-// 1. Try mounting immediately
-if (!initMount()) {
-  // 2. If DOM is still loading, listen for DOMContentLoaded
-  if (document.readyState === 'loading') {
+function checkAndRemount() {
+  const container = findOrCreateContainer();
+  if (container) {
+    if (!mountedContainer || mountedContainer !== container || !document.body.contains(mountedContainer)) {
+      renderWidget(container);
+    }
+  }
+}
+
+// Global API: Memungkinkan aplikasi SPA (Next.js, React Router, Vue) untuk me-mount ulang widget secara manual
+(window as any).literaMount = (target?: HTMLElement | string) => {
+  let container: HTMLElement | null = null;
+  if (target) {
+    container = typeof target === 'string' ? document.querySelector(target) : target;
+  }
+  if (!container) {
+    container = findOrCreateContainer();
+  }
+  if (container) {
+    renderWidget(container);
+  }
+};
+
+// 1. Initial mount
+initMount();
+
+// 2. DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    initMount();
+  });
+}
+
+// 3. Polling fallback awal untuk tema async / SPA hydration
+let attempts = 0;
+const timer = setInterval(() => {
+  attempts++;
+  if (initMount() || attempts >= 50) {
+    clearInterval(timer);
+  }
+}, 100);
+
+// 4. SPA Navigation & Client-side Routing Support
+// Memastikan widget otomatis muncul saat berpindah artikel di React/Next.js tanpa reload
+window.addEventListener('popstate', () => {
+  setTimeout(checkAndRemount, 50);
+});
+
+window.addEventListener('litera:article-change', () => {
+  setTimeout(checkAndRemount, 50);
+});
+
+if (typeof history !== 'undefined') {
+  const origPushState = history.pushState;
+  const origReplaceState = history.replaceState;
+
+  history.pushState = function (...args) {
+    const res = origPushState.apply(this, args);
+    setTimeout(checkAndRemount, 50);
+    return res;
+  };
+
+  history.replaceState = function (...args) {
+    const res = origReplaceState.apply(this, args);
+    setTimeout(checkAndRemount, 50);
+    return res;
+  };
+}
+
+if (typeof MutationObserver !== 'undefined' && typeof document !== 'undefined') {
+  let debounceTimer: any = null;
+  const observer = new MutationObserver(() => {
+    if (!mountedContainer || !document.body.contains(mountedContainer)) {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(checkAndRemount, 50);
+    }
+  });
+
+  if (document.body) {
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  } else {
     document.addEventListener('DOMContentLoaded', () => {
-      initMount();
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
     });
   }
-
-  // 3. Polling fallback for up to 5 seconds (every 100ms) for async themes / SPA hydration
-  let attempts = 0;
-  const timer = setInterval(() => {
-    attempts++;
-    if (initMount() || attempts >= 50) {
-      clearInterval(timer);
-    }
-  }, 100);
 }
 
 // If you want to start measuring performance in your app, pass a function

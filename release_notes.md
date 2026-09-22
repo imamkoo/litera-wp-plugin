@@ -1,5 +1,12 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.26 (Native SPA & React/Next.js Client Navigation Support)
+- **Root Cause Fix — "Pindah artikel di React/Next.js tanpa reload page membuat widget tidak muncul cepat":** Pada aplikasi berbasis SPA (seperti Next.js, React Router, atau tema modern), perpindahan halaman/artikel tidak memicu reload dokumen utuh melainkan manipulasi DOM client-side (`history.pushState`). Bundle lama hanya mencari container `#my-react-plugin-root` satu kali saat script dimuat lalu pasif, dan referensi container lama terlepas dari dokumen tanpa di-mount ulang.
+- **Global API `window.literaMount`:** Menampilkan fungsi `literaMount(target?: HTMLElement | string)` secara global ke `window` sehingga wrapper SPA (seperti komponen Next.js pada `letmehearyou.id` atau platform web builder) dapat me-mount ulang widget ke container aktif secara instan.
+- **Auto-Detect SPA Navigation & MutationObserver:** Menambahkan listener event `popstate`, monkey-patch `history.pushState` & `history.replaceState`, serta `MutationObserver` pada `document.body`. Jika container lama terlepas dari DOM atau container baru ditambahkan saat navigasi client-side, sistem secara otomatis me-mount ulang widget ke container baru tanpa butuh reload browser.
+- **Reactive Article URL Sync di `App.tsx`:** `App.tsx` kini secara reaktif memantau perubahan URL browser atau event `litera:article-change`. Saat URL artikel berubah, query on-chain V2 dan fallback backend resolve otomatis di-refresh untuk URL baru, mereset state kuis/unlock artikel sebelumnya.
+- **Widget State Reset:** Menambahkan effect pembersihan state lokal (`localUnlocked`, `unlockedContent`, `step`, kuis) di `LiteraWidget.tsx` setiap kali `tokenId` berubah.
+
 ## v1.4.25 (Bundle Diet: 8.7MB → 3.3MB via Web3Modal Lazy-Load)
 - **Root Cause:** Bundle widget 8.7MB karena `createWeb3Modal` (`@web3modal/wagmi`) di-import statis di `index.tsx`. Import ini menarik seluruh Reown AppKit — x402 client, FiatOnramp screens, wallet UI, @wagmi/connectors — ~5MB kode yang hanya dipakai saat user klik "connect wallet". Padahal 99% pembaca hanya pakai login email/Google via Privy.
 - **Lazy-Load:** `createWeb3Modal` dipindah ke `src/web3modal-lazy.ts` sebagai `import('@web3modal/wagmi/react')` (dynamic). `openWeb3ModalSafe()` adalah jalur aman: load chunk dulu bila belum, lalu `modalInstance.open()`. Tidak memakai hook di luar komponen ( Rules-of-hooks aman).

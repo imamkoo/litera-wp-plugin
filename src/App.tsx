@@ -25,42 +25,78 @@ function App() {
   const [isResolving, setIsResolving] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Ambil URL dan Title dari injeksi plugin WordPress
+  const syncArticle = () => {
+    let nextRawUrl = '';
+    let nextTitle = '';
+
     if (typeof (window as any).myReactPluginData !== 'undefined') {
       if ((window as any).myReactPluginData.permalink) {
-        const rawUrl = (window as any).myReactPluginData.permalink;
-        setRawPermalink(rawUrl);
-        setPermalink(normalizeUrl(rawUrl));
+        nextRawUrl = (window as any).myReactPluginData.permalink;
       }
       if ((window as any).myReactPluginData.title) {
-        setArticleTitle((window as any).myReactPluginData.title);
+        nextTitle = (window as any).myReactPluginData.title;
       }
-    } else {
-      // Fallback localhost development
-      const rawUrl = window.location.href;
-      setRawPermalink(rawUrl);
-      setPermalink(normalizeUrl(rawUrl));
-      setArticleTitle(document.title);
     }
-  }, []);
+
+    if (!nextRawUrl) {
+      nextRawUrl = window.location.href;
+    }
+    if (!nextTitle) {
+      nextTitle = document.title || 'Litera Digital Asset';
+    }
+
+    if (nextRawUrl) {
+      const normalized = normalizeUrl(nextRawUrl);
+      setRawPermalink((prev) => (prev !== nextRawUrl ? nextRawUrl : prev));
+      setPermalink((prev) => {
+        if (prev !== normalized) {
+          setResolvedData(null);
+          setResolveError(null);
+          setLookupTimedOut(false);
+          setPermalinkTimedOut(false);
+          return normalized;
+        }
+        return prev;
+      });
+      if (nextTitle) {
+        setArticleTitle(nextTitle);
+      }
+    }
+  };
 
   useEffect(() => {
+    syncArticle();
+
     const handleArticleChange = (event: Event) => {
-      const { permalink: nextUrl, title: nextTitle } = (event as CustomEvent<{
+      const detail = (event as CustomEvent<{
         permalink: string;
         title: string;
       }>).detail;
 
-      setRawPermalink(nextUrl);
-      setPermalink(normalizeUrl(nextUrl));
-      setArticleTitle(nextTitle);
-      setResolvedData(null);
-      setResolveError(null);
+      if (detail && detail.permalink) {
+        setRawPermalink(detail.permalink);
+        setPermalink(normalizeUrl(detail.permalink));
+        if (detail.title) setArticleTitle(detail.title);
+        setResolvedData(null);
+        setResolveError(null);
+        setLookupTimedOut(false);
+        setPermalinkTimedOut(false);
+      } else {
+        syncArticle();
+      }
+    };
+
+    const handleSpaNavigation = () => {
+      setTimeout(syncArticle, 50);
     };
 
     window.addEventListener('litera:article-change', handleArticleChange);
-    return () => window.removeEventListener('litera:article-change', handleArticleChange);
+    window.addEventListener('popstate', handleSpaNavigation);
+
+    return () => {
+      window.removeEventListener('litera:article-change', handleArticleChange);
+      window.removeEventListener('popstate', handleSpaNavigation);
+    };
   }, []);
 
   // 1. On-chain lookup berdasarkan URL yang sudah dinormalisasi
