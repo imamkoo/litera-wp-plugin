@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
 import { usePrivy, useLogout, useLogin } from '@privy-io/react-auth';
-import { openWeb3ModalSafe, mountWeb3Modal } from '../web3modal-lazy';
+import { openWeb3ModalSafe, mountWeb3Modal, subscribeWeb3ModalOpen } from '../web3modal-lazy';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon, CopyIcon, LogOutIcon, CheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
 import axios from 'axios';
@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.30';
+const WIDGET_VERSION = '1.4.31';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -274,6 +274,15 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
 
   // Inject theme CSS on mount
   useEffect(() => { injectThemeCSS(); }, []);
+
+  // Reset status "Connecting…" saat modal Web3Modal ditutup (mis. user tekan X atau klik luar)
+  useEffect(() => {
+    return subscribeWeb3ModalOpen((isOpen) => {
+      if (!isOpen) {
+        setIsConnecting(false);
+      }
+    });
+  }, []);
 
   // Preload Web3Modal chunk saat modal login dibuka
   useEffect(() => {
@@ -337,6 +346,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const handleConnectWallet = () => {
     setLoginError(null);
     setIsLoginModalOpen(false);
+    setIsConnecting(true);
     openWeb3ModalSafe();
   };
 
@@ -946,7 +956,6 @@ Expires: ${expiresAt}`;
           if (isConnected) {
             setIsDisconnectModalOpen(true);
           } else {
-            setIsConnecting(true);
             setIsLoginModalOpen(true);
           }
         }}

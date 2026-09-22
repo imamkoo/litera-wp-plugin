@@ -20,7 +20,12 @@
 
 import { config, projectId } from './config';
 
-type ModalInstance = { open: (opts?: any) => Promise<void> };
+type ModalInstance = {
+  open: (opts?: any) => Promise<void>;
+  close?: () => Promise<void>;
+  getState: () => { open: boolean; selectedNetworkId?: number };
+  subscribeState: (cb: (state: any) => void) => () => void;
+};
 
 let loadPromise: Promise<void> | null = null;
 let modalInstance: ModalInstance | null = null;
@@ -28,11 +33,17 @@ let modalInstance: ModalInstance | null = null;
 export type Web3ModalLoadState = { loading: boolean; error: string | null };
 let loadState: Web3ModalLoadState = { loading: false, error: null };
 const stateListeners = new Set<(s: Web3ModalLoadState) => void>();
+const modalOpenListeners = new Set<(open: boolean) => void>();
 
 function notifyState() {
   stateListeners.forEach((fn) => {
     try { fn(loadState); } catch (e) {}
   });
+}
+
+export function subscribeWeb3ModalOpen(fn: (open: boolean) => void): () => void {
+  modalOpenListeners.add(fn);
+  return () => { modalOpenListeners.delete(fn); };
 }
 
 export function getWeb3ModalLoadState(): Web3ModalLoadState {
@@ -75,7 +86,18 @@ export function mountWeb3Modal(): Promise<void> {
           '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0', // Trust Wallet
           '1ae92b26df02f0abca6304df07081e6c6eb18c7d01eb017d121c5462fc48f219', // OKX
         ],
-      }) as ModalInstance;
+      }) as unknown as ModalInstance;
+
+      // Pantau event buka/tutup modal untuk reset status "Connecting..." di widget
+      if (modalInstance && typeof modalInstance.subscribeState === 'function') {
+        modalInstance.subscribeState((st: any) => {
+          const isOpen = Boolean(st?.open);
+          modalOpenListeners.forEach((listener) => {
+            try { listener(isOpen); } catch (e) {}
+          });
+        });
+      }
+
       loadState = { loading: false, error: null };
       notifyState();
     })

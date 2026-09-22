@@ -1,6 +1,7 @@
 import { createConfig } from 'wagmi'
 import { polygon } from 'wagmi/chains'
 import { http, fallback } from 'wagmi'
+import { walletConnect, injected, coinbaseWallet } from 'wagmi/connectors'
 
 export const projectId = "3b80ae67f7bf7baa0d65ddfdebe61662"
 
@@ -10,7 +11,7 @@ if (!projectId) {
 
 export const metadata = {
     name: 'Litera',
-    description: 'Litera dashboard',
+    description: 'Litera Web3 Publishing Platform',
     url: 'https://literaa.xyz',
     icons: ['https://avatars.githubusercontent.com/u/179229932']
 }
@@ -35,14 +36,14 @@ export function isPrivyOriginAllowed(): boolean {
   return PRIVY_ALLOWED_ORIGINS.includes(window.location.origin)
 }
 
-// Catatan: defaultWagmiConfig (@web3modal/wagmi) sebelumnya membawa seluruh
-// Reown AppKit (~5MB: x402, fiat-onramp, wallet UI) ke bundle widget.
-// Widget hanya butuh email/Google login via Privy; connect wallet Web3
-// di-lazy-load di Web3ModalLazy hanya saat user benar-benar klik connect.
-// createConfig wagmi murni menggantikannya tanpa kehilangan fungsi.
 export const config = createConfig({
   chains,
   multiInjectedProviderDiscovery: true,
+  connectors: [
+    walletConnect({ projectId, metadata, showQrModal: false }),
+    injected({ shimDisconnect: true }),
+    coinbaseWallet({ appName: metadata.name, appLogoUrl: metadata.icons[0] })
+  ],
   ssr: false,
   transports: {
     // Keyless public RPC yang masih hidup (diverifikasi 2026-08-26).
