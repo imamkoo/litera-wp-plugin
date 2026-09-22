@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
 import { usePrivy, useLogout, useLogin } from '@privy-io/react-auth';
-import { openWeb3ModalSafe, mountWeb3Modal, subscribeWeb3ModalOpen } from '../web3modal-lazy';
+import { openWeb3ModalSafe, mountWeb3Modal, subscribeWeb3ModalOpen, probeWalletListReachable } from '../web3modal-lazy';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon, CopyIcon, LogOutIcon, CheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
 import axios from 'axios';
@@ -237,6 +237,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const [isCopied, setIsCopied] = useState(false);
   const [web3ModalLoading, setWeb3ModalLoading] = useState(false);
   const [web3ModalError, setWeb3ModalError] = useState<string | null>(null);
+  const [walletListBlocked, setWalletListBlocked] = useState(false);
 
   // --- Content & Metadata States ---
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
@@ -326,6 +327,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
           setWeb3ModalError('Gagal memuat dialog dompet. Silakan gunakan opsi Email atau Google.');
         })
         .finally(() => setWeb3ModalLoading(false));
+      let cancelled = false;
+      probeWalletListReachable().then((ok) => { if (!cancelled) setWalletListBlocked(!ok); });
+      return () => { cancelled = true; };
     }
   }, [isLoginModalOpen]);
 
@@ -1244,6 +1248,11 @@ Expires: ${expiresAt}`;
             {web3ModalError && (
               <div style={{ marginTop: '12px', padding: '10px 12px', borderRadius: '12px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', fontSize: '12px', color: '#b91c1c', textAlign: 'left' }}>
                 {web3ModalError}
+              </div>
+            )}
+            {walletListBlocked && !web3ModalError && (
+              <div style={{ marginTop: '12px', padding: '10px 12px', borderRadius: '12px', backgroundColor: '#fffbeb', border: '1px solid #fde68a', fontSize: '12px', color: '#92400e', textAlign: 'left' }}>
+                Daftar semua dompet mungkin tidak tampil — situs ini membatasi akses daftar dompet. Dompet ekstensi browser tetap berfungsi, atau masuk via Email/Google.
               </div>
             )}
             <div style={{ marginTop: '24px', borderTop: '1px solid #e5e7eb', paddingTop: '16px', textAlign: 'center' }}>

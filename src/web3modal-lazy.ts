@@ -59,6 +59,24 @@ export function isWeb3ModalReady(): boolean {
   return !!modalInstance;
 }
 
+export async function probeWalletListReachable(timeoutMs = 6000): Promise<boolean> {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetch('https://api.web3modal.com/getWallets?page=1&entries=1', {
+        headers: { 'x-project-id': projectId },
+        signal: ctrl.signal,
+      });
+      return typeof res?.status === 'number';
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch {
+    return false;
+  }
+}
+
 // Alias lama (kompatibilitas panggilan yang sudah ada).
 export const preloadWeb3Modal = mountWeb3Modal;
 
