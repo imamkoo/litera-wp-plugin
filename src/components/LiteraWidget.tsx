@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.36';
+const WIDGET_VERSION = '1.4.37';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -235,6 +235,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const [cloudWalletAddress, setCloudWalletAddress] = useState<string | null>(null);
   const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isGaslessMinting, setIsGaslessMinting] = useState(false);
   const [web3ModalLoading, setWeb3ModalLoading] = useState(false);
   const [web3ModalError, setWeb3ModalError] = useState<string | null>(null);
   const [walletListBlocked, setWalletListBlocked] = useState(false);
@@ -852,7 +853,44 @@ Expires: ${expiresAt}`;
     }
   }, [isMintingReq, isMintingTx, isMintSuccess, mintReqError, isMintTxError, mintTxError]);
 
+  const mintGasless = async () => {
+    if (!address) throw new Error('Wallet belum terhubung');
+    const expiresAt = Math.floor(Date.now() / 1000) + 300;
+    const message = [
+      'Litera gasless mint',
+      `TokenID: ${tokenId}`,
+      `Address: ${address}`,
+      `Expires: ${expiresAt}`,
+    ].join('\n');
+    const signature = await signMessageAsync({ message });
+    await axios.post(`${LITERA_ORIGIN}/api/v1/relayer/mint`, {
+      tokenId: Number(tokenId),
+      address,
+      expiresAt,
+      signature,
+    });
+    window.location.reload();
+  };
+
   const handleBuy = async () => {
+    if (!isLegacy && (!price || BigInt(price) === 0n)) {
+      try {
+        setIsGaslessMinting(true);
+        setStep('minting');
+        await mintGasless();
+        return;
+      } catch (error: any) {
+        const status = error?.response?.status;
+        if (status !== 503) {
+          setErrorMessage(error?.response?.data?.message || error?.message || 'Mint gratis gagal. Silakan coba lagi.');
+          setStep('error');
+          setIsGaslessMinting(false);
+          return;
+        }
+        setIsGaslessMinting(false);
+        setStep('mint_ready');
+      }
+    }
     try {
       const needed = price ? BigInt(price) : 0n;
       const currentAllowance = allowance !== undefined ? BigInt(allowance as any) : 0n;
@@ -1612,7 +1650,7 @@ Expires: ${expiresAt}`;
     if (step === 'mint_ready' || step === 'minting') {
       const isApproving = isApprovingReq || isApprovingTx;
       const isMintTx = isMintingReq || isMintingTx;
-      const isButtonDisabled = isApproving || isMintTx;
+      const isButtonDisabled = isApproving || isMintTx || isGaslessMinting;
       
       const needed = price ? BigInt(price) : 0n;
       const currentAllowance = allowance !== undefined ? BigInt(allowance as any) : 0n;
@@ -1622,7 +1660,7 @@ Expires: ${expiresAt}`;
       
       let buttonText = '';
       if (isApproving) buttonText = "Approving LITE...";
-      else if (isMintTx) buttonText = "Minting NFT...";
+      else if (isGaslessMinting || isMintTx) buttonText = "Minting NFT...";
       else if (needsApproval) buttonText = `Approve LITE · (${priceText})`;
       else buttonText = `Mint NFT · (${priceText})`;
 

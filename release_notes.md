@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.37 (Widget Free Mint Uses Gas Station)
+- **Latar:** Mint artikel gratis di widget tetap `Mint()` dari dompet pembaca, jadi gagal dengan pesan "butuh POL" meski gas station di admin tools aktif.
+- **Perbaikan (`LiteraWidget.tsx`):** artikel harga 0 memanggil `POST /api/v1/relayer/mint` (tanda tangan yang sama dengan dashboard). Saklar tetap toggle **Aktifkan Fitur** di Pusat Kendali Gas. Bila relayer mati (503), widget jatuh kembali ke mint berbayar gas.
+
 ## v1.4.36 (Disable Connect Button While Wallet Auth Popup Is Open)
 - **Latar:** Tombol "Connect Wallet to Collect" tetap bisa diklik saat popup login email/Google (`literaa.xyz/widget-auth`) masih terbuka, sehingga user bisa membuka popup kedua atau modal login ganda.
 - **Perbaikan (`LiteraWidget.tsx`):** selama `isConnecting` (popup cloud wallet terbuka), tombol utama `disabled`, opacity diturunkan, label jadi "Connecting…". Reset otomatis tetap lewat postMessage sukses/tutup atau watchdog popup close.
