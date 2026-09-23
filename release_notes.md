@@ -1,6 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
-## v1.4.37 (Widget Free Mint Uses Gas Station)
+## v1.4.38 (Upgrade Writer Contract to V2 with Gasless Support)
+- **Latar:** Upgrade smart contract Writer ke versi V2 (`0x5f9aFEb4e45F835e20cE4AA222f03df6E94f888C`) di Polygon Mainnet yang mendukung `addArticleFor` (gasless publisher article publishing).
+- **Perbaikan (`config.mainnet.ts`):** Mengarahkan `contractAddress` ke Writer V2 yang baru.
+
 - **Latar:** Mint artikel gratis di widget tetap `Mint()` dari dompet pembaca, jadi gagal dengan pesan "butuh POL" meski gas station di admin tools aktif.
 - **Perbaikan (`LiteraWidget.tsx`):** artikel harga 0 memanggil `POST /api/v1/relayer/mint` (tanda tangan yang sama dengan dashboard). Saklar tetap toggle **Aktifkan Fitur** di Pusat Kendali Gas. Bila relayer mati (503), widget jatuh kembali ke mint berbayar gas.
 

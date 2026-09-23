@@ -1,5 +1,5 @@
 export const mainnetConfig = {
-    contractAddress: '0xb14f5A7aB55e8C7687607bC39776fa97e983D934', // Writer
+    contractAddress: '0x5f9aFEb4e45F835e20cE4AA222f03df6E94f888C', // Writer V2 (with gasless addArticleFor)
     Erc20Adress: '0x8D8d650Cd85eD72993Fc7ea03476FDa04a1bBD2C', // LITE Token
     Erc1155Adress: '0x753b9F10ACF325310323C86b8BdD1C5A1C00691c', // Litera Asset
     Erc1155LegacyAddress: '0xAaB2db99674684547f09835048be090dFAA808d2', // Legacy Litera Asset     
