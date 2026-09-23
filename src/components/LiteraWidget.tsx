@@ -863,7 +863,7 @@ Expires: ${expiresAt}`;
       `Expires: ${expiresAt}`,
     ].join('\n');
     const signature = await signMessageAsync({ message });
-    await axios.post(`${LITERA_ORIGIN}/api/v1/relayer/mint`, {
+    await axios.post(`${LITERA_ORIGIN}/api/v1/relayer/widget-mint`, {
       tokenId: Number(tokenId),
       address,
       expiresAt,
