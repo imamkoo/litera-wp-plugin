@@ -733,7 +733,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
 
     setStep('checking_auth');
     try {
-      const apiUrl = 'https://literaa.xyz';
+      const apiUrl = process.env.REACT_APP_BACKEND_URL || LITERA_ORIGIN;
       const quizRes = await axios.get(`${apiUrl}/api/v1/quiz/token/${tokenId}`);
       const quizData = quizRes.data?.data || quizRes.data;
 
@@ -753,7 +753,10 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       setQuestions(quizData.questions);
       setStep('quiz_intro');
     } catch (error: any) {
-      if (error.response && error.response.status === 404) {
+      if (
+        (error.response && error.response.status === 404) ||
+        error.response?.data?.code === 'QUIZ_001'
+      ) {
         setStep('mint_ready');
         return;
       }

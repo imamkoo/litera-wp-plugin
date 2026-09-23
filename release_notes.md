@@ -1,5 +1,11 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.35 (Fix Authorization Mechanism Error Handling & Origin Fallback)
+- **Latar:** Pada pengujian lingkungan WordPress lokal (seperti `*.local` dan `*.test`), pemanggilan endpoint otorisasi kuis (`/api/v1/quiz/token/:id`) dapat mengalami penolakan CORS atau respons 404/QUIZ_001 bila artikel tidak memiliki kuis.
+- **Perbaikan (`LiteraWidget.tsx`):**
+  - Menangani error code `QUIZ_001` (Quiz not found) secara eksplisit agar langsung transisi ke tahap `mint_ready`.
+  - Menggunakan konfigurasi `LITERA_ORIGIN` yang terpusat.
+
 ## v1.4.34 (Graceful Warning When Host Blocks Wallet List)
 - **Latar:** audit header CSP 9 portal produksi menunjukkan `letmehearyou.id` bukan satu-satunya host berisiko — `aryadhana.id` memakai `connect-src 'self'` yang bahkan lebih ketat (widget di sana kemungkinan mati total, perlu outreach publisher; tidak bisa diperbaiki dari kode). Host tanpa CSP (WordPress default: `litera.id`, `litebrary.id`, `movieplaza.id`, `widy.my.id`, `adaya.id`, `satuguru.id` + `*.literaa.xyz`) aman.
 - **Perbaikan (`web3modal-lazy.ts`, `LiteraWidget.tsx`):** probe `GET api.web3modal.com/getWallets` (header `x-project-id`, timeout 6 detik) setiap modal login dibuka. Bila terblokir (CSP/adblock/offline), modal login menampilkan peringatan kuning: daftar semua dompet mungkin tidak tampil, dompet ekstensi browser tetap berfungsi, atau masuk via Email/Google. Menggantikan kebingungan skeleton abadi tanpa penjelasan dengan ekspektasi yang jujur + jalur alternatif yang masih jalan.
