@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.31';
+const WIDGET_VERSION = '1.4.36';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -990,7 +990,9 @@ Expires: ${expiresAt}`;
   const renderWalletButton = () => (
     <div style={{ position: 'relative', width: isConnected ? 'auto' : '100%' }}>
       <button
+        disabled={isConnecting && !isConnected}
         onClick={() => {
+          if (isConnecting) return;
           if (isConnected) {
             setIsDisconnectModalOpen(true);
           } else {
@@ -1006,8 +1008,9 @@ Expires: ${expiresAt}`;
           color: isConnected ? 'var(--lw-wallet-text)' : '#ffffff',
           fontSize: '14px', fontWeight: 700,
           border: isConnected ? '1px solid var(--lw-border)' : '1px solid #d07954',
-          cursor: 'pointer',
-          transition: 'background-color 0.2s ease, transform 0.2s ease',
+          cursor: isConnecting && !isConnected ? 'not-allowed' : 'pointer',
+          opacity: isConnecting && !isConnected ? 0.65 : 1,
+          transition: 'background-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease',
           marginTop: '8px',
         }}
       >
@@ -1022,7 +1025,7 @@ Expires: ${expiresAt}`;
             <span style={{ fontSize: '11px', opacity: 0.7, fontFamily: 'monospace' }}>{address?.slice(0, 6)}...{address?.slice(-4)}</span>
           </>
         ) : (
-          <span>Connect Wallet to Collect</span>
+          <span>{isConnecting ? 'Connecting…' : 'Connect Wallet to Collect'}</span>
         )}
       </button>
 

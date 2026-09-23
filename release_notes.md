@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.36 (Disable Connect Button While Wallet Auth Popup Is Open)
+- **Latar:** Tombol "Connect Wallet to Collect" tetap bisa diklik saat popup login email/Google (`literaa.xyz/widget-auth`) masih terbuka, sehingga user bisa membuka popup kedua atau modal login ganda.
+- **Perbaikan (`LiteraWidget.tsx`):** selama `isConnecting` (popup cloud wallet terbuka), tombol utama `disabled`, opacity diturunkan, label jadi "Connecting…". Reset otomatis tetap lewat postMessage sukses/tutup atau watchdog popup close.
+
 ## v1.4.35 (Fix Authorization Mechanism Error Handling & Origin Fallback)
 - **Latar:** Pada pengujian lingkungan WordPress lokal (seperti `*.local` dan `*.test`), pemanggilan endpoint otorisasi kuis (`/api/v1/quiz/token/:id`) dapat mengalami penolakan CORS atau respons 404/QUIZ_001 bila artikel tidak memiliki kuis.
 - **Perbaikan (`LiteraWidget.tsx`):**
