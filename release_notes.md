@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.39 (Fix Connector not connected on email/Google login)
+- **Latar:** Klaim NFT setelah login email/Google menampilkan `Connector not connected` karena tanda tangan memakai connector wagmi, padahal sesi Privy hidup di popup `widget-auth`.
+- **Perbaikan:** widget meminta popup menandatangani pesan (`LITERA_SIGN_REQUEST`). Popup tetap terbuka sampai klaim selesai. Login dompet ekstensi tetap lewat wagmi.
+
 ## v1.4.38 (Upgrade Writer Contract to V2 with Gasless Support)
 - **Latar:** Upgrade smart contract Writer ke versi V2 (`0x5f9aFEb4e45F835e20cE4AA222f03df6E94f888C`) di Polygon Mainnet yang mendukung `addArticleFor` (gasless publisher article publishing).
 - **Perbaikan (`config.mainnet.ts`):** Mengarahkan `contractAddress` ke Writer V2 yang baru.

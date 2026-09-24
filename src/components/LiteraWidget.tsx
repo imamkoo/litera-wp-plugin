@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
-import { usePrivy, useLogout, useLogin } from '@privy-io/react-auth';
+import { usePrivy, useLogout, useLogin, useSignMessage as usePrivySignMessage } from '@privy-io/react-auth';
 import { openWeb3ModalSafe, mountWeb3Modal, subscribeWeb3ModalOpen, probeWalletListReachable } from '../web3modal-lazy';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon, CopyIcon, LogOutIcon, CheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.37';
+const WIDGET_VERSION = '1.4.39';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -226,7 +226,43 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const { disconnect: wagmiDisconnect } = useDisconnect();
   const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser } = usePrivy();
   const { logout: privyLogout } = useLogout();
-  const { signMessageAsync } = useSignMessage();
+  const { signMessageAsync: signWagmi } = useSignMessage();
+  const { signMessage: signPrivy } = usePrivySignMessage();
+
+  const signViaPopup = (message: string): Promise<string> => {
+    const popup = popupRef.current;
+    if (!popup || popup.closed) {
+      return Promise.reject(new Error('Sesi login tertutup. Hubungkan dompet lagi, lalu ulangi.'));
+    }
+    const requestId = Math.random().toString(36).slice(2);
+    return new Promise((resolve, reject) => {
+      const timer = window.setTimeout(() => {
+        window.removeEventListener('message', onResult);
+        reject(new Error('Waktu tanda tangan habis. Coba lagi.'));
+      }, 120000);
+      const onResult = (e: MessageEvent) => {
+        if (e.origin !== LITERA_ORIGIN) return;
+        const data = e.data;
+        if (!data || data.type !== 'LITERA_SIGN_RESULT' || data.requestId !== requestId) return;
+        window.clearTimeout(timer);
+        window.removeEventListener('message', onResult);
+        if (data.signature) resolve(data.signature);
+        else reject(new Error(data.error || 'Tanda tangan dibatalkan'));
+      };
+      window.addEventListener('message', onResult);
+      popup.postMessage({ type: 'LITERA_SIGN_REQUEST', requestId, message }, LITERA_ORIGIN);
+    });
+  };
+
+  const signIntent = async (message: string): Promise<string> => {
+    if (isWagmiConnected) return signWagmi({ message });
+    if (privyAuthenticated) {
+      const res = await signPrivy({ message });
+      return (res as { signature?: string })?.signature ?? (res as unknown as string);
+    }
+    if (cloudWalletAddress) return signViaPopup(message);
+    throw new Error('Dompet belum tersambung. Hubungkan dompet dulu, lalu coba lagi.');
+  };
 
   // --- Modal & Connection States ---
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -803,7 +839,7 @@ Chain: 137
 IssuedAt: ${new Date().toISOString()}
 Expires: ${expiresAt}`;
 
-        const signature = await signMessageAsync({ message: messagePayload });
+        const signature = await signIntent(messagePayload);
 
         const res = await axios.post(`${apiUrl}/api/v1/quiz/submit`, {
           tokenId: tokenId,
@@ -862,7 +898,7 @@ Expires: ${expiresAt}`;
       `Address: ${address}`,
       `Expires: ${expiresAt}`,
     ].join('\n');
-    const signature = await signMessageAsync({ message });
+    const signature = await signIntent(message);
     await axios.post(`${LITERA_ORIGIN}/api/v1/relayer/widget-mint`, {
       tokenId: Number(tokenId),
       address,
@@ -928,7 +964,7 @@ Expires: ${expiresAt}`;
       setIsDecrypting(true);
       
       const messagePayload = `Reveal secret content for Token #${tokenId}`;
-      const signature = await signMessageAsync({ message: messagePayload });
+      const signature = await signIntent(messagePayload);
 
       if (isLegacy) {
         // --- LEGACY FLOW (Generation 1) ---
