@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.40';
+const WIDGET_VERSION = '1.4.41';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -229,33 +229,79 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const { signMessageAsync: signWagmi } = useSignMessage();
   const { signMessage: signPrivy } = usePrivySignMessage();
 
+  // --- Modal & Connection States ---
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [cloudWalletAddress, setCloudWalletAddress] = useState<string | null>(() => {
+    try {
+      return typeof localStorage !== 'undefined' ? localStorage.getItem('litera_cloud_wallet_addr') : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [isGaslessMinting, setIsGaslessMinting] = useState(false);
+  const [web3ModalLoading, setWeb3ModalLoading] = useState(false);
+  const [web3ModalError, setWeb3ModalError] = useState<string | null>(null);
+  const [walletListBlocked, setWalletListBlocked] = useState(false);
+
+  // --- Refs ---
+  const popupRef = useRef<Window | null>(null);
+  const authNonceRef = useRef<string | null>(null);
+
   const signViaPopup = (message: string): Promise<string> => {
+    const requestId = Math.random().toString(36).slice(2);
+    const signUrl = `${LITERA_ORIGIN}/widget-auth?${new URLSearchParams({
+      article: window.location.href,
+      tokenId: String(tokenId ?? ''),
+      action: 'sign',
+      reqId: requestId,
+      signMsg: encodeURIComponent(message),
+    }).toString()}`;
+
+    const w = Math.max(380, Math.min(460, window.innerWidth - 40));
+    const h = Math.max(560, Math.min(760, window.innerHeight - 60));
+    const left = window.screenX + (window.outerWidth - w) / 2;
+    const top = window.screenY + (window.outerHeight - h) / 2;
+
     let popup = popupRef.current;
     if (!popup || popup.closed) {
-      const w = Math.max(380, Math.min(460, window.innerWidth - 40));
-      const h = Math.max(560, Math.min(760, window.innerHeight - 60));
-      const left = window.screenX + (window.outerWidth - w) / 2;
-      const top = window.screenY + (window.outerHeight - h) / 2;
       popup = window.open(
-        `${LITERA_ORIGIN}/widget-auth?${new URLSearchParams({
-          article: window.location.href,
-          tokenId: String(tokenId ?? ''),
-          auth: 'email',
-        }).toString()}`,
+        signUrl,
         'litera-cloud-wallet',
         `width=${w},height=${h},left=${left},top=${top}`,
       );
       popupRef.current = popup;
+    } else {
+      try {
+        popup.location.href = signUrl;
+        popup.focus();
+      } catch {
+        popup = window.open(
+          signUrl,
+          'litera-cloud-wallet',
+          `width=${w},height=${h},left=${left},top=${top}`,
+        );
+        popupRef.current = popup;
+      }
     }
+
     if (!popup) {
       return Promise.reject(new Error('Popup diblokir browser. Izinkan popup, lalu coba lagi.'));
     }
-    const requestId = Math.random().toString(36).slice(2);
+
+    try {
+      popup.focus();
+    } catch (e) {}
+
     return new Promise((resolve, reject) => {
       const timer = window.setTimeout(() => {
         window.removeEventListener('message', onResult);
         reject(new Error('Waktu tanda tangan habis. Coba lagi.'));
       }, 120000);
+
       const onResult = (e: MessageEvent) => {
         if (e.origin !== LITERA_ORIGIN) return;
         const data = e.data;
@@ -265,8 +311,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
         if (data.signature) resolve(data.signature);
         else reject(new Error(data.error || 'Tanda tangan dibatalkan'));
       };
+
       window.addEventListener('message', onResult);
-      popup.postMessage({ type: 'LITERA_SIGN_REQUEST', requestId, message }, LITERA_ORIGIN);
     });
   };
 
@@ -279,18 +325,6 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     if (cloudWalletAddress) return signViaPopup(message);
     throw new Error('Dompet belum tersambung. Hubungkan dompet dulu, lalu coba lagi.');
   };
-
-  // --- Modal & Connection States ---
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
-  const [cloudWalletAddress, setCloudWalletAddress] = useState<string | null>(null);
-  const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-  const [isGaslessMinting, setIsGaslessMinting] = useState(false);
-  const [web3ModalLoading, setWeb3ModalLoading] = useState(false);
-  const [web3ModalError, setWeb3ModalError] = useState<string | null>(null);
-  const [walletListBlocked, setWalletListBlocked] = useState(false);
 
   // --- Content & Metadata States ---
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
@@ -401,6 +435,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const handleDisconnect = () => {
     try { wagmiDisconnect(); } catch (e) {}
     try { privyLogout(); } catch (e) {}
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('litera_cloud_wallet_addr');
+      }
+    } catch (e) {}
     setCloudWalletAddress(null);
     setUnlockedContent(null);
     setLocalUnlocked(false);
@@ -505,6 +544,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
         setIsLoginModalOpen(false);
         if (payload.address) {
           setCloudWalletAddress(payload.address);
+          try {
+            if (typeof localStorage !== 'undefined') {
+              localStorage.setItem('litera_cloud_wallet_addr', payload.address);
+            }
+          } catch (err) {}
         }
         if (payload.alreadyOwned || payload.minted) {
           setLocalUnlocked(true);
@@ -533,6 +577,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
         console.warn('[Litera Widget] Mobile OAuth state mismatch. Ignoring return.');
       } else {
         setCloudWalletAddress(addr);
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('litera_cloud_wallet_addr', addr);
+          }
+        } catch (err) {}
         const owned = url.searchParams.get('lite_owned') === '1';
         if (owned) {
           setLocalUnlocked(true);
@@ -932,14 +981,20 @@ Expires: ${expiresAt}`;
         await mintGasless();
         return;
       } catch (error: any) {
+        console.error('[Litera Widget] mintGasless error:', error);
+        setIsGaslessMinting(false);
+        const msg = (error?.message || '').toLowerCase();
+        const isCancel = msg.includes('batal') || msg.includes('cancel') || msg.includes('denied') || msg.includes('reject');
+        if (isCancel) {
+          setStep('mint_ready');
+          return;
+        }
         const status = error?.response?.status;
         if (status !== 503) {
           setErrorMessage(error?.response?.data?.message || error?.message || 'Mint gratis gagal. Silakan coba lagi.');
           setStep('error');
-          setIsGaslessMinting(false);
           return;
         }
-        setIsGaslessMinting(false);
         setStep('mint_ready');
       }
     }

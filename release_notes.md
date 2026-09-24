@@ -1,5 +1,15 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.41 (Auto-close Login Popup, Persistent Session on Refresh, Dedicated Transaction Sign Popup)
+- **Latar:**
+  1. Login email/Google di widget tidak tersimpan saat halaman artikel di-refresh, memaksa user login ulang.
+  2. Saat mint NFT, popup tidak menampilkan konfirmasi transaksi dan macet di status "Minting NFT..." karena error format `postMessage`.
+- **Perbaikan:**
+  1. `cloudWalletAddress` disimpan di `localStorage` artikel, sehingga refresh halaman tidak menghilangkan status login pembaca.
+  2. Popup login otomatis menutup diri 1 detik setelah login berhasil.
+  3. Saat klik klaim / mint NFT, popup terbuka khusus dengan tampilan **Konfirmasi Transaksi**, mengeksekusi tanda tangan Privy, mengirimkan signature kembali ke widget, dan menutup diri secara otomatis.
+  4. Penanganan pembatalan tanda tangan mengembalikan status tombol secara bersih ke `mint_ready` tanpa macet.
+
 ## v1.4.40 (Allow closing the login popup)
 - **Latar:** popup login harus tetap terbuka karena tanda tangan Privy hanya bisa dari jendela itu.
 - **Perbaikan:** popup boleh ditutup. Saat klaim, widget membukanya lagi; sesi `literaa.xyz` masih hidup jadi tidak login ulang.
