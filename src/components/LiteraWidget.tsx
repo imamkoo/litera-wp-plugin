@@ -343,10 +343,6 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [quizResult, setQuizResult] = useState<any | null>(null);
 
-  // --- Refs ---
-  const popupRef = useRef<Window | null>(null);
-  const authNonceRef = useRef<string | null>(null);
-
   // --- Derived Auth & Contract Values ---
   const address = wagmiAddress || privyUser?.wallet?.address || cloudWalletAddress || undefined;
   const isConnected = isWagmiConnected || privyAuthenticated || !!cloudWalletAddress;
