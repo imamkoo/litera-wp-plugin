@@ -1,5 +1,13 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.42 (Interactive Transaction Confirmation Button in Popup & Seamless Session Restore)
+- **Latar:**
+  1. Auto-trigger tanda tangan saat popup pertama kali mount memicu race condition dengan inisialisasi wallet proxy Privy ("An error has occurred, please try again.").
+  2. Saat refresh artikel, widget kembali ke tombol "Collect NFT" alih-alih langsung "Claim Your Access / Mint NFT".
+- **Perbaikan:**
+  1. Popup `widget-auth` menampilkan tombol interaktif "Konfirmasi & Tandatangani" dan memanggil signing method langsung dari embedded wallet Privy tanpa error race condition.
+  2. Widget secara otomatis bertransisi ke state `mint_ready` ("Claim Your Access") saat mendeteksi dompet pembaca yang sudah tersambung di browser.
+
 ## v1.4.41 (Auto-close Login Popup, Persistent Session on Refresh, Dedicated Transaction Sign Popup)
 - **Latar:**
   1. Login email/Google di widget tidak tersimpan saat halaman artikel di-refresh, memaksa user login ulang.

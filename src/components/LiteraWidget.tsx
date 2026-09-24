@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.41';
+const WIDGET_VERSION = '1.4.42';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -863,6 +863,13 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       setStep('error');
     }
   };
+
+  // Auto-transisi dari idle ke mint_ready/quiz saat user sudah terhubung (mis. refresh halaman)
+  useEffect(() => {
+    if (address && step === 'idle' && !ownsNFT && !isLegacy && tokenId > 0) {
+      handleStartAuthorization();
+    }
+  }, [address, step, ownsNFT, isLegacy, tokenId]);
 
   const handleSelectOption = (optionId: string) => {
     const currentQuestion = questions[currentQuestionIndex];
