@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.40 (Allow closing the login popup)
+- **Latar:** popup login harus tetap terbuka karena tanda tangan Privy hanya bisa dari jendela itu.
+- **Perbaikan:** popup boleh ditutup. Saat klaim, widget membukanya lagi; sesi `literaa.xyz` masih hidup jadi tidak login ulang.
+
 ## v1.4.39 (Fix Connector not connected on email/Google login)
 - **Latar:** Klaim NFT setelah login email/Google menampilkan `Connector not connected` karena tanda tangan memakai connector wagmi, padahal sesi Privy hidup di popup `widget-auth`.
 - **Perbaikan:** widget meminta popup menandatangani pesan (`LITERA_SIGN_REQUEST`). Popup tetap terbuka sampai klaim selesai. Login dompet ekstensi tetap lewat wagmi.

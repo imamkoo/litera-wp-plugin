@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.39';
+const WIDGET_VERSION = '1.4.40';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -230,9 +230,25 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const { signMessage: signPrivy } = usePrivySignMessage();
 
   const signViaPopup = (message: string): Promise<string> => {
-    const popup = popupRef.current;
+    let popup = popupRef.current;
     if (!popup || popup.closed) {
-      return Promise.reject(new Error('Sesi login tertutup. Hubungkan dompet lagi, lalu ulangi.'));
+      const w = Math.max(380, Math.min(460, window.innerWidth - 40));
+      const h = Math.max(560, Math.min(760, window.innerHeight - 60));
+      const left = window.screenX + (window.outerWidth - w) / 2;
+      const top = window.screenY + (window.outerHeight - h) / 2;
+      popup = window.open(
+        `${LITERA_ORIGIN}/widget-auth?${new URLSearchParams({
+          article: window.location.href,
+          tokenId: String(tokenId ?? ''),
+          auth: 'email',
+        }).toString()}`,
+        'litera-cloud-wallet',
+        `width=${w},height=${h},left=${left},top=${top}`,
+      );
+      popupRef.current = popup;
+    }
+    if (!popup) {
+      return Promise.reject(new Error('Popup diblokir browser. Izinkan popup, lalu coba lagi.'));
     }
     const requestId = Math.random().toString(36).slice(2);
     return new Promise((resolve, reject) => {
