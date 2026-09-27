@@ -1,5 +1,19 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.45 (Redesign Modal Akun, Layar Awal Koleksi, dan Layar Koleksi Terverifikasi)
+- **Modal Akun Kamu [Image 1]:**
+  - Mengubah judul menjadi "Akun Kamu" dan copywriting logout menjadi "Keluar dari Akun" (bukan lagi "Putuskan Koneksi" yang terlalu teknis kripto).
+  - Menampilkan identitas login pengguna (Email / Google Name) dengan avatar inisial bila tersedia.
+  - Menambahkan tombol aksi langsung "Lihat Koleksi di Dashboard" (`https://literaa.xyz/mynft`).
+  - Mengganti gaya tombol logout menjadi warna soft-rose yang elegan dan tidak agresif.
+- **Layar Koleksi Terverifikasi [Image 2]:**
+  - Standarisasi bahasa menjadi Bahasa Indonesia yang elegan ("Aset Terverifikasi", "Koleksi Tersimpan").
+  - Menjadikan "Buka Koleksi di Dashboard" sebagai tombol utama terracotta Litera.
+  - Memindahkan tautan OpenSea menjadi link sekunder yang minimalis.
+- **Layar Awal Belum Login [Image 3]:**
+  - Copywriting yang lebih ramah pembaca umum: "Koleksi Digital Artikel Ini", "Masuk dengan Google atau dompet digital untuk mengoleksi edisi permanen artikel ini."
+  - Tombol aksi utama: "Koleksi Artikel · (Gratis)".
+
 ## v1.4.44 (Consistent Wallet Pill and Dashboard Link Across All Connected States)
 - Wallet pill (saldo LITE, alamat dompet, dan modal disconnect/logout) dipastikan aktif di seluruh state saat terkoneksi.
 - Tautan minimalis `Dashboard →` (`https://literaa.xyz/mynft`) disematkan di dalam komponen wallet button sehingga selalu tampil di setiap state yang terkoneksi tanpa terputus.

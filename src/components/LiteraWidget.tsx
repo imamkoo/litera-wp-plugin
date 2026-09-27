@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.44';
+const WIDGET_VERSION = '1.4.45';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -1173,7 +1173,7 @@ Expires: ${expiresAt}`;
             <span style={{ fontSize: '11px', opacity: 0.7, fontFamily: 'monospace' }}>{address?.slice(0, 6)}...{address?.slice(-4)}</span>
           </>
         ) : (
-          <span>{isConnecting ? 'Connecting…' : 'Connect Wallet to Collect'}</span>
+          <span>{isConnecting ? 'Menghubungkan…' : (price && price > BigInt(0) ? `Koleksi Artikel · (${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE)` : 'Koleksi Artikel · (Gratis)')}</span>
         )}
       </button>
 
@@ -1216,7 +1216,7 @@ Expires: ${expiresAt}`;
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#111827' }}>
-                Akun Terhubung
+                Akun Kamu
               </h3>
               <button
                 onClick={() => setIsDisconnectModalOpen(false)}
@@ -1237,6 +1237,37 @@ Expires: ${expiresAt}`;
               </button>
             </div>
 
+            {/* Identitas Email / Google bila tersedia */}
+            {(privyUser?.email?.address || privyUser?.google) && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                backgroundColor: '#f9fafb',
+                borderRadius: '14px',
+                padding: '12px 14px',
+                marginBottom: '10px',
+                border: '1px solid #f3f4f6'
+              }}>
+                <div style={{
+                  width: '36px', height: '36px', borderRadius: '50%',
+                  backgroundColor: '#fff', border: '1px solid #e5e7eb',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '14px', fontWeight: 800, color: '#d07954'
+                }}>
+                  {((privyUser?.google?.name || privyUser?.email?.address || 'U').trim().charAt(0)).toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {privyUser?.google?.name || privyUser?.email?.address}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                    {privyUser?.google ? 'Login via Google' : 'Login via Email'}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -1244,11 +1275,11 @@ Expires: ${expiresAt}`;
               backgroundColor: '#f9fafb',
               borderRadius: '14px',
               padding: '12px 14px',
-              marginBottom: '12px',
+              marginBottom: '10px',
               border: '1px solid #f3f4f6'
             }}>
               <div>
-                <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '2px' }}>Alamat Wallet</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '2px' }}>Alamat Dompet</div>
                 <div style={{ fontSize: '13px', fontWeight: 700, fontFamily: 'monospace', color: '#111827' }}>
                   {address?.slice(0, 10)}...{address?.slice(-8)}
                 </div>
@@ -1281,7 +1312,7 @@ Expires: ${expiresAt}`;
               padding: '10px 14px',
               backgroundColor: '#fff8f4',
               borderRadius: '14px',
-              marginBottom: '20px',
+              marginBottom: '14px',
               border: '1px solid rgba(208,121,84,0.2)'
             }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280' }}>Saldo LITE</span>
@@ -1289,6 +1320,31 @@ Expires: ${expiresAt}`;
                 {userBalance !== undefined && userBalance !== null ? `${parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', { maximumFractionDigits: 2 })} LITE` : '0 LITE'}
               </span>
             </div>
+
+            <a
+              href="https://literaa.xyz/mynft"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                width: '100%',
+                padding: '12px',
+                borderRadius: '14px',
+                backgroundColor: '#ffffff',
+                border: '1.5px solid #e5e7eb',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: '#374151',
+                textDecoration: 'none',
+                marginBottom: '10px',
+                boxSizing: 'border-box'
+              }}
+            >
+              Lihat Koleksi di Dashboard <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9.2-9.2M17 17V8H8"/></svg>
+            </a>
 
             <button
               onClick={handleDisconnect}
@@ -1298,20 +1354,20 @@ Expires: ${expiresAt}`;
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                padding: '13px',
+                padding: '12px',
                 borderRadius: '14px',
-                backgroundColor: '#fee2e2',
-                color: '#dc2626',
-                border: '1px solid #fca5a5',
-                fontSize: '14px',
+                backgroundColor: '#fef2f2',
+                color: '#b91c1c',
+                border: '1px solid #fecaca',
+                fontSize: '13px',
                 fontWeight: 700,
                 cursor: 'pointer',
-                transition: 'background-color 0.15s ease'
+                transition: 'all 0.15s ease'
               }}
-              onMouseOver={e => (e.currentTarget.style.backgroundColor = '#fecaca')}
-              onMouseOut={e => (e.currentTarget.style.backgroundColor = '#fee2e2')}
+              onMouseOver={e => (e.currentTarget.style.backgroundColor = '#fee2e2')}
+              onMouseOut={e => (e.currentTarget.style.backgroundColor = '#fef2f2')}
             >
-              <LogOutIcon size={16} /> Putuskan Koneksi
+              <LogOutIcon size={15} /> Keluar dari Akun
             </button>
           </div>
         </div>,
@@ -1433,11 +1489,12 @@ Expires: ${expiresAt}`;
   if (!isConnected) {
     return (
       <WidgetShell>
-        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--lw-bg-inner)', border: '1px solid var(--lw-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-          <svg style={{ width: '24px', height: '24px', color: 'var(--lw-text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--lw-badge-bg)', border: '1px solid var(--lw-badge-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+          <svg style={{ width: '24px', height: '24px', color: '#F04E37' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
         </div>
-        <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Exclusive Collectible</h3>
-        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>Connect your Web3 wallet to collect this article and unlock premium perks.</p>
+        <Badge color="orange">Koleksi Digital</Badge>
+        <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '12px 0 6px 0', color: 'var(--lw-text)' }}>Koleksi Digital Artikel Ini</h3>
+        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6 }}>Masuk dengan Google atau dompet digital untuk mengoleksi edisi permanen artikel ini.</p>
         {renderWalletButton()}
         <PoweredByLitera />
       </WidgetShell>
@@ -1471,16 +1528,16 @@ Expires: ${expiresAt}`;
     if (hasUnlockableContent && isValidCid && unlockedContent && localUnlocked) {
       return (
         <WidgetShell>
-          <Badge color="green">Access Granted</Badge>
+          <Badge color="green">Akses Terbuka</Badge>
           <div style={{ width: '100%', background: 'var(--lw-bg-inner)', padding: '16px 20px', borderRadius: '16px', border: '1px solid var(--lw-border)', margin: '16px 0', position: 'relative', overflow: 'hidden', textAlign: 'left' as const }}>
             <div style={{ position: 'absolute', top: 0, left: 0, width: '3px', height: '100%', background: '#F04E37' }} />
             <p style={{ fontSize: '13px', color: 'var(--lw-text)', lineHeight: 1.7, margin: 0, paddingLeft: '8px' }}>{unlockedContent.description}</p>
           </div>
-          <LiteraButton href={unlockedContent.content}>Open Premium Content</LiteraButton>
+          <LiteraButton href={unlockedContent.content}>Buka Konten Eksklusif</LiteraButton>
           <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '10px' }}>
-            <LiteraButton variant="outline" href={getOpenSeaUrl()}>View NFT</LiteraButton>
+            <LiteraButton variant="outline" href="https://literaa.xyz/mynft">Buka Dashboard</LiteraButton>
             {sponsorUrl && sponsorUrl.length > 5 && (
-              <LiteraButton variant="secondary" href={sponsorUrl}>Learn More</LiteraButton>
+              <LiteraButton variant="secondary" href={sponsorUrl}>Pelajari Lebih Lanjut</LiteraButton>
             )}
           </div>
           {renderWalletButton()}
@@ -1496,10 +1553,10 @@ Expires: ${expiresAt}`;
           <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--lw-badge-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
             <svg style={{ width: '24px', height: '24px', color: '#F04E37' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
           </div>
-          <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Content Locked</h3>
-          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>You own this NFT but the premium content is hidden. Click the button below to reveal it instantly for free.</p>
+          <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Konten Terkunci</h3>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>Kamu memiliki NFT ini. Klik tombol di bawah untuk membuka materi eksklusif.</p>
           <LiteraButton onClick={() => setLocalUnlocked(true)} fullWidth={false}>
-            Unlock Premium Content
+            Buka Konten Eksklusif
           </LiteraButton>
           {renderWalletButton()}
           <PoweredByLitera />
@@ -1515,11 +1572,11 @@ Expires: ${expiresAt}`;
           <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.05, pointerEvents: 'none', transform: 'scale(2.5)' }}>
             <svg style={{ width: '120px', height: '120px', color: '#F04E37' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
           </div>
-          <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)', zIndex: 1 }}>Premium Access Granted</h3>
-          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6, zIndex: 1 }}>As an NFT holder, you have exclusive access to this premium article. Click the button below to verify your ownership and unlock the content.</p>
+          <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)', zIndex: 1 }}>Akses Eksklusif Terbuka</h3>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6, zIndex: 1 }}>Sebagai pemilik NFT, kamu berhak membuka materi eksklusif artikel ini. Klik tombol di bawah untuk memverifikasi kepemilikan.</p>
           <div style={{ zIndex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <LiteraButton onClick={handleDecrypt} disabled={isUnlocking} fullWidth={false}>
-              {isUnlocking ? "Unlocking..." : "Unlock Content"}
+              {isUnlocking ? "Membuka Konten…" : "Buka Konten Eksklusif"}
             </LiteraButton>
             <div style={{ marginTop: '12px' }}>
               {renderWalletButton()}
@@ -1536,17 +1593,23 @@ Expires: ${expiresAt}`;
         <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
           <CheckCircle2Icon size={24} style={{ color: '#10b981' }} />
         </div>
-        <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 4px 0', color: 'var(--lw-text)' }}>Collection Verified</h3>
-        <p style={{ fontSize: '14px', fontWeight: 600, color: '#10b981', margin: '0 0 20px 0' }}>You now own this Digital Asset.</p>
+        <Badge color="green">Aset Terverifikasi</Badge>
+        <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)' }}>Koleksi Tersimpan</h3>
+        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '300px', lineHeight: 1.6 }}>Kamu telah memiliki edisi digital artikel ini. Sertifikat kepemilikan tersimpan di blockchain.</p>
 
-        {sponsorUrl && sponsorUrl.length > 5 ? (
-          <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
-            <LiteraButton href={sponsorUrl}>Learn More</LiteraButton>
-            <LiteraButton variant="outline" href={getOpenSeaUrl()}>View NFT</LiteraButton>
-          </div>
-        ) : (
-          <LiteraButton variant="outline" href={getOpenSeaUrl()}>View NFT</LiteraButton>
-        )}
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+          <LiteraButton href="https://literaa.xyz/mynft" fullWidth={false}>
+            Buka Koleksi di Dashboard
+          </LiteraButton>
+          <a
+            href={getOpenSeaUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: '11px', color: 'var(--lw-text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px' }}
+          >
+            Lihat data blockchain (OpenSea) <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9.2-9.2M17 17V8H8"/></svg>
+          </a>
+        </div>
         {renderWalletButton()}
         <PoweredByLitera />
       </WidgetShell>
