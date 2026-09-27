@@ -1,7 +1,7 @@
 # Litera WordPress Plugin Release Notes
 
-## v1.4.43 (Dashboard link after email/Google login)
-- Setelah login email atau Google, layar klaim menampilkan tombol sekunder **Buka dashboard** ke literaa.xyz, plus satu kalimat bahwa koleksi lengkap ada di sana. Login dompet biasa tidak menampilkan tombol ini.
+## v1.4.43 (Dashboard link on the claim screen)
+- Layar klaim menampilkan tombol sekunder **Buka dashboard** ke literaa.xyz, plus satu kalimat bahwa koleksi lengkap ada di sana. Berlaku untuk login email, Google, dan dompet.
 
 ## v1.4.42 (Interactive Transaction Confirmation Button in Popup & Seamless Session Restore)
 - **Latar:**
