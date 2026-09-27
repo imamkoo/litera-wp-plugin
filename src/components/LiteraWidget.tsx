@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.43';
+const WIDGET_VERSION = '1.4.44';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -1177,6 +1177,14 @@ Expires: ${expiresAt}`;
         )}
       </button>
 
+      {/* Dashboard link — shown in every state when connected */}
+      {isConnected && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginTop: '6px' }}>
+          <span style={{ fontSize: '11px', color: 'var(--lw-text-muted)' }}>Koleksi lengkap di</span>
+          <a href="https://literaa.xyz/mynft" target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', fontWeight: 700, color: '#d07954', textDecoration: 'none' }}>Dashboard →</a>
+        </div>
+      )}
+
       {/* Disconnect & Account Modal (via Portal agar tidak terpotong overflow container widget) */}
       {isConnected && isDisconnectModalOpen && createPortal(
         <div
@@ -1792,10 +1800,6 @@ Expires: ${expiresAt}`;
             <LiteraButton onClick={handleBuy} disabled={isButtonDisabled} fullWidth={false}>{buttonText}</LiteraButton>
           </div>
           {renderWalletButton()}
-          <div style={{ zIndex: 1, display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--lw-text-muted)', lineHeight: 1.4 }}>Lihat koleksi lengkap di</span>
-            <a href="https://literaa.xyz/mynft" target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', fontWeight: 700, color: '#d07954', textDecoration: 'none' }}>Dashboard →</a>
-          </div>
           <PoweredByLitera />
         </WidgetShell>
       );

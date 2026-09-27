@@ -1,8 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
-## v1.4.43 (Dashboard link on the claim screen)
-- Kembalikan tombol status wallet / disconnect di layar klaim (`renderWalletButton`).
-- Tautan dashboard dibuat minimalis mengarah langsung ke `https://literaa.xyz/mynft`.
+## v1.4.44 (Consistent Wallet Pill and Dashboard Link Across All Connected States)
+- Wallet pill (saldo LITE, alamat dompet, dan modal disconnect/logout) dipastikan aktif di seluruh state saat terkoneksi.
+- Tautan minimalis `Dashboard →` (`https://literaa.xyz/mynft`) disematkan di dalam komponen wallet button sehingga selalu tampil di setiap state yang terkoneksi tanpa terputus.
+
+## v1.4.43
 
 ## v1.4.42 (Interactive Transaction Confirmation Button in Popup & Seamless Session Restore)
 - **Latar:**
