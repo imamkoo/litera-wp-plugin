@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.42';
+const WIDGET_VERSION = '1.4.43';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -1788,8 +1788,16 @@ Expires: ${expiresAt}`;
               ? "You have passed the authorization check. Approve LITE usage first, then mint your NFT to unlock the premium article."
               : "You have passed the authorization check. Mint your NFT now to unlock the premium article permanently."}
           </p>
-          <div style={{ zIndex: 1 }}>
+          <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
             <LiteraButton onClick={handleBuy} disabled={isButtonDisabled} fullWidth={false}>{buttonText}</LiteraButton>
+            {(privyUser?.email || privyUser?.google) && (
+              <>
+                <p style={{ fontSize: '12px', color: 'var(--lw-text-muted)', margin: 0, maxWidth: '260px', lineHeight: 1.5 }}>
+                  Koleksi dan riwayat lengkap ada di dashboard.
+                </p>
+                <LiteraButton href="https://literaa.xyz" variant="secondary" fullWidth={false}>Buka dashboard</LiteraButton>
+              </>
+            )}
           </div>
           <PoweredByLitera />
         </WidgetShell>
