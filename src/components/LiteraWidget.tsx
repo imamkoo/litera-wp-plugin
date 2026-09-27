@@ -1788,12 +1788,13 @@ Expires: ${expiresAt}`;
               ? "You have passed the authorization check. Approve LITE usage first, then mint your NFT to unlock the premium article."
               : "You have passed the authorization check. Mint your NFT now to unlock the premium article permanently."}
           </p>
-          <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+          <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '100%' }}>
             <LiteraButton onClick={handleBuy} disabled={isButtonDisabled} fullWidth={false}>{buttonText}</LiteraButton>
-            <p style={{ fontSize: '12px', color: 'var(--lw-text-muted)', margin: 0, maxWidth: '260px', lineHeight: 1.5 }}>
-              Koleksi dan riwayat lengkap ada di dashboard.
-            </p>
-            <LiteraButton href="https://literaa.xyz" variant="secondary" fullWidth={false}>Buka dashboard</LiteraButton>
+          </div>
+          {renderWalletButton()}
+          <div style={{ zIndex: 1, display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--lw-text-muted)', lineHeight: 1.4 }}>Lihat koleksi lengkap di</span>
+            <a href="https://literaa.xyz/mynft" target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', fontWeight: 700, color: '#d07954', textDecoration: 'none' }}>Dashboard →</a>
           </div>
           <PoweredByLitera />
         </WidgetShell>

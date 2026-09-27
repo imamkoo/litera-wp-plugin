@@ -1,7 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
 ## v1.4.43 (Dashboard link on the claim screen)
-- Layar klaim menampilkan tombol sekunder **Buka dashboard** ke literaa.xyz, plus satu kalimat bahwa koleksi lengkap ada di sana. Berlaku untuk login email, Google, dan dompet.
+- Kembalikan tombol status wallet / disconnect di layar klaim (`renderWalletButton`).
+- Tautan dashboard dibuat minimalis mengarah langsung ke `https://literaa.xyz/mynft`.
 
 ## v1.4.42 (Interactive Transaction Confirmation Button in Popup & Seamless Session Restore)
 - **Latar:**
