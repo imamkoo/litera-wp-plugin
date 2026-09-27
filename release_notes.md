@@ -1,5 +1,15 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.46 (3D Glowing NFT Card, Popup Watchdog Anti-Stuck, and Minimalist CTA)
+- **Anti-Stuck Popup Watchdog [Image 4]:** Menambahkan interval pengecekan status `popup.closed` pada popup tanda tangan dan autentikasi. Jika popup ditutup paksa oleh pengguna, proses langsung dibatalkan secara bersih tanpa membuat tombol macet di state "Minting NFT...".
+- **Layar Awal Belum Login [Image 1 & 2]:**
+  - Menghapus icon buku yang tidak minimalis di atas badge.
+  - Mengubah lebar tombol aksi menjadi dinamis (`width: auto`, centered capsule) tanpa memanjang penuh.
+  - Memperbarui copywriting tombol menjadi lebih prestisius: **"Miliki Edisi Digital"** (menghilangkan kata 'Gratis' dan 'Koleksi Artikel').
+- **Layar Koleksi Terverifikasi [Image 3]:**
+  - Menampilkan media NFT asli (gambar/video) dalam frame kartu 3D melayang (*floating 3D perspective*) dengan ambient aura glow (terracotta & emerald).
+  - Dilengkapi badge holografis "MILIK KAMU" di pojok kanan atas kartu NFT.
+
 ## v1.4.45 (Redesign Modal Akun, Layar Awal Koleksi, dan Layar Koleksi Terverifikasi)
 - **Modal Akun Kamu [Image 1]:**
   - Mengubah judul menjadi "Akun Kamu" dan copywriting logout menjadi "Keluar dari Akun" (bukan lagi "Putuskan Koneksi" yang terlalu teknis kripto).

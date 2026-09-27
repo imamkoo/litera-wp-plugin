@@ -218,7 +218,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.45';
+const WIDGET_VERSION = '1.4.46';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -297,17 +297,34 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     } catch (e) {}
 
     return new Promise((resolve, reject) => {
-      const timer = window.setTimeout(() => {
+      let cleanedUp = false;
+      const cleanup = () => {
+        if (cleanedUp) return;
+        cleanedUp = true;
+        window.clearTimeout(timer);
+        window.clearInterval(pollClosed);
         window.removeEventListener('message', onResult);
+      };
+
+      const timer = window.setTimeout(() => {
+        cleanup();
         reject(new Error('Waktu tanda tangan habis. Coba lagi.'));
       }, 120000);
+
+      const pollClosed = window.setInterval(() => {
+        try {
+          if (!popup || popup.closed) {
+            cleanup();
+            reject(new Error('Tanda tangan dibatalkan (jendela ditutup).'));
+          }
+        } catch (e) {}
+      }, 500);
 
       const onResult = (e: MessageEvent) => {
         if (e.origin !== LITERA_ORIGIN) return;
         const data = e.data;
         if (!data || data.type !== 'LITERA_SIGN_RESULT' || data.requestId !== requestId) return;
-        window.clearTimeout(timer);
-        window.removeEventListener('message', onResult);
+        cleanup();
         if (data.signature) resolve(data.signature);
         else reject(new Error(data.error || 'Tanda tangan dibatalkan'));
       };
@@ -522,6 +539,18 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       'litera-cloud-wallet',
       `width=${w},height=${h},left=${left},top=${top}`
     );
+
+    const pollLoginClosed = window.setInterval(() => {
+      try {
+        if (!popupRef.current || popupRef.current.closed) {
+          window.clearInterval(pollLoginClosed);
+          setIsConnecting(false);
+        }
+      } catch (e) {
+        window.clearInterval(pollLoginClosed);
+        setIsConnecting(false);
+      }
+    }, 600);
   };
 
   useEffect(() => {
@@ -1136,7 +1165,7 @@ Expires: ${expiresAt}`;
 
   /* ─── Wallet Button (reusable) ─── */
   const renderWalletButton = () => (
-    <div style={{ position: 'relative', width: isConnected ? 'auto' : '100%' }}>
+    <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <button
         disabled={isConnecting && !isConnected}
         onClick={() => {
@@ -1148,17 +1177,20 @@ Expires: ${expiresAt}`;
           }
         }}
         style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-          width: isConnected ? undefined : '100%',
-          padding: '13px 20px',
-          borderRadius: '14px',
-          background: isConnected ? 'var(--lw-wallet-bg)' : '#d07954',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          width: 'auto',
+          maxWidth: '320px',
+          padding: isConnected ? '10px 18px' : '13px 32px',
+          borderRadius: '16px',
+          background: isConnected ? 'var(--lw-wallet-bg)' : 'linear-gradient(135deg, #d07954 0%, #b86644 100%)',
           color: isConnected ? 'var(--lw-wallet-text)' : '#ffffff',
-          fontSize: '14px', fontWeight: 700,
-          border: isConnected ? '1px solid var(--lw-border)' : '1px solid #d07954',
+          fontSize: isConnected ? '13px' : '14px', fontWeight: 800,
+          letterSpacing: '0.02em',
+          border: isConnected ? '1px solid var(--lw-border)' : 'none',
           cursor: isConnecting && !isConnected ? 'not-allowed' : 'pointer',
           opacity: isConnecting && !isConnected ? 0.65 : 1,
-          transition: 'background-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease',
+          transition: 'all 0.2s ease',
+          boxShadow: isConnected ? 'none' : '0 8px 20px -4px rgba(208,121,84,0.45), inset 0 1px 2px rgba(255,255,255,0.3)',
           marginTop: '8px',
         }}
       >
@@ -1173,7 +1205,7 @@ Expires: ${expiresAt}`;
             <span style={{ fontSize: '11px', opacity: 0.7, fontFamily: 'monospace' }}>{address?.slice(0, 6)}...{address?.slice(-4)}</span>
           </>
         ) : (
-          <span>{isConnecting ? 'Menghubungkan…' : (price && price > BigInt(0) ? `Koleksi Artikel · (${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE)` : 'Koleksi Artikel · (Gratis)')}</span>
+          <span>{isConnecting ? 'Menghubungkan…' : (price && price > BigInt(0) ? `Miliki Edisi Digital · ${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Miliki Edisi Digital')}</span>
         )}
       </button>
 
@@ -1489,12 +1521,9 @@ Expires: ${expiresAt}`;
   if (!isConnected) {
     return (
       <WidgetShell>
-        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--lw-badge-bg)', border: '1px solid var(--lw-badge-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-          <svg style={{ width: '24px', height: '24px', color: '#F04E37' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-        </div>
-        <Badge color="orange">Koleksi Digital</Badge>
-        <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '12px 0 6px 0', color: 'var(--lw-text)' }}>Koleksi Digital Artikel Ini</h3>
-        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6 }}>Masuk dengan Google atau dompet digital untuk mengoleksi edisi permanen artikel ini.</p>
+        <Badge color="orange">Edisi Digital</Badge>
+        <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '14px 0 6px 0', color: 'var(--lw-text)' }}>Koleksi Edisi Digital</h3>
+        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6 }}>Simpan artikel ini ke koleksi digital kamu secara permanen.</p>
         {renderWalletButton()}
         <PoweredByLitera />
       </WidgetShell>
@@ -1590,12 +1619,98 @@ Expires: ${expiresAt}`;
     // Owns NFT, no unlockable
     return (
       <WidgetShell>
-        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-          <CheckCircle2Icon size={24} style={{ color: '#10b981' }} />
+        {/* Glow ambient background & 3D NFT Card */}
+        <div style={{
+          position: 'relative',
+          margin: '6px 0 16px 0',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          zIndex: 1,
+        }}>
+          {/* 3D Floating NFT Card with Glow */}
+          <div style={{
+            position: 'relative',
+            width: '180px',
+            height: '180px',
+            borderRadius: '22px',
+            padding: '3px',
+            background: 'linear-gradient(135deg, rgba(208,121,84,0.5) 0%, rgba(16,185,129,0.35) 50%, rgba(255,255,255,0.15) 100%)',
+            boxShadow: '0 20px 40px -10px rgba(208,121,84,0.35), 0 0 35px 2px rgba(16,185,129,0.18), inset 0 1px 2px rgba(255,255,255,0.4)',
+            transform: 'perspective(800px) rotateX(4deg) translateY(-2px)',
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+          }}>
+            <div style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: '19px',
+              overflow: 'hidden',
+              backgroundColor: '#1e293b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+            }}>
+              {nftMedia?.url ? (
+                nftMedia.type === 'video' ? (
+                  <video
+                    src={nftMedia.url}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    autoPlay loop muted playsInline
+                  />
+                ) : (
+                  <img
+                    src={nftMedia.url}
+                    alt={articleTitle || "NFT Media"}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                )
+              ) : (
+                <div style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  background: 'linear-gradient(145deg, #1e293b, #0f172a)',
+                  width: '100%', height: '100%', padding: '16px', textAlign: 'center',
+                }}>
+                  <svg viewBox="0 0 200 200" style={{ width: '48px', height: '48px', marginBottom: '8px' }}>
+                    <circle cx="100" cy="100" r="100" fill="#F04E37" />
+                    <text x="100" y="130" fill="#FFFFFF" fontSize="90" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="bold" textAnchor="middle" letterSpacing="-2">L</text>
+                  </svg>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#f8fafc', opacity: 0.9 }}>Digital Collectible</span>
+                  <span style={{ fontSize: '9px', color: '#94a3b8', marginTop: '2px' }}>Token #{tokenId}</span>
+                </div>
+              )}
+
+              {/* Glowing Verified Badge on top right of the card */}
+              <div style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                padding: '4px 8px',
+                borderRadius: '99px',
+                backgroundColor: 'rgba(15,23,42,0.85)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                border: '1px solid rgba(16,185,129,0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                <span style={{ fontSize: '10px', fontWeight: 800, color: '#34d399', letterSpacing: '0.04em' }}>MILIK KAMU</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <Badge color="green">Aset Terverifikasi</Badge>
-        <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)' }}>Koleksi Tersimpan</h3>
-        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '300px', lineHeight: 1.6 }}>Kamu telah memiliki edisi digital artikel ini. Sertifikat kepemilikan tersimpan di blockchain.</p>
+
+        <Badge color="green">Koleksi Terverifikasi</Badge>
+        <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)' }}>
+          {articleTitle || 'Koleksi Tersimpan'}
+        </h3>
+        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 18px 0', maxWidth: '300px', lineHeight: 1.6 }}>
+          Sertifikat kepemilikan digital kamu tersimpan aman di blockchain Polygon.
+        </p>
 
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
           <LiteraButton href="https://literaa.xyz/mynft" fullWidth={false}>
