@@ -218,7 +218,128 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-const WIDGET_VERSION = '1.4.46';
+/** Holographic Specimen NFT Card — used in preview & owned states */
+const NftSpecimenCard: React.FC<{
+  media?: { url: string; type: 'image' | 'video' } | null;
+  title?: string;
+  tokenId?: string | number;
+  isOwned?: boolean;
+}> = ({ media, title, tokenId, isOwned = false }) => {
+  return (
+    <div style={{
+      position: 'relative',
+      margin: '6px 0 16px 0',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      zIndex: 1,
+    }}>
+      {/* 3D Floating NFT Card with Specimen Glow */}
+      <div style={{
+        position: 'relative',
+        width: '180px',
+        height: '180px',
+        borderRadius: '22px',
+        padding: '3px',
+        background: isOwned
+          ? 'linear-gradient(135deg, rgba(208,121,84,0.55) 0%, rgba(16,185,129,0.4) 50%, rgba(255,255,255,0.2) 100%)'
+          : 'linear-gradient(135deg, rgba(208,121,84,0.35) 0%, rgba(148,163,184,0.25) 50%, rgba(255,255,255,0.1) 100%)',
+        boxShadow: isOwned
+          ? '0 20px 40px -10px rgba(208,121,84,0.35), 0 0 35px 2px rgba(16,185,129,0.18), inset 0 1px 2px rgba(255,255,255,0.4)'
+          : '0 16px 32px -10px rgba(208,121,84,0.25), 0 0 24px rgba(208,121,84,0.1), inset 0 1px 2px rgba(255,255,255,0.25)',
+        transform: 'perspective(800px) rotateX(4deg) translateY(-2px)',
+        transition: 'all 0.3s ease',
+      }}>
+        <div style={{
+          width: '100%',
+          height: '100%',
+          borderRadius: '19px',
+          overflow: 'hidden',
+          backgroundColor: '#1e293b',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}>
+          {media?.url ? (
+            media.type === 'video' ? (
+              <video
+                src={media.url}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  filter: isOwned ? 'none' : 'contrast(1.05) brightness(0.95)',
+                }}
+                autoPlay loop muted playsInline
+              />
+            ) : (
+              <img
+                src={media.url}
+                alt={title || "NFT Media"}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  filter: isOwned ? 'none' : 'contrast(1.05) brightness(0.95)',
+                }}
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
+            )
+          ) : (
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(145deg, #1e293b, #0f172a)',
+              width: '100%', height: '100%', padding: '16px', textAlign: 'center',
+            }}>
+              <svg viewBox="0 0 200 200" style={{ width: '44px', height: '44px', marginBottom: '8px' }}>
+                <circle cx="100" cy="100" r="100" fill="#F04E37" />
+                <text x="100" y="130" fill="#FFFFFF" fontSize="90" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="bold" textAnchor="middle" letterSpacing="-2">L</text>
+              </svg>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#f8fafc', opacity: 0.9 }}>Digital Collectible</span>
+              {tokenId ? <span style={{ fontSize: '9px', color: '#94a3b8', marginTop: '2px' }}>Token #{tokenId}</span> : null}
+            </div>
+          )}
+
+          {/* Floating Badge on Top Right */}
+          <div style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            padding: '4px 8px',
+            borderRadius: '99px',
+            backgroundColor: isOwned ? 'rgba(15,23,42,0.88)' : 'rgba(15,23,42,0.75)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            border: isOwned ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(255,255,255,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          }}>
+            <span style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: isOwned ? '#10b981' : '#d07954',
+              boxShadow: isOwned ? '0 0 8px #10b981' : '0 0 6px #d07954',
+            }} />
+            <span style={{
+              fontSize: '10px',
+              fontWeight: 800,
+              color: isOwned ? '#34d399' : '#fdba74',
+              letterSpacing: '0.04em',
+            }}>
+              {isOwned ? 'MILIK KAMU' : 'EDISI DIGITAL'}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const WIDGET_VERSION = '1.4.47';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -1521,9 +1642,10 @@ Expires: ${expiresAt}`;
   if (!isConnected) {
     return (
       <WidgetShell>
+        <NftSpecimenCard media={nftMedia} title={articleTitle} tokenId={tokenId} isOwned={false} />
         <Badge color="orange">Edisi Digital</Badge>
-        <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '14px 0 6px 0', color: 'var(--lw-text)' }}>Koleksi Edisi Digital</h3>
-        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6 }}>Simpan artikel ini ke koleksi digital kamu secara permanen.</p>
+        <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)' }}>Koleksi Edisi Digital</h3>
+        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6 }}>Diterbitkan resmi sebagai aset digital permanen artikel ini.</p>
         {renderWalletButton()}
         <PoweredByLitera />
       </WidgetShell>
@@ -1619,96 +1741,12 @@ Expires: ${expiresAt}`;
     // Owns NFT, no unlockable
     return (
       <WidgetShell>
-        {/* Glow ambient background & 3D NFT Card */}
-        <div style={{
-          position: 'relative',
-          margin: '6px 0 16px 0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          zIndex: 1,
-        }}>
-          {/* 3D Floating NFT Card with Glow */}
-          <div style={{
-            position: 'relative',
-            width: '180px',
-            height: '180px',
-            borderRadius: '22px',
-            padding: '3px',
-            background: 'linear-gradient(135deg, rgba(208,121,84,0.5) 0%, rgba(16,185,129,0.35) 50%, rgba(255,255,255,0.15) 100%)',
-            boxShadow: '0 20px 40px -10px rgba(208,121,84,0.35), 0 0 35px 2px rgba(16,185,129,0.18), inset 0 1px 2px rgba(255,255,255,0.4)',
-            transform: 'perspective(800px) rotateX(4deg) translateY(-2px)',
-            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-          }}>
-            <div style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: '19px',
-              overflow: 'hidden',
-              backgroundColor: '#1e293b',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-            }}>
-              {nftMedia?.url ? (
-                nftMedia.type === 'video' ? (
-                  <video
-                    src={nftMedia.url}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    autoPlay loop muted playsInline
-                  />
-                ) : (
-                  <img
-                    src={nftMedia.url}
-                    alt={articleTitle || "NFT Media"}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  />
-                )
-              ) : (
-                <div style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  background: 'linear-gradient(145deg, #1e293b, #0f172a)',
-                  width: '100%', height: '100%', padding: '16px', textAlign: 'center',
-                }}>
-                  <svg viewBox="0 0 200 200" style={{ width: '48px', height: '48px', marginBottom: '8px' }}>
-                    <circle cx="100" cy="100" r="100" fill="#F04E37" />
-                    <text x="100" y="130" fill="#FFFFFF" fontSize="90" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="bold" textAnchor="middle" letterSpacing="-2">L</text>
-                  </svg>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#f8fafc', opacity: 0.9 }}>Digital Collectible</span>
-                  <span style={{ fontSize: '9px', color: '#94a3b8', marginTop: '2px' }}>Token #{tokenId}</span>
-                </div>
-              )}
-
-              {/* Glowing Verified Badge on top right of the card */}
-              <div style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                padding: '4px 8px',
-                borderRadius: '99px',
-                backgroundColor: 'rgba(15,23,42,0.85)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                border: '1px solid rgba(16,185,129,0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 8px #10b981' }} />
-                <span style={{ fontSize: '10px', fontWeight: 800, color: '#34d399', letterSpacing: '0.04em' }}>MILIK KAMU</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        <NftSpecimenCard media={nftMedia} title={articleTitle} tokenId={tokenId} isOwned={true} />
         <Badge color="green">Koleksi Terverifikasi</Badge>
         <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)' }}>
           {articleTitle || 'Koleksi Tersimpan'}
         </h3>
-        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 18px 0', maxWidth: '300px', lineHeight: 1.6 }}>
+        <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6 }}>
           Sertifikat kepemilikan digital kamu tersimpan aman di blockchain Polygon.
         </p>
 
@@ -1716,11 +1754,21 @@ Expires: ${expiresAt}`;
           <LiteraButton href="https://literaa.xyz/mynft" fullWidth={false}>
             Buka Koleksi di Dashboard
           </LiteraButton>
+          {sponsorUrl && sponsorUrl.length > 5 && (
+            <a
+              href={sponsorUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: '12px', fontWeight: 700, color: '#d07954', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}
+            >
+              Kunjungi Halaman Terkait <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9.2-9.2M17 17V8H8"/></svg>
+            </a>
+          )}
           <a
             href={getOpenSeaUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ fontSize: '11px', color: 'var(--lw-text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px' }}
+            style={{ fontSize: '11px', color: 'var(--lw-text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}
           >
             Lihat data blockchain (OpenSea) <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9.2-9.2M17 17V8H8"/></svg>
           </a>
@@ -1952,27 +2000,23 @@ Expires: ${expiresAt}`;
       const currentAllowance = allowance !== undefined ? BigInt(allowance as any) : 0n;
       const needsApproval = currentAllowance < needed;
       
-      const priceText = price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free';
+      const priceText = price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Gratis';
       
       let buttonText = '';
-      if (isApproving) buttonText = "Approving LITE...";
-      else if (isGaslessMinting || isMintTx) buttonText = "Minting NFT...";
-      else if (needsApproval) buttonText = `Approve LITE · (${priceText})`;
-      else buttonText = `Mint NFT · (${priceText})`;
+      if (isApproving) buttonText = "Menyetujui LITE…";
+      else if (isGaslessMinting || isMintTx) buttonText = "Menyimpan ke Koleksi…";
+      else if (needsApproval) buttonText = `Setujui LITE · (${priceText})`;
+      else buttonText = `Miliki Edisi Digital`;
 
       return (
         <WidgetShell>
-          <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.05, pointerEvents: 'none', transform: 'scale(2.5)' }}>
-            <ShieldCheckIcon size={120} color="#10b981" />
-          </div>
-          <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Badge color="green">Eligible for Minting</Badge>
-          </div>
-          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '12px 0 6px 0', color: 'var(--lw-text)', zIndex: 1 }}>Claim Your Access</h2>
-          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6, zIndex: 1 }}>
+          <NftSpecimenCard media={nftMedia} title={articleTitle} tokenId={tokenId} isOwned={false} />
+          <Badge color="green">Siap Dikoleksi</Badge>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)', zIndex: 1 }}>Koleksi Edisi Digital</h2>
+          <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6, zIndex: 1 }}>
             {needsApproval 
-              ? "You have passed the authorization check. Approve LITE usage first, then mint your NFT to unlock the premium article."
-              : "You have passed the authorization check. Mint your NFT now to unlock the premium article permanently."}
+              ? "Setujui penggunaan token LITE terlebih dahulu, lalu selesaikan penyimpanan edisi digital."
+              : "Verifikasi berhasil. Simpan edisi permanen artikel ini ke akun kamu."}
           </p>
           <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '100%' }}>
             <LiteraButton onClick={handleBuy} disabled={isButtonDisabled} fullWidth={false}>{buttonText}</LiteraButton>

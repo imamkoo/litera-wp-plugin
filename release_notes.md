@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.47 (Konsep A: Holographic Specimen Card & Brand-Ready Visual Preview)
+- **Holographic Specimen Card (`NftSpecimenCard`):** Menampilkan kartu spesimen NFT dengan preview visual 3D berkilau sejak awal (sebelum login/klaim) dan bertransisi menjadi kartu 3D bercahaya aura emerald & badge "MILIK KAMU" setelah berhasil dikoleksi.
+- **Copywriting Editorial Bernilai Tinggi:** Menghilangkan kata promosi murahan ("sponsor", "benefit", "gratis"), menggantinya dengan aksi natural: "Koleksi Edisi Digital", "Miliki Edisi Digital", "Buka Materi Tambahan", "Kunjungi Halaman Terkait".
+- **Penyelarasan Seluruh State:** State Not-Connected, Mint-Ready, dan Verified Ownership kini konsisten menggunakan spesimen visual NFT terpadu.
+
 ## v1.4.46 (3D Glowing NFT Card, Popup Watchdog Anti-Stuck, and Minimalist CTA)
 - **Anti-Stuck Popup Watchdog [Image 4]:** Menambahkan interval pengecekan status `popup.closed` pada popup tanda tangan dan autentikasi. Jika popup ditutup paksa oleh pengguna, proses langsung dibatalkan secara bersih tanpa membuat tombol macet di state "Minting NFT...".
 - **Layar Awal Belum Login [Image 1 & 2]:**
