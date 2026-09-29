@@ -41,3 +41,6 @@ AGENTS.md
 !release_notes.md
 # Internal direksi (lokal saja; ditaruh setelah !README.md karena pola terakhir yang menang)
 /wp-starter/README.md
+
+# Build artifact lokal (hasil build, bukan source)
+/litera-wp-plugin/
