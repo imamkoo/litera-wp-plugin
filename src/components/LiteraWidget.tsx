@@ -1048,9 +1048,10 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
         const nonce = Math.random().toString(36).substring(2, 15);
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
+        const userWallet = (address || '').toLowerCase();
         const messagePayload = `Litera
 Version: 1.0
-Wallet: ${address.toLowerCase()}
+Wallet: ${userWallet}
 Action: ${action}
 Nonce: ${nonce}
 Chain: 137

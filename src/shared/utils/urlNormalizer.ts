@@ -1,47 +1,63 @@
 /**
- * Normalizes an article URL to ensure consistent on-chain lookups.
+ * Normalizes an article URL to ensure consistent on-chain and resolver lookups.
  * 
- * Rules:
- * 1. Convert to lowercase
- * 2. Remove URL hashes (#...)
- * 3. Remove query parameters (?utm_source=...)
- * 4. Remove trailing slashes (/)
+ * Rules (Aligned with Backend Selective Query Sanitizer):
+ * 1. Convert hostname to lowercase, retain case-sensitive pathname.
+ * 2. Remove URL hashes (#...).
+ * 3. Preserve functional content query parameters ('slug', 'id', 'p', 'article', 'post') in sorted order.
+ * 4. Strip tracking/ad query parameters ('utm_*', 'fbclid', 'gclid', 'ref', 'source', etc.).
+ * 5. Remove trailing slashes (/).
  * 
  * Example:
- * https://domain.com/Post/?utm=123#comments -> https://domain.com/post
+ * https://domain.com/Post/?utm_source=twitter&slug=hello#comments -> https://domain.com/Post?slug=hello
  */
+export const FUNCTIONAL_PARAMS = new Set(['slug', 'id', 'p', 'article', 'post']);
+
 export const normalizeUrl = (url: string | undefined | null): string => {
   if (!url) return '';
-  
+
   try {
-    let normalized = url.trim().toLowerCase();
+    const raw = url.trim();
+    if (!raw) return '';
 
-    // Try parsing as a URL object to reliably strip hash and search params
-    // If it's not a valid URL (e.g. just a path), we fallback to regex
-    if (normalized.startsWith('http')) {
-      const urlObj = new URL(normalized);
-      urlObj.hash = '';
-      urlObj.search = '';
-      normalized = urlObj.toString();
-    } else {
-      // Manual strip for non-http strings
-      normalized = normalized.split('#')[0];
-      normalized = normalized.split('?')[0];
+    let urlObj: URL;
+    try {
+      urlObj = new URL(raw);
+    } catch {
+      urlObj = new URL(raw.startsWith('http') ? raw : `https://${raw}`);
     }
 
-    // Remove trailing slash
-    if (normalized.endsWith('/')) {
-      normalized = normalized.slice(0, -1);
+    urlObj.hash = '';
+
+    const preservedParams: [string, string][] = [];
+    urlObj.searchParams.forEach((value, key) => {
+      const lowerKey = key.toLowerCase();
+      if (FUNCTIONAL_PARAMS.has(lowerKey)) {
+        preservedParams.push([lowerKey, value]);
+      }
+    });
+
+    preservedParams.sort((a, b) => a[0].localeCompare(b[0]));
+
+    const searchParams = new URLSearchParams();
+    for (const [key, value] of preservedParams) {
+      searchParams.append(key, value);
     }
 
-    return normalized;
+    const searchString = searchParams.toString();
+    const queryPart = searchString ? `?${searchString}` : '';
+
+    let pathname = urlObj.pathname;
+    if (pathname.length > 1 && pathname.endsWith('/')) {
+      pathname = pathname.slice(0, -1);
+    }
+
+    return `${urlObj.protocol}//${urlObj.hostname.toLowerCase()}${urlObj.port ? `:${urlObj.port}` : ''}${pathname}${queryPart}`;
   } catch (error) {
-    console.error("URL Normalization error:", error);
-    // Fallback to basic string manipulation if URL constructor fails
-    let fallback = url.trim().toLowerCase();
+    let fallback = (url || '').trim();
     fallback = fallback.split('#')[0];
     fallback = fallback.split('?')[0];
-    if (fallback.endsWith('/')) {
+    if (fallback.endsWith('/') && fallback.length > 1) {
       fallback = fallback.slice(0, -1);
     }
     return fallback;
