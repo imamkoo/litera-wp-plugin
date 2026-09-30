@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.48 (Auto Fallback Popup Signing for Embedded Wallet & Provider Personal Sign)
+- **Auto Fallback Popup Signing (`signIntent`):** Menambahkan `try-catch` fallback otomatis pada penandatanganan Privy in-app. Jika browser memblokir iframe wallet proxy Privy (error modal *"An error has occurred, please try again"*), sistem otomatis mengalihkan alur tanda tangan ke popup helper 1st-party `literaa.xyz/widget-auth` sehingga gasless minting tetap berhasil tanpa stuck.
+- **Enhanced Personal Sign Provider:** Mengoptimalkan penandatanganan di `WidgetAuthPage` dengan memprioritaskan `getEthereumProvider()` dari embedded wallet sebelum fallback ke `signPrivy`.
+
 ## v1.4.47 (Konsep A: Holographic Specimen Card & Brand-Ready Visual Preview)
 - **Holographic Specimen Card (`NftSpecimenCard`):** Menampilkan kartu spesimen NFT dengan preview visual 3D berkilau sejak awal (sebelum login/klaim) dan bertransisi menjadi kartu 3D bercahaya aura emerald & badge "MILIK KAMU" setelah berhasil dikoleksi.
 - **Copywriting Editorial Bernilai Tinggi:** Menghilangkan kata promosi murahan ("sponsor", "benefit", "gratis"), menggantinya dengan aksi natural: "Koleksi Edisi Digital", "Miliki Edisi Digital", "Buka Materi Tambahan", "Kunjungi Halaman Terkait".

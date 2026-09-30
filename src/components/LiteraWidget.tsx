@@ -339,7 +339,7 @@ const NftSpecimenCard: React.FC<{
   );
 };
 
-const WIDGET_VERSION = '1.4.47';
+const WIDGET_VERSION = '1.4.48';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -457,8 +457,13 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const signIntent = async (message: string): Promise<string> => {
     if (isWagmiConnected) return signWagmi({ message });
     if (privyAuthenticated) {
-      const res = await signPrivy({ message });
-      return (res as { signature?: string })?.signature ?? (res as unknown as string);
+      try {
+        const res = await signPrivy({ message });
+        return (res as { signature?: string })?.signature ?? (res as unknown as string);
+      } catch (err: any) {
+        console.warn('[Litera Widget] In-app Privy sign gagal, beralih ke popup signing:', err);
+        return signViaPopup(message);
+      }
     }
     if (cloudWalletAddress) return signViaPopup(message);
     throw new Error('Dompet belum tersambung. Hubungkan dompet dulu, lalu coba lagi.');
