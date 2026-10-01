@@ -352,7 +352,7 @@ const NftSpecimenCard: React.FC<{
   );
 };
 
-const WIDGET_VERSION = '1.4.53';
+const WIDGET_VERSION = '1.4.54';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -503,7 +503,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const [quizResult, setQuizResult] = useState<any | null>(null);
 
   // --- Derived Auth & Contract Values ---
-  const address = wagmiAddress || privyUser?.wallet?.address || cloudWalletAddress || undefined;
+  const embeddedWallet = (privyUser?.linkedAccounts?.find((a: any) => a.type === 'wallet') as any)?.address;
+  const address = wagmiAddress || privyUser?.wallet?.address || embeddedWallet || cloudWalletAddress || undefined;
   const isConnected = isWagmiConnected || privyAuthenticated || !!cloudWalletAddress;
   const nftContractAddress = generation === 'legacy' && legacyContractAddress ? legacyContractAddress : Erc1155Adress;
   const isLegacy = generation === 'legacy';
@@ -880,8 +881,18 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     query: { enabled: !!address && tokenId > 0 && !isLegacy }
   });
 
+  const { data: hasAccessData } = useReadContract({
+    address: UnlockableAddress,
+    abi: unlockableABI,
+    functionName: 'hasAccess',
+    args: address && tokenId > 0 ? [address as `0x${string}`, BigInt(tokenId)] : undefined,
+    chainId: activeChainId,
+    query: { enabled: !!address && tokenId > 0 && !isLegacy }
+  });
+  const hasAccessContract = Boolean(hasAccessData);
+
   const alreadyMinted = Boolean(hasMintedData);
-  const ownsNFT = (balanceData ? Number(balanceData) > 0 : false) || alreadyMinted;
+  const ownsNFT = (balanceData ? (BigInt(balanceData as any) > 0n) : false) || alreadyMinted || hasAccessContract;
 
   // Skip articleInfo query for legacy (Writer legacy doesn't have this function)
   const { data: articleInfo, isLoading: isArticleLoading } = useReadContract({

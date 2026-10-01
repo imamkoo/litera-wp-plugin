@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.54 (Reliable Ownership Detection & Social Login Embedded Wallet Resolution)
+- **Embedded Wallet Resolution for Social Login:** Menambahkan resolusi alamat dompet otomatis dari `privyUser.linkedAccounts` (tipe `wallet`) sehingga pembaca yang masuk menggunakan Google atau Email langsung terdeteksi alamat wallet-nya secara instan.
+- **Multi-Contract Ownership & Access Truth Oracle:** Mengintegrasikan pengecekan kepemilikan NFT dan lisensi baca secara komprehensif dari `balanceOf` ERC-1155 (V2 & Legacy), `hasMinted` Writer, dan oracle kontrak `Unlockable.hasAccess` on-chain. Pembaca yang sudah memiliki NFT langsung melihat kartu terverifikasi "MILIK KAMU" dan tombol pembuka materi tanpa kembali ke tampilan form klaim.
+- **BigInt Safe Evaluation:** Memperbaiki evaluasi saldo NFT menggunakan `BigInt` untuk mencegah kesalahan presisi pada wagmi/viem v2.
+
 ## v1.4.53 (Gradual Blur Image Loading & Dynamic Card Metadata Labels)
 - **Gradual Blur Image Loading:** Menggantikan loading biasa dengan efek transisi blur bertahap (`blur(20px)` ke `blur(0px)`) saat gambar NFT dimuat sehingga transisi aset visual tampil lebih halus dan modern.
 - **Dynamic Metadata Labels:** 
