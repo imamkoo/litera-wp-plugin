@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.59 (Fluid Frosted-Glass Interactive Blur Reveal on Specimen Card)
+- **Interactive Fluid Frosted-Glass Reveal:** Menambahkan overlay blur kaca embun (`backdropFilter: blur(12px)`) di atas gambar NFT. Saat kursor diarahkan ke kartu, efek blur tersibak dinamis mengikuti posisi kursor (seperti mengusap kaca berembun / air fluid), dan kembali menutup berembun saat kursor dijauhkan. Floating badge Author tetap diposisikan di layer paling atas (`zIndex: 10`) tanpa terpengaruh efek hover.
+
 ## v1.4.58 (Fix Floating Badge Z-Index Stacking)
 - **Fix Badge Stacking Context:** Menambahkan `zIndex: 10` eksplisit pada container floating badge Author di pojok kanan atas kartu, mencegah elemen badge tertimpa atau tertutup oleh layer render gambar/video yang memiliki `zIndex: 1`.
 

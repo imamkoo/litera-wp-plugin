@@ -117,7 +117,7 @@ const injectThemeCSS = () => {
    Reusable Sub-components
    ═══════════════════════════════════════════════════════ */
 
-const WIDGET_VERSION = '1.4.58';
+const WIDGET_VERSION = '1.4.59';
 
 /** Consistent "Powered by Litera" footer used in ALL states */
 const PoweredByLitera: React.FC = () => (
@@ -220,7 +220,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-/** Holographic Specimen NFT Card — used in preview & owned states */
+/** Holographic Specimen NFT Card — used in preview & owned states with fluid frosted-glass blur reveal */
 const NftSpecimenCard: React.FC<{
   media?: { url: string; type: 'image' | 'video' } | null;
   title?: string;
@@ -229,6 +229,18 @@ const NftSpecimenCard: React.FC<{
   isOwned?: boolean;
 }> = ({ media, title, author, tokenId, isOwned = false }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [mousePos, setMousePos] = useState<{ x: number; y: number; active: boolean }>({ x: 50, y: 50, active: false });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setMousePos({ x, y, active: true });
+  };
+
+  const handleMouseLeave = () => {
+    setMousePos(prev => ({ ...prev, active: false }));
+  };
 
   return (
     <div style={{
@@ -240,21 +252,26 @@ const NftSpecimenCard: React.FC<{
       zIndex: 1,
     }}>
       {/* 3D Floating NFT Card with Specimen Glow */}
-      <div style={{
-        position: 'relative',
-        width: '180px',
-        height: '180px',
-        borderRadius: '22px',
-        padding: '3px',
-        background: isOwned
-          ? 'linear-gradient(135deg, rgba(208,121,84,0.55) 0%, rgba(16,185,129,0.4) 50%, rgba(255,255,255,0.2) 100%)'
-          : 'linear-gradient(135deg, rgba(208,121,84,0.35) 0%, rgba(148,163,184,0.25) 50%, rgba(255,255,255,0.1) 100%)',
-        boxShadow: isOwned
-          ? '0 20px 40px -10px rgba(208,121,84,0.35), 0 0 35px 2px rgba(16,185,129,0.18), inset 0 1px 2px rgba(255,255,255,0.4)'
-          : '0 16px 32px -10px rgba(208,121,84,0.25), 0 0 24px rgba(208,121,84,0.1), inset 0 1px 2px rgba(255,255,255,0.25)',
-        transform: 'perspective(800px) rotateX(4deg) translateY(-2px)',
-        transition: 'all 0.3s ease',
-      }}>
+      <div
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          position: 'relative',
+          width: '180px',
+          height: '180px',
+          borderRadius: '22px',
+          padding: '3px',
+          background: isOwned
+            ? 'linear-gradient(135deg, rgba(208,121,84,0.55) 0%, rgba(16,185,129,0.4) 50%, rgba(255,255,255,0.2) 100%)'
+            : 'linear-gradient(135deg, rgba(208,121,84,0.35) 0%, rgba(148,163,184,0.25) 50%, rgba(255,255,255,0.1) 100%)',
+          boxShadow: isOwned
+            ? '0 20px 40px -10px rgba(208,121,84,0.35), 0 0 35px 2px rgba(16,185,129,0.18), inset 0 1px 2px rgba(255,255,255,0.4)'
+            : '0 16px 32px -10px rgba(208,121,84,0.25), 0 0 24px rgba(208,121,84,0.1), inset 0 1px 2px rgba(255,255,255,0.25)',
+          transform: 'perspective(800px) rotateX(4deg) translateY(-2px)',
+          transition: 'all 0.3s ease',
+          cursor: 'pointer',
+        }}
+      >
         <div style={{
           width: '100%',
           height: '100%',
@@ -278,6 +295,7 @@ const NftSpecimenCard: React.FC<{
             }} />
           )}
 
+          {/* Under-layer: Original Clean NFT Media */}
           {media?.url ? (
             media.type === 'video' ? (
               <video
@@ -303,18 +321,38 @@ const NftSpecimenCard: React.FC<{
                   objectFit: 'cover',
                   position: 'relative',
                   zIndex: 1,
-                  filter: imageLoaded
-                    ? (isOwned ? 'blur(0px) scale(1)' : 'blur(0px) scale(1) contrast(1.05) brightness(0.95)')
-                    : 'blur(20px) scale(1.15)',
                   opacity: imageLoaded ? 1 : 0.4,
-                  transition: 'filter 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out',
+                  transition: 'opacity 0.6s ease-out',
                 }}
                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
               />
             )
           ) : null}
 
-          {/* Floating Badge on Top Right */}
+          {/* Top Fluid Frosted Glass Blur Overlay: Dynamic interactive hover reveal */}
+          {imageLoaded && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 2,
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                backgroundColor: 'rgba(15, 23, 42, 0.22)',
+                pointerEvents: 'none',
+                opacity: mousePos.active ? 1 : 0.95,
+                transition: 'opacity 0.4s ease, -webkit-mask-image 0.15s ease-out, mask-image 0.15s ease-out',
+                maskImage: mousePos.active
+                  ? `radial-gradient(circle 55px at ${mousePos.x}% ${mousePos.y}%, transparent 0%, transparent 60%, rgba(0,0,0,0.8) 85%, black 100%)`
+                  : 'radial-gradient(circle 0px at 50% 50%, transparent 0%, black 0%)',
+                WebkitMaskImage: mousePos.active
+                  ? `radial-gradient(circle 55px at ${mousePos.x}% ${mousePos.y}%, transparent 0%, transparent 60%, rgba(0,0,0,0.8) 85%, black 100%)`
+                  : 'radial-gradient(circle 0px at 50% 50%, transparent 0%, black 0%)',
+              }}
+            />
+          )}
+
+          {/* Floating Badge on Top Right — always highest z-index */}
           <div style={{
             position: 'absolute',
             top: '10px',
