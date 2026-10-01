@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.51 (Visible Version Footer in All States and Login Modal)
+- **Version Footprint in All Widget States:** Menampilkan informasi versi aktif (`v1.4.51 • Powered by Litera`) di semua status tampilan widget (Not Connected, Loading Data, Has Access, Need Mint, Quiz Flow, Error, dsb) serta di footer modal login *"Masuk ke Litera"*. Hal ini memudahkan tim, developer, dan publisher untuk langsung memverifikasi apakah website sudah menggunakan bundle widget terbaru atau masih tertahan di cache lama.
+
 ## v1.4.50 (Direct Injected Wallet Connect & Silent Web3Modal Preload)
 - **Direct Injected Connector Support:** Tombol "Hubungkan Dompet" kini memprioritaskan koneksi langsung via `injected` connector Wagmi (MetaMask, Rabby, OKX, Brave, Bitget) tanpa memaksakan dialog Reown/Web3Modal jika browser telah memiliki extension wallet.
 - **Silent Background Web3Modal Preload:** Menghilangkan pesan error palsu ("Gagal memuat dialog dompet") yang muncul otomatis saat membuka modal login akibat preload chunk di background. Error hanya ditampilkan jika upaya koneksi pengguna benar-benar gagal.

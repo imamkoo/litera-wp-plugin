@@ -119,12 +119,12 @@ const injectThemeCSS = () => {
 
 /** Consistent "Powered by Litera" footer used in ALL states */
 const PoweredByLitera: React.FC = () => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '16px', opacity: 0.5 }}>
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '16px', opacity: 0.6 }}>
     <svg viewBox="0 0 200 200" style={{ width: '12px', height: '12px' }}>
       <circle cx="100" cy="100" r="100" fill="#F04E37" />
       <text x="100" y="130" fill="#FFFFFF" fontSize="90" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="bold" textAnchor="middle" letterSpacing="-2">L</text>
     </svg>
-    <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--lw-text-muted)', letterSpacing: '0.05em' }}>Powered by Litera</span>
+    <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--lw-text-muted)', letterSpacing: '0.02em' }}>v1.4.51 • Powered by Litera</span>
   </div>
 );
 
@@ -339,7 +339,7 @@ const NftSpecimenCard: React.FC<{
   );
 };
 
-const WIDGET_VERSION = '1.4.50';
+const WIDGET_VERSION = '1.4.51';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -1670,7 +1670,7 @@ Expires: ${expiresAt}`;
               </div>
             )}
             <div style={{ marginTop: '24px', borderTop: '1px solid #e5e7eb', paddingTop: '16px', textAlign: 'center' }}>
-              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Powered by Litera</span>
+              <span style={{ fontSize: '11px', color: '#9ca3af' }}>v1.4.51 • Powered by Litera</span>
             </div>
           </div>
         </div>,
