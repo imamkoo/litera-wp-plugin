@@ -1,5 +1,12 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.53 (Gradual Blur Image Loading & Dynamic Card Metadata Labels)
+- **Gradual Blur Image Loading:** Menggantikan loading biasa dengan efek transisi blur bertahap (`blur(20px)` ke `blur(0px)`) saat gambar NFT dimuat sehingga transisi aset visual tampil lebih halus dan modern.
+- **Dynamic Metadata Labels:** 
+  - Floating badge di pojok atas kartu kini menampilkan nama Author artikel (atau status "MILIK KAMU" jika sudah dikoleksi).
+  - Badge pil di bawah kartu menampilkan nama Publisher resmi.
+  - Heading judul utama kini menampilkan judul NFT/artikel secara dinamis menggantikan teks statis "Koleksi Edisi Digital".
+
 ## v1.4.52 (Comprehensive Multi-Wallet Disconnect)
 - **Multi-Wallet Disconnect:** Memastikan tombol Disconnect memutus seluruh connector aktif dan terdaftar (MetaMask, Injected, Privy wallets), serta membersihkan cache auth agar browser tidak otomatis beralih atau auto-reconnect ke wallet sekunder.
 

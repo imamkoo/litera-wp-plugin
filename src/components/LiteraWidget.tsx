@@ -222,9 +222,12 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
 const NftSpecimenCard: React.FC<{
   media?: { url: string; type: 'image' | 'video' } | null;
   title?: string;
+  author?: string;
   tokenId?: string | number;
   isOwned?: boolean;
-}> = ({ media, title, tokenId, isOwned = false }) => {
+}> = ({ media, title, author, tokenId, isOwned = false }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   return (
     <div style={{
       position: 'relative',
@@ -277,11 +280,16 @@ const NftSpecimenCard: React.FC<{
               <img
                 src={media.url}
                 alt={title || "NFT Media"}
+                onLoad={() => setImageLoaded(true)}
                 style={{
                   width: '100%',
                   height: '100%',
                   objectFit: 'cover',
-                  filter: isOwned ? 'none' : 'contrast(1.05) brightness(0.95)',
+                  filter: imageLoaded
+                    ? (isOwned ? 'blur(0px) scale(1)' : 'blur(0px) scale(1) contrast(1.05) brightness(0.95)')
+                    : 'blur(20px) scale(1.08)',
+                  opacity: imageLoaded ? 1 : 0.6,
+                  transition: 'filter 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease-out',
                 }}
                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
               />
@@ -306,6 +314,7 @@ const NftSpecimenCard: React.FC<{
             position: 'absolute',
             top: '10px',
             right: '10px',
+            maxWidth: '130px',
             padding: '4px 8px',
             borderRadius: '99px',
             backgroundColor: isOwned ? 'rgba(15,23,42,0.88)' : 'rgba(15,23,42,0.75)',
@@ -321,6 +330,7 @@ const NftSpecimenCard: React.FC<{
               width: '6px',
               height: '6px',
               borderRadius: '50%',
+              flexShrink: 0,
               backgroundColor: isOwned ? '#10b981' : '#d07954',
               boxShadow: isOwned ? '0 0 8px #10b981' : '0 0 6px #d07954',
             }} />
@@ -329,8 +339,11 @@ const NftSpecimenCard: React.FC<{
               fontWeight: 800,
               color: isOwned ? '#34d399' : '#fdba74',
               letterSpacing: '0.04em',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}>
-              {isOwned ? 'MILIK KAMU' : 'EDISI DIGITAL'}
+              {isOwned ? 'MILIK KAMU' : (author || 'Author')}
             </span>
           </div>
         </div>
@@ -339,7 +352,7 @@ const NftSpecimenCard: React.FC<{
   );
 };
 
-const WIDGET_VERSION = '1.4.52';
+const WIDGET_VERSION = '1.4.53';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
@@ -1710,7 +1723,7 @@ Expires: ${expiresAt}`;
               </div>
             )}
             <div style={{ marginTop: '24px', borderTop: '1px solid #e5e7eb', paddingTop: '16px', textAlign: 'center' }}>
-              <span style={{ fontSize: '11px', color: '#9ca3af' }}>v1.4.51 • Powered by Litera</span>
+              <span style={{ fontSize: '11px', color: '#9ca3af' }}>v1.4.53 • Powered by Litera</span>
             </div>
           </div>
         </div>,
@@ -1725,9 +1738,11 @@ Expires: ${expiresAt}`;
   if (!isConnected) {
     return (
       <WidgetShell>
-        <NftSpecimenCard media={nftMedia} title={articleTitle} tokenId={tokenId} isOwned={false} />
-        <Badge color="orange">Edisi Digital</Badge>
-        <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)' }}>Koleksi Edisi Digital</h3>
+        <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={false} />
+        <Badge color="orange">{publisherName || 'Official Publisher'}</Badge>
+        <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)', maxWidth: '340px', lineHeight: 1.4 }}>
+          {articleTitle || 'Digital Collectible'}
+        </h3>
         <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6 }}>Diterbitkan resmi sebagai aset digital permanen artikel ini.</p>
         {renderWalletButton()}
         <PoweredByLitera />
@@ -1824,10 +1839,10 @@ Expires: ${expiresAt}`;
     // Owns NFT, no unlockable
     return (
       <WidgetShell>
-        <NftSpecimenCard media={nftMedia} title={articleTitle} tokenId={tokenId} isOwned={true} />
-        <Badge color="green">Koleksi Terverifikasi</Badge>
-        <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)' }}>
-          {articleTitle || 'Koleksi Tersimpan'}
+        <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={true} />
+        <Badge color="green">{publisherName || 'Official Publisher'}</Badge>
+        <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)', maxWidth: '340px', lineHeight: 1.4 }}>
+          {articleTitle || 'Digital Collectible'}
         </h3>
         <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6 }}>
           Sertifikat kepemilikan digital kamu tersimpan aman di blockchain Polygon.
@@ -2093,9 +2108,11 @@ Expires: ${expiresAt}`;
 
       return (
         <WidgetShell>
-          <NftSpecimenCard media={nftMedia} title={articleTitle} tokenId={tokenId} isOwned={false} />
-          <Badge color="green">Siap Dikoleksi</Badge>
-          <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)', zIndex: 1 }}>Koleksi Edisi Digital</h2>
+          <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={false} />
+          <Badge color="green">{publisherName || 'Official Publisher'}</Badge>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)', maxWidth: '340px', lineHeight: 1.4, zIndex: 1 }}>
+            {articleTitle || 'Digital Collectible'}
+          </h2>
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6, zIndex: 1 }}>
             {needsApproval 
               ? "Setujui penggunaan token LITE terlebih dahulu, lalu selesaikan penyimpanan edisi digital."
