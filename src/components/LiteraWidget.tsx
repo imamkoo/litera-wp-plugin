@@ -117,7 +117,7 @@ const injectThemeCSS = () => {
    Reusable Sub-components
    ═══════════════════════════════════════════════════════ */
 
-const WIDGET_VERSION = '1.4.57';
+const WIDGET_VERSION = '1.4.58';
 
 /** Consistent "Powered by Litera" footer used in ALL states */
 const PoweredByLitera: React.FC = () => (
@@ -319,6 +319,7 @@ const NftSpecimenCard: React.FC<{
             position: 'absolute',
             top: '10px',
             right: '10px',
+            zIndex: 10,
             maxWidth: '130px',
             padding: '4px 8px',
             borderRadius: '99px',

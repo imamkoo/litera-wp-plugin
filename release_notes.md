@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.58 (Fix Floating Badge Z-Index Stacking)
+- **Fix Badge Stacking Context:** Menambahkan `zIndex: 10` eksplisit pada container floating badge Author di pojok kanan atas kartu, mencegah elemen badge tertimpa atau tertutup oleh layer render gambar/video yang memiliki `zIndex: 1`.
+
 ## v1.4.57 (Persistent Specimen Card & Author Badge in All States)
 - **Persistent Holographic Card:** Memastikan `NftSpecimenCard` beserta floating badge Author dan badge Publisher tetap tampil konsisten di seluruh state aktif (Idle Connected, Has Access Terkunci/Unlockable, Not Connected, dan Mint Ready), sehingga kartu dan nama Author tidak hilang atau berganti ke layout lama setelah data dompet termuat.
 
