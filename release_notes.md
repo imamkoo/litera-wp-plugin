@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.60 (Organic Water-Drop Physics & Multi-Stop Fluid Mask Gradient)
+- **Fluid Water-Droplet Reveal:** Menggantikan lingkaran tegas dengan gradasi multi-stop yang sangat halus (`transparent -> rgba(0,0,0,0.08) -> 0.28 -> 0.58 -> 0.85 -> solid`) sehingga bukaan blur tampak organik dan berdifusi lembut per-pixel layaknya air jernih di atas kaca berembun.
+- **Organic Lerp Physics:** Menambahkan interpolasi gerak fisik (*linear interpolation*) menggunakan `requestAnimationFrame` (factor 0.16) sehingga pergerakan sibakan air mengalir lembut dan dinamis mengikuti kursor tanpa patah-patah.
+
 ## v1.4.59 (Fluid Frosted-Glass Interactive Blur Reveal on Specimen Card)
 - **Interactive Fluid Frosted-Glass Reveal:** Menambahkan overlay blur kaca embun (`backdropFilter: blur(12px)`) di atas gambar NFT. Saat kursor diarahkan ke kartu, efek blur tersibak dinamis mengikuti posisi kursor (seperti mengusap kaca berembun / air fluid), dan kembali menutup berembun saat kursor dijauhkan. Floating badge Author tetap diposisikan di layer paling atas (`zIndex: 10`) tanpa terpengaruh efek hover.
 

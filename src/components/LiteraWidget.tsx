@@ -117,7 +117,7 @@ const injectThemeCSS = () => {
    Reusable Sub-components
    ═══════════════════════════════════════════════════════ */
 
-const WIDGET_VERSION = '1.4.59';
+const WIDGET_VERSION = '1.4.60';
 
 /** Consistent "Powered by Litera" footer used in ALL states */
 const PoweredByLitera: React.FC = () => (
@@ -220,7 +220,7 @@ const Badge: React.FC<{ children: React.ReactNode; color?: 'orange' | 'green' | 
   );
 };
 
-/** Holographic Specimen NFT Card — used in preview & owned states with fluid frosted-glass blur reveal */
+/** Holographic Specimen NFT Card — used in preview & owned states with ultra-smooth fluid water-droplet blur reveal */
 const NftSpecimenCard: React.FC<{
   media?: { url: string; type: 'image' | 'video' } | null;
   title?: string;
@@ -229,17 +229,43 @@ const NftSpecimenCard: React.FC<{
   isOwned?: boolean;
 }> = ({ media, title, author, tokenId, isOwned = false }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [mousePos, setMousePos] = useState<{ x: number; y: number; active: boolean }>({ x: 50, y: 50, active: false });
+  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const [targetPos, setTargetPos] = useState({ x: 50, y: 50, active: false });
+  const animFrameRef = useRef<number | null>(null);
+
+  // Smooth fluid lerp (linear interpolation) for organic water-drop physics
+  useEffect(() => {
+    let currentX = pos.x;
+    let currentY = pos.y;
+
+    const loop = () => {
+      if (targetPos.active) {
+        currentX += (targetPos.x - currentX) * 0.16;
+        currentY += (targetPos.y - currentY) * 0.16;
+        setPos({ x: currentX, y: currentY });
+        animFrameRef.current = requestAnimationFrame(loop);
+      }
+    };
+
+    if (targetPos.active) {
+      animFrameRef.current = requestAnimationFrame(loop);
+    }
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [targetPos.active, targetPos.x, targetPos.y]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setMousePos({ x, y, active: true });
+    setTargetPos({ x, y, active: true });
   };
 
   const handleMouseLeave = () => {
-    setMousePos(prev => ({ ...prev, active: false }));
+    setTargetPos(prev => ({ ...prev, active: false }));
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
   };
 
   return (
@@ -329,24 +355,24 @@ const NftSpecimenCard: React.FC<{
             )
           ) : null}
 
-          {/* Top Fluid Frosted Glass Blur Overlay: Dynamic interactive hover reveal */}
+          {/* Top Fluid Frosted Glass Blur Overlay: Organic Water-Droplet Multi-Stop Gradient Mask */}
           {imageLoaded && (
             <div
               style={{
                 position: 'absolute',
                 inset: 0,
                 zIndex: 2,
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                backgroundColor: 'rgba(15, 23, 42, 0.22)',
+                backdropFilter: 'blur(14px)',
+                WebkitBackdropFilter: 'blur(14px)',
+                backgroundColor: 'rgba(15, 23, 42, 0.25)',
                 pointerEvents: 'none',
-                opacity: mousePos.active ? 1 : 0.95,
-                transition: 'opacity 0.4s ease, -webkit-mask-image 0.15s ease-out, mask-image 0.15s ease-out',
-                maskImage: mousePos.active
-                  ? `radial-gradient(circle 55px at ${mousePos.x}% ${mousePos.y}%, transparent 0%, transparent 60%, rgba(0,0,0,0.8) 85%, black 100%)`
+                opacity: targetPos.active ? 1 : 0.96,
+                transition: 'opacity 0.5s ease',
+                maskImage: targetPos.active
+                  ? `radial-gradient(circle 68px at ${pos.x.toFixed(1)}% ${pos.y.toFixed(1)}%, transparent 0%, transparent 20%, rgba(0,0,0,0.08) 35%, rgba(0,0,0,0.28) 50%, rgba(0,0,0,0.58) 65%, rgba(0,0,0,0.85) 80%, black 100%)`
                   : 'radial-gradient(circle 0px at 50% 50%, transparent 0%, black 0%)',
-                WebkitMaskImage: mousePos.active
-                  ? `radial-gradient(circle 55px at ${mousePos.x}% ${mousePos.y}%, transparent 0%, transparent 60%, rgba(0,0,0,0.8) 85%, black 100%)`
+                WebkitMaskImage: targetPos.active
+                  ? `radial-gradient(circle 68px at ${pos.x.toFixed(1)}% ${pos.y.toFixed(1)}%, transparent 0%, transparent 20%, rgba(0,0,0,0.08) 35%, rgba(0,0,0,0.28) 50%, rgba(0,0,0,0.58) 65%, rgba(0,0,0,0.85) 80%, black 100%)`
                   : 'radial-gradient(circle 0px at 50% 50%, transparent 0%, black 0%)',
               }}
             />
