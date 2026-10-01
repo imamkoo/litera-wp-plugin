@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.56 (Eliminate Placeholder Flash & Smooth Specimen Ambient Blur)
+- **Eliminate Placeholder Flash:** Menghilangkan tampilan fallback logo "L" yang sempat berkedip (flash) saat metadata sedang diambil dari IPFS/on-chain. Kartu kini mempertahankan ambient glow halus berlatar gelap yang menyatu dengan card, dan gambar NFT bertransisi masuk secara halus menggunakan gradual unblur (`blur(20px)` ke `blur(0px)`) dengan transisi `1.2s cubic-bezier`.
+
 ## v1.4.55 (Dynamic Widget Version in Footer)
 - **Dynamic Version Footer:** Mengaitkan teks footer widget dan footer modal login langsung ke konstanta `WIDGET_VERSION` dinamis (`v{WIDGET_VERSION} • Powered by Litera`) sehingga indikator versi selalu tepat sesuai bundle aktif.
 

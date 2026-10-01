@@ -117,7 +117,7 @@ const injectThemeCSS = () => {
    Reusable Sub-components
    ═══════════════════════════════════════════════════════ */
 
-const WIDGET_VERSION = '1.4.55';
+const WIDGET_VERSION = '1.4.56';
 
 /** Consistent "Powered by Litera" footer used in ALL states */
 const PoweredByLitera: React.FC = () => (
@@ -266,6 +266,18 @@ const NftSpecimenCard: React.FC<{
           justifyContent: 'center',
           position: 'relative',
         }}>
+          {/* Subtle Ambient Shimmer while media is loading */}
+          {(!media?.url || !imageLoaded) && (
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'radial-gradient(circle at 50% 40%, rgba(208,121,84,0.2) 0%, rgba(30,41,59,0.8) 70%)',
+              filter: 'blur(10px)',
+              pointerEvents: 'none',
+              zIndex: 0,
+            }} />
+          )}
+
           {media?.url ? (
             media.type === 'video' ? (
               <video
@@ -275,6 +287,8 @@ const NftSpecimenCard: React.FC<{
                   height: '100%',
                   objectFit: 'cover',
                   filter: isOwned ? 'none' : 'contrast(1.05) brightness(0.95)',
+                  position: 'relative',
+                  zIndex: 1,
                 }}
                 autoPlay loop muted playsInline
               />
@@ -287,29 +301,18 @@ const NftSpecimenCard: React.FC<{
                   width: '100%',
                   height: '100%',
                   objectFit: 'cover',
+                  position: 'relative',
+                  zIndex: 1,
                   filter: imageLoaded
                     ? (isOwned ? 'blur(0px) scale(1)' : 'blur(0px) scale(1) contrast(1.05) brightness(0.95)')
-                    : 'blur(20px) scale(1.08)',
-                  opacity: imageLoaded ? 1 : 0.6,
-                  transition: 'filter 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease-out',
+                    : 'blur(20px) scale(1.15)',
+                  opacity: imageLoaded ? 1 : 0.4,
+                  transition: 'filter 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out',
                 }}
                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
               />
             )
-          ) : (
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              background: 'linear-gradient(145deg, #1e293b, #0f172a)',
-              width: '100%', height: '100%', padding: '16px', textAlign: 'center',
-            }}>
-              <svg viewBox="0 0 200 200" style={{ width: '44px', height: '44px', marginBottom: '8px' }}>
-                <circle cx="100" cy="100" r="100" fill="#F04E37" />
-                <text x="100" y="130" fill="#FFFFFF" fontSize="90" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="bold" textAnchor="middle" letterSpacing="-2">L</text>
-              </svg>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#f8fafc', opacity: 0.9 }}>Digital Collectible</span>
-              {tokenId ? <span style={{ fontSize: '9px', color: '#94a3b8', marginTop: '2px' }}>Token #{tokenId}</span> : null}
-            </div>
-          )}
+          ) : null}
 
           {/* Floating Badge on Top Right */}
           <div style={{
