@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useAccount, useConnect, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
-import { usePrivy, useLogout, useLogin, useSignMessage as usePrivySignMessage } from '@privy-io/react-auth';
+import { useAccount, useConnect, useDisconnect, useConnectors, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
+import { usePrivy, useLogout, useLogin, useWallets, useSignMessage as usePrivySignMessage } from '@privy-io/react-auth';
 import { openWeb3ModalSafe, mountWeb3Modal, subscribeWeb3ModalOpen, probeWalletListReachable } from '../web3modal-lazy';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon, CopyIcon, LogOutIcon, CheckIcon } from 'lucide-react';
 import { formatUnits } from 'viem';
@@ -339,15 +339,17 @@ const NftSpecimenCard: React.FC<{
   );
 };
 
-const WIDGET_VERSION = '1.4.51';
+const WIDGET_VERSION = '1.4.52';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
   const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
   const { connectAsync, connectors } = useConnect();
-  const { disconnect: wagmiDisconnect } = useDisconnect();
+  const { disconnectAsync } = useDisconnect();
+  const allConnectors = useConnectors();
   const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser } = usePrivy();
   const { logout: privyLogout } = useLogout();
+  const { wallets } = useWallets();
   const { signMessageAsync: signWagmi } = useSignMessage();
   const { signMessage: signPrivy } = usePrivySignMessage();
 
@@ -571,14 +573,52 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   }, [tokenId]);
 
   // --- Action Handlers ---
-  const handleDisconnect = () => {
-    try { wagmiDisconnect(); } catch (e) {}
-    try { privyLogout(); } catch (e) {}
+  const handleDisconnect = async () => {
+    // 1. Putuskan semua connector Wagmi (bukan cuma active connector)
+    try {
+      await disconnectAsync();
+    } catch (e) {}
+
+    if (allConnectors && allConnectors.length > 0) {
+      await Promise.all(
+        allConnectors.map(async (connector) => {
+          try {
+            await disconnectAsync({ connector });
+          } catch (e) {}
+        })
+      );
+    }
+
+    // 2. Putuskan semua wallet Privy
+    if (wallets && wallets.length > 0) {
+      await Promise.all(
+        wallets.map(async (w) => {
+          try {
+            await w.disconnect();
+          } catch (e) {}
+        })
+      );
+    }
+
+    // 3. Logout Privy session
+    try {
+      await privyLogout();
+    } catch (e) {}
+
+    // 4. Bersihkan localStorage keys yang memicu auto-reconnect
     try {
       if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem('litera_cloud_wallet_addr');
+        const keysToRemove = [
+          'litera_cloud_wallet_addr',
+          'wagmi.store',
+          'wagmi.recentConnectorId',
+          'wagmi.connected',
+          'wagmi.injected.shimDisconnect',
+        ];
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
       }
     } catch (e) {}
+
     setCloudWalletAddress(null);
     setUnlockedContent(null);
     setLocalUnlocked(false);

@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.52 (Comprehensive Multi-Wallet Disconnect)
+- **Multi-Wallet Disconnect:** Memastikan tombol Disconnect memutus seluruh connector aktif dan terdaftar (MetaMask, Injected, Privy wallets), serta membersihkan cache auth agar browser tidak otomatis beralih atau auto-reconnect ke wallet sekunder.
+
 ## v1.4.51 (Visible Version Footer in All States and Login Modal)
 - **Version Footprint in All Widget States:** Menampilkan informasi versi aktif (`v1.4.51 • Powered by Litera`) di semua status tampilan widget (Not Connected, Loading Data, Has Access, Need Mint, Quiz Flow, Error, dsb) serta di footer modal login *"Masuk ke Litera"*. Hal ini memudahkan tim, developer, dan publisher untuk langsung memverifikasi apakah website sudah menggunakan bundle widget terbaru atau masih tertahan di cache lama.
 
