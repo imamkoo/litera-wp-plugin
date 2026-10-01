@@ -66,7 +66,6 @@ class Litera_GitHub_Updater {
         }
         return $update;
     }
-    }
 
     /**
      * Hapus transient update_plugins WP agar re-check dilakukan setiap 30 menit.
@@ -288,7 +287,7 @@ class Litera_GitHub_Updater {
         }
 
         $install_directory = plugin_dir_path($this->plugin_file);
-        $wp_filesystem->move($result['destination'], $install_directory);
+        $wp_filesystem->move($result['destination'], $install_directory, true);
         $result['destination'] = $install_directory;
 
         // Bersihkan semua cache setelah update selesai agar fresh check dimulai

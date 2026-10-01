@@ -156,16 +156,16 @@ jobs:
         run: |
           set -e
           cp "${{ env.BUNDLE_SRC }}" bundle.js
-          # Async chunks (web3modal lazy-load) juga harus masuk zip WP.
-          if ls build/*.chunk.js 1>/dev/null 2>&1; then
-            cp build/*.chunk.js .
-          fi
           PLUGIN_SLUG="litera-wp-plugin"
           TEMP_DIR="/tmp/${PLUGIN_SLUG}"
           rm -rf "${TEMP_DIR}"
           mkdir -p "${TEMP_DIR}/includes"
           cp litera.php bundle.js loader.js readme.txt "${TEMP_DIR}/"
           cp -r includes/. "${TEMP_DIR}/includes/"
+          # Async chunks (web3modal lazy-load) juga harus masuk zip WP.
+          if ls build/*.chunk.js 1>/dev/null 2>&1; then
+            cp build/*.chunk.js "${TEMP_DIR}/"
+          fi
           rm -f "${{ github.workspace }}/${PLUGIN_SLUG}.zip"
           python3 -c "import shutil,os; shutil.make_archive(os.path.join(os.environ['GITHUB_WORKSPACE'],'litera-wp-plugin'),'zip',root_dir='/tmp',base_dir='litera-wp-plugin')"
           echo "Zip built: $(du -h "${{ github.workspace }}/${PLUGIN_SLUG}.zip" | cut -f1)"

@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.61 (Fix WordPress In-Dashboard Auto-Updater & Zip Packaging)
+- **Fix PHP Syntax Error in Updater:** Menghapus kurung kurawal berlebih (`unexpected '}'`) pada `includes/class-litera-updater.php` yang sebelumnya membuat file updater crash/gagal di-load oleh PHP WordPress sehingga WordPress tidak dapat mendeteksi update baru dari GitHub Releases.
+- **Enhanced Zip Packaging & Overwrite:** Menyertakan async chunk build ke dalam zip release dan menambahkan flag overwrite pada filesystem mover WordPress agar proses pembaruan 1-klik di dashboard admin berjalan mulus tanpa hambatan.
+
 ## v1.4.60 (Organic Water-Drop Physics & Multi-Stop Fluid Mask Gradient)
 - **Fluid Water-Droplet Reveal:** Menggantikan lingkaran tegas dengan gradasi multi-stop yang sangat halus (`transparent -> rgba(0,0,0,0.08) -> 0.28 -> 0.58 -> 0.85 -> solid`) sehingga bukaan blur tampak organik dan berdifusi lembut per-pixel layaknya air jernih di atas kaca berembun.
 - **Organic Lerp Physics:** Menambahkan interpolasi gerak fisik (*linear interpolation*) menggunakan `requestAnimationFrame` (factor 0.16) sehingga pergerakan sibakan air mengalir lembut dan dinamis mengikuti kursor tanpa patah-patah.

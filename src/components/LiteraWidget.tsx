@@ -117,7 +117,7 @@ const injectThemeCSS = () => {
    Reusable Sub-components
    ═══════════════════════════════════════════════════════ */
 
-const WIDGET_VERSION = '1.4.60';
+const WIDGET_VERSION = '1.4.61';
 
 /** Consistent "Powered by Litera" footer used in ALL states */
 const PoweredByLitera: React.FC = () => (
