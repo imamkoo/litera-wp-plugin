@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.55 (Dynamic Widget Version in Footer)
+- **Dynamic Version Footer:** Mengaitkan teks footer widget dan footer modal login langsung ke konstanta `WIDGET_VERSION` dinamis (`v{WIDGET_VERSION} • Powered by Litera`) sehingga indikator versi selalu tepat sesuai bundle aktif.
+
 ## v1.4.54 (Reliable Ownership Detection & Social Login Embedded Wallet Resolution)
 - **Embedded Wallet Resolution for Social Login:** Menambahkan resolusi alamat dompet otomatis dari `privyUser.linkedAccounts` (tipe `wallet`) sehingga pembaca yang masuk menggunakan Google atau Email langsung terdeteksi alamat wallet-nya secara instan.
 - **Multi-Contract Ownership & Access Truth Oracle:** Mengintegrasikan pengecekan kepemilikan NFT dan lisensi baca secara komprehensif dari `balanceOf` ERC-1155 (V2 & Legacy), `hasMinted` Writer, dan oracle kontrak `Unlockable.hasAccess` on-chain. Pembaca yang sudah memiliki NFT langsung melihat kartu terverifikasi "MILIK KAMU" dan tombol pembuka materi tanpa kembali ke tampilan form klaim.
