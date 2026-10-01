@@ -117,7 +117,7 @@ const injectThemeCSS = () => {
    Reusable Sub-components
    ═══════════════════════════════════════════════════════ */
 
-const WIDGET_VERSION = '1.4.56';
+const WIDGET_VERSION = '1.4.57';
 
 /** Consistent "Powered by Litera" footer used in ALL states */
 const PoweredByLitera: React.FC = () => (
@@ -1791,6 +1791,7 @@ Expires: ${expiresAt}`;
     if (hasUnlockableContent && isValidCid && unlockedContent && localUnlocked) {
       return (
         <WidgetShell>
+          <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={true} />
           <Badge color="green">Akses Terbuka</Badge>
           <div style={{ width: '100%', background: 'var(--lw-bg-inner)', padding: '16px 20px', borderRadius: '16px', border: '1px solid var(--lw-border)', margin: '16px 0', position: 'relative', overflow: 'hidden', textAlign: 'left' as const }}>
             <div style={{ position: 'absolute', top: 0, left: 0, width: '3px', height: '100%', background: '#F04E37' }} />
@@ -1813,10 +1814,11 @@ Expires: ${expiresAt}`;
     if (hasUnlockableContent && isValidCid && unlockedContent && !localUnlocked) {
       return (
         <WidgetShell>
-          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--lw-badge-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-            <svg style={{ width: '24px', height: '24px', color: '#F04E37' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-          </div>
-          <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Konten Terkunci</h3>
+          <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={true} />
+          <Badge color="green">{publisherName || 'Official Publisher'}</Badge>
+          <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 6px 0', color: 'var(--lw-text)', maxWidth: '340px', lineHeight: 1.4 }}>
+            {articleTitle || 'Digital Collectible'}
+          </h3>
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>Kamu memiliki NFT ini. Klik tombol di bawah untuk membuka materi eksklusif.</p>
           <LiteraButton onClick={() => setLocalUnlocked(true)} fullWidth={false}>
             Buka Konten Eksklusif
@@ -1832,10 +1834,11 @@ Expires: ${expiresAt}`;
       const isUnlocking = isUnlockingReq || isUnlockingTx || isDecrypting;
       return (
         <WidgetShell>
-          <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', opacity: 0.05, pointerEvents: 'none', transform: 'scale(2.5)' }}>
-            <svg style={{ width: '120px', height: '120px', color: '#F04E37' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
-          </div>
-          <h3 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)', zIndex: 1 }}>Akses Eksklusif Terbuka</h3>
+          <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={true} />
+          <Badge color="green">{publisherName || 'Official Publisher'}</Badge>
+          <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 6px 0', color: 'var(--lw-text)', maxWidth: '340px', lineHeight: 1.4, zIndex: 1 }}>
+            {articleTitle || 'Digital Collectible'}
+          </h3>
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6, zIndex: 1 }}>Sebagai pemilik NFT, kamu berhak membuka materi eksklusif artikel ini. Klik tombol di bawah untuk memverifikasi kepemilikan.</p>
           <div style={{ zIndex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <LiteraButton onClick={handleDecrypt} disabled={isUnlocking} fullWidth={false}>
@@ -2164,64 +2167,12 @@ Expires: ${expiresAt}`;
      ═══════════════════════════════════════════════════════ */
   return (
     <WidgetShell>
-      {/* Badge */}
-      {isLegacy ? (
-        <Badge color="yellow">🏷️ Generasi 1 (Legacy)</Badge>
-      ) : (
-        <Badge color="orange">Digital Collectible</Badge>
-      )}
-
-      {/* NFT Media */}
-      {nftMedia && (
-        <div style={{ margin: '16px 0 12px 0' }}>
-          {nftMedia.type === 'video' ? (
-            <video src={nftMedia.url} style={{ width: '120px', height: '120px', borderRadius: '16px', objectFit: 'cover', border: '1px solid var(--lw-border)' }} autoPlay loop muted playsInline />
-          ) : (
-            <img
-              src={nftMedia.url}
-              alt="NFT Media"
-              style={{ width: '120px', height: '120px', borderRadius: '16px', objectFit: 'cover', border: '1px solid var(--lw-border)' }}
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Title */}
-      <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 8px 0', color: 'var(--lw-text)', lineHeight: 1.4, maxWidth: '320px' }}>
-        {articleTitle || 'Digital Asset'}
+      <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={false} />
+      <Badge color="orange">{publisherName || 'Official Publisher'}</Badge>
+      <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)', maxWidth: '340px', lineHeight: 1.4 }}>
+        {articleTitle || 'Digital Collectible'}
       </h3>
-
-      {/* Publisher / Author */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--lw-text-muted)', marginBottom: '20px' }}>
-        <span>Publisher</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,0.08)', padding: '2px 8px', borderRadius: '6px', fontSize: '10px' }}>
-          <svg style={{ width: '10px', height: '10px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          {publisherName || 'Verified'}
-        </span>
-        <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--lw-text-muted)' }} />
-        <span>Author</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 700, color: '#F04E37', background: 'var(--lw-badge-bg)', padding: '2px 8px', borderRadius: '6px', fontSize: '10px' }}>
-          <svg style={{ width: '10px', height: '10px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          {authorName || 'Verified'}
-        </span>
-      </div>
-
-      {hasUnlockableContent && (
-        <div style={{
-          position: 'absolute',
-          bottom: '-15px',
-          right: '-15px',
-          opacity: 0.04,
-          pointerEvents: 'none',
-          zIndex: 0,
-          transform: 'rotate(-15deg)'
-        }}>
-          <svg style={{ width: '140px', height: '140px', color: 'var(--lw-text)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-          </svg>
-        </div>
-      )}
+      <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6 }}>Diterbitkan resmi sebagai aset digital permanen artikel ini.</p>
 
       {/* Collect Button - Hidden for legacy articles */}
       {!isLegacy && (

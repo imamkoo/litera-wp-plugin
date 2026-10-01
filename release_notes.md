@@ -1,5 +1,8 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.57 (Persistent Specimen Card & Author Badge in All States)
+- **Persistent Holographic Card:** Memastikan `NftSpecimenCard` beserta floating badge Author dan badge Publisher tetap tampil konsisten di seluruh state aktif (Idle Connected, Has Access Terkunci/Unlockable, Not Connected, dan Mint Ready), sehingga kartu dan nama Author tidak hilang atau berganti ke layout lama setelah data dompet termuat.
+
 ## v1.4.56 (Eliminate Placeholder Flash & Smooth Specimen Ambient Blur)
 - **Eliminate Placeholder Flash:** Menghilangkan tampilan fallback logo "L" yang sempat berkedip (flash) saat metadata sedang diambil dari IPFS/on-chain. Kartu kini mempertahankan ambient glow halus berlatar gelap yang menyatu dengan card, dan gambar NFT bertransisi masuk secara halus menggunakan gradual unblur (`blur(20px)` ke `blur(0px)`) dengan transisi `1.2s cubic-bezier`.
 
