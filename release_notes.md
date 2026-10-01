@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.49 (Hardened Multi-RPC Transports & Access Verifying Timeout Watchdog)
+- **Hardened Multi-RPC Transports:** Mengalihkan konfigurasi transport RPC ke 4 endpoint publik yang sehat dan proxy resmi backend (`https://literaa.xyz/api/v1/rpc/proxy`, `polygon-bor-rpc.publicnode.com`, `polygon.gateway.tenderly.co`, `polygon.drpc.org`), menggantikan RPC yang terkena rate limit (429) sehingga koneksi dompet Web3 (MetaMask, dll) tidak macet saat membaca smart contract.
+- **Access Verification Watchdog:** Menambahkan timer pengaman 10 detik pada status `isDataLoading` ("Checking your wallet for Litera Access License...") agar widget tidak tertahan selamanya jika RPC pihak ketiga lambat saat memverifikasi kepemilikan NFT.
+
 ## v1.4.48 (Auto Fallback Popup Signing for Embedded Wallet & Provider Personal Sign)
 - **Auto Fallback Popup Signing (`signIntent`):** Menambahkan `try-catch` fallback otomatis pada penandatanganan Privy in-app. Jika browser memblokir iframe wallet proxy Privy (error modal *"An error has occurred, please try again"*), sistem otomatis mengalihkan alur tanda tangan ke popup helper 1st-party `literaa.xyz/widget-auth` sehingga gasless minting tetap berhasil tanpa stuck.
 - **Enhanced Personal Sign Provider:** Mengoptimalkan penandatanganan di `WidgetAuthPage` dengan memprioritaskan `getEthereumProvider()` dari embedded wallet sebelum fallback ke `signPrivy`.

@@ -890,6 +890,19 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   }, [isLegacy, tokenId, ownsNFT]);
 
   const isUnlockableLoading = isLegacy ? isLegacyUnlockableLoading : isV2UnlockableLoading;
+
+  // Watchdog agar verifikasi akses tidak stuck loading selamanya jika RPC lambat
+  const [dataLoadingTimedOut, setDataLoadingTimedOut] = useState(false);
+  useEffect(() => {
+    if (!isConnected) {
+      setDataLoadingTimedOut(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setDataLoadingTimedOut(true);
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [isConnected]);
   
   // For legacy, show premium access if they own the NFT
   const hasUnlockableContent = isLegacy ? legacyHasUnlockable : Boolean(v2IsContentUnlockableData);
@@ -1661,7 +1674,7 @@ Expires: ${expiresAt}`;
   /* ═══════════════════════════════════════════════════════
      STATE: Loading Data
      ═══════════════════════════════════════════════════════ */
-  const isDataLoading = isBalanceLoading || isArticleLoading || (hasAccess && isUnlockableLoading);
+  const isDataLoading = (isBalanceLoading || isArticleLoading || (hasAccess && isUnlockableLoading)) && !dataLoadingTimedOut;
 
   if (isConnected && isDataLoading) {
     return (

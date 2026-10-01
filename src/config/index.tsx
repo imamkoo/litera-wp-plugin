@@ -46,11 +46,11 @@ export const config = createConfig({
   ],
   ssr: false,
   transports: {
-    // Keyless public RPC yang masih hidup (diverifikasi 2026-08-26).
-    // ankr.com/polygon (butuh API key → Unauthorized), llamarpc & maticvigil (mati) DIBUANG.
     [polygon.id]: fallback([
-        http('https://polygon-bor-rpc.publicnode.com'),
-        http('https://1rpc.io/matic'),
-    ])
+        http(`${LITERA_ORIGIN}/api/v1/rpc/proxy`, { timeout: 8000 }),
+        http('https://polygon-bor-rpc.publicnode.com', { timeout: 8000 }),
+        http('https://polygon.gateway.tenderly.co', { timeout: 8000 }),
+        http('https://polygon.drpc.org', { timeout: 8000 }),
+    ], { rank: false })
   }
 })
