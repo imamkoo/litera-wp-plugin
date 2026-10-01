@@ -3,7 +3,7 @@ import { polygon } from 'wagmi/chains'
 import { http, fallback } from 'wagmi'
 import { walletConnect, injected, coinbaseWallet } from 'wagmi/connectors'
 
-export const projectId = "3b80ae67f7bf7baa0d65ddfdebe61662"
+export const projectId = process.env.REACT_APP_REOWN_PROJECT_ID || 'd94f04faafa515ac177c9c41052264b7' || '3b80ae67f7bf7baa0d65ddfdebe61662'
 
 if (!projectId) {
   throw new Error('Project ID is not defined')

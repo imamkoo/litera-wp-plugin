@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.50 (Direct Injected Wallet Connect & Silent Web3Modal Preload)
+- **Direct Injected Connector Support:** Tombol "Hubungkan Dompet" kini memprioritaskan koneksi langsung via `injected` connector Wagmi (MetaMask, Rabby, OKX, Brave, Bitget) tanpa memaksakan dialog Reown/Web3Modal jika browser telah memiliki extension wallet.
+- **Silent Background Web3Modal Preload:** Menghilangkan pesan error palsu ("Gagal memuat dialog dompet") yang muncul otomatis saat membuka modal login akibat preload chunk di background. Error hanya ditampilkan jika upaya koneksi pengguna benar-benar gagal.
+- **Project ID Fallback:** Menggunakan Reown / WalletConnect Project ID yang valid dari environment atau dashboard (`d94f04faafa515ac177c9c41052264b7`) untuk memastikan relayer dan getWallets tidak terblokir 403.
+
 ## v1.4.49 (Hardened Multi-RPC Transports & Access Verifying Timeout Watchdog)
 - **Hardened Multi-RPC Transports:** Mengalihkan konfigurasi transport RPC ke 4 endpoint publik yang sehat dan proxy resmi backend (`https://literaa.xyz/api/v1/rpc/proxy`, `polygon-bor-rpc.publicnode.com`, `polygon.gateway.tenderly.co`, `polygon.drpc.org`), menggantikan RPC yang terkena rate limit (429) sehingga koneksi dompet Web3 (MetaMask, dll) tidak macet saat membaca smart contract.
 - **Access Verification Watchdog:** Menambahkan timer pengaman 10 detik pada status `isDataLoading` ("Checking your wallet for Litera Access License...") agar widget tidak tertahan selamanya jika RPC pihak ketiga lambat saat memverifikasi kepemilikan NFT.

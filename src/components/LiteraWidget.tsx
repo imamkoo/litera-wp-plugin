@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useAccount, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
 import { usePrivy, useLogout, useLogin, useSignMessage as usePrivySignMessage } from '@privy-io/react-auth';
 import { openWeb3ModalSafe, mountWeb3Modal, subscribeWeb3ModalOpen, probeWalletListReachable } from '../web3modal-lazy';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon, CopyIcon, LogOutIcon, CheckIcon } from 'lucide-react';
@@ -339,11 +339,12 @@ const NftSpecimenCard: React.FC<{
   );
 };
 
-const WIDGET_VERSION = '1.4.48';
+const WIDGET_VERSION = '1.4.50';
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
   // --- Wagmi & Privy Auth Hooks ---
   const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
+  const { connectAsync, connectors } = useConnect();
   const { disconnect: wagmiDisconnect } = useDisconnect();
   const { ready: privyReady, authenticated: privyAuthenticated, user: privyUser } = usePrivy();
   const { logout: privyLogout } = useLogout();
@@ -539,7 +540,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     return () => { cancelled = true; clearInterval(id); };
   }, [isConnecting]);
 
-  // Preload Web3Modal chunk saat modal login dibuka
+  // Preload Web3Modal chunk secara silent saat modal login dibuka
   useEffect(() => {
     if (isLoginModalOpen) {
       setWeb3ModalLoading(true);
@@ -549,8 +550,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
           setWeb3ModalError(null);
         })
         .catch((err) => {
-          console.warn('[Litera Widget] Web3Modal load gagal:', err);
-          setWeb3ModalError('Gagal memuat dialog dompet. Silakan gunakan opsi Email atau Google.');
+          console.warn('[Litera Widget] Web3Modal preload background failed (direct wallet/cloud wallet available):', err);
         })
         .finally(() => setWeb3ModalLoading(false));
       let cancelled = false;
@@ -606,14 +606,38 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     privyLoginWithError();
   };
 
-  const handleConnectWallet = () => {
+  const handleConnectWallet = async () => {
     setLoginError(null);
-    setIsLoginModalOpen(false);
-    // Watchdog (lihat useEffect isConnecting) akan reset state setelah
-    // wagmi terkoneksi atau setelah 60 detik tanpa koneksi.
-    // Tidak ada flag teks "Connecting…" pada tombol — modal Reown sudah
-    // menjadi feedback visual bagi pengguna.
-    openWeb3ModalSafe();
+    setWeb3ModalError(null);
+
+    // 1. Prioritaskan Injected Connector jika browser memiliki ekstensi Web3 (MetaMask, OKX, Rabby, Brave, Bitget)
+    const injectedConnector = connectors?.find((c) => c.id === 'injected');
+    const hasInjectedProvider = typeof window !== 'undefined' && Boolean((window as any).ethereum);
+
+    if (hasInjectedProvider && injectedConnector) {
+      try {
+        setIsLoginModalOpen(false);
+        setIsConnecting(true);
+        await connectAsync({ connector: injectedConnector });
+        return;
+      } catch (err: any) {
+        console.warn('[Litera Widget] Injected connector cancelled or failed:', err);
+        setIsConnecting(false);
+        if (err?.name === 'UserRejectedRequestError' || err?.message?.includes('rejected') || err?.message?.includes('denied')) {
+          return;
+        }
+      }
+    }
+
+    // 2. Fallback ke Web3Modal (WalletConnect QR / Mobile Reown modal)
+    try {
+      setIsLoginModalOpen(false);
+      openWeb3ModalSafe();
+    } catch (err: any) {
+      console.error('[Litera Widget] Web3Modal open failed:', err);
+      setWeb3ModalError('Gagal memuat dialog dompet. Silakan gunakan opsi Email atau Google.');
+      setIsLoginModalOpen(true);
+    }
   };
 
   const isMobileDevice = () => {
