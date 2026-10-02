@@ -40,7 +40,10 @@ function App() {
     }
 
     if (!nextRawUrl) {
-      nextRawUrl = window.location.href;
+      const canonical = typeof document !== 'undefined'
+        ? document.querySelector('link[rel="canonical"]')?.getAttribute('href')
+        : null;
+      nextRawUrl = canonical || window.location.href;
     }
     if (!nextTitle) {
       nextTitle = document.title || 'Litera Digital Asset';
@@ -100,8 +103,23 @@ function App() {
     };
   }, []);
 
+  // Variasi URL toleran www / non-www untuk lookup ganda
+  const altPermalink = React.useMemo(() => {
+    if (!permalink) return '';
+    try {
+      const u = new URL(permalink);
+      if (u.hostname.startsWith('www.')) {
+        return `${u.protocol}//${u.hostname.slice(4)}${u.port ? ':' + u.port : ''}${u.pathname}${u.search}`;
+      } else {
+        return `${u.protocol}//www.${u.hostname}${u.port ? ':' + u.port : ''}${u.pathname}${u.search}`;
+      }
+    } catch {
+      return '';
+    }
+  }, [permalink]);
+
   // 1. On-chain lookup berdasarkan URL yang sudah dinormalisasi
-  const { data: tokenIdRaw, isLoading, isFetching, status, isError, error } = useReadContract({
+  const { data: tokenIdRaw, isLoading: isPrimaryLoading, isFetching: isPrimaryFetching, status: primaryStatus } = useReadContract({
     address: contractAddress,
     abi: contractABI,
     functionName: 'getIdFromArticleURL',
@@ -116,6 +134,21 @@ function App() {
     }
   });
 
+  // 1b. On-chain lookup toleran untuk variasi URL (www / non-www) jika URL utama belum match
+  const { data: altTokenIdRaw, isLoading: isAltLoading, isFetching: isAltFetching, status: altStatus } = useReadContract({
+    address: contractAddress,
+    abi: contractABI,
+    functionName: 'getIdFromArticleURL',
+    args: [altPermalink],
+    chainId: EXPECTED_CHAIN_ID,
+    query: {
+      enabled: !!altPermalink && (!tokenIdRaw || Number(tokenIdRaw) === 0),
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      retry: 2,
+    }
+  });
+
   const [permalinkTimedOut, setPermalinkTimedOut] = useState(false);
   useEffect(() => {
     if (permalink) {
@@ -126,10 +159,14 @@ function App() {
     return () => clearTimeout(t);
   }, [permalink]);
 
-  // State "Published" jika tokenId on-chain > 0 atau backend resolver berhasil
-  const tokenId = tokenIdRaw ? Number(tokenIdRaw) : 0;
-  const isOnChainLoading = isLoading || isFetching || (status as string) === 'pending';
-  const isChainDone = !isOnChainLoading && (status as string) !== 'pending';
+  // Hitung tokenId efektif dari on-chain (utama / alternatif) atau backend resolver
+  const primaryId = tokenIdRaw ? Number(tokenIdRaw) : 0;
+  const altId = altTokenIdRaw ? Number(altTokenIdRaw) : 0;
+  const tokenId = primaryId > 0 ? primaryId : altId > 0 ? altId : (resolvedData?.tokenId ? Number(resolvedData.tokenId) : 0);
+
+  const isOnChainLoading = (isPrimaryLoading || isPrimaryFetching || (primaryStatus as string) === 'pending') ||
+    (primaryId === 0 && !!altPermalink && (isAltLoading || isAltFetching || (altStatus as string) === 'pending'));
+  const isChainDone = !isOnChainLoading && (primaryStatus as string) !== 'pending';
 
   // 0. Sinkronkan dan selesaikan data artikel
   useEffect(() => {
@@ -157,24 +194,36 @@ function App() {
 
       const fetchResolveEndpoint = async () => {
         try {
-          const response = await fetch(
+          // 1. Coba rawPermalink
+          let response = await fetch(
             `https://literaa.xyz/api/v1/articles/resolve?url=${encodeURIComponent(rawPermalink)}`,
             { method: 'GET', headers: { 'Content-Type': 'application/json' }, signal: controller.signal }
           );
 
+          let data = response.ok ? await response.json() : null;
+
+          // 2. Jika tidak ditemukan, coba altPermalink (variasi www / non-www)
+          if ((!data || !data.success || !data.data?.tokenId) && altPermalink) {
+            const altRes = await fetch(
+              `https://literaa.xyz/api/v1/articles/resolve?url=${encodeURIComponent(altPermalink)}`,
+              { method: 'GET', headers: { 'Content-Type': 'application/json' }, signal: controller.signal }
+            );
+            if (altRes.ok) {
+              const altData = await altRes.json();
+              if (altData.success && altData.data?.tokenId > 0) {
+                data = altData;
+                response = altRes;
+              }
+            }
+          }
+
           clearTimeout(timeoutId);
           if (cancelled) return;
 
-          if (response.ok) {
-            const data = await response.json();
-            if (cancelled) return;
-            if (data.success && data.data?.tokenId > 0) {
-              setResolvedData(data.data);
-            } else {
-              setResolveError('Article not found in Litera registry');
-            }
+          if (data && data.success && data.data?.tokenId > 0) {
+            setResolvedData(data.data);
           } else {
-            setResolveError(`Backend error: ${response.status}`);
+            setResolveError('Article not found in Litera registry');
           }
         } catch (err: any) {
           clearTimeout(timeoutId);
@@ -195,7 +244,7 @@ function App() {
         controller.abort();
       };
     }
-  }, [isOnChainLoading, tokenId, rawPermalink]);
+  }, [isOnChainLoading, tokenId, rawPermalink, altPermalink]);
 
 
 

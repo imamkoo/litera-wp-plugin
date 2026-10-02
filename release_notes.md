@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.66 (Universal Canonical & WWW-Variant Auto-Resolution)
+- **Canonical URL Auto-Detection:** `syncArticle()` kini secara otomatis membaca `<link rel="canonical">` di header HTML dokumen jika URL eksplisit tidak disediakan, menjamin kecocokan 100% dengan URL utama artikel.
+- **Dual WWW / Non-WWW On-Chain Resolution:** Menambahkan lookup on-chain dan resolver sekunder yang otomatis mencoba variasi URL (dengan `www.` dan tanpa `www.`). Artikel yang didaftarkan tanpa `www.` kini tetap terdeteksi secara instan meski pengunjung mengakses melalui subdomain `www.`.
+- **Dual Fallback Backend Resolver:** Jika query resolver backend pertama gagal, sistem otomatis mencoba variasi URL alternatif sebelum menyatakan token tidak ditemukan.
+
 ## v1.4.65 (Bulletproof Dual-Pipeline Article Resolution & Skeleton Sync)
 - **Zero Race Condition Fallback:** Mengisolasi `isResolving` dan `resolveAttempted` agar state "Artikel ini belum diterbitkan" tidak pernah dapat terpicu selama proses pengecekan artikel (baik lewat blockchain Polygon maupun fallback backend API Litera) sedang berlangsung.
 - **Immediate Resolution:** Jika on-chain lookup mengembalikan `0` atau delay, backend API `/api/v1/articles/resolve` langsung mengisi token ID secara otomatis tanpa memicu flicker banner not published.
