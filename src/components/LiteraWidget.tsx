@@ -117,7 +117,7 @@ const injectThemeCSS = () => {
    Reusable Sub-components
    ═══════════════════════════════════════════════════════ */
 
-const WIDGET_VERSION = '1.4.61';
+const WIDGET_VERSION = '1.4.62';
 
 /** Consistent "Powered by Litera" footer used in ALL states */
 const PoweredByLitera: React.FC = () => (
@@ -370,10 +370,10 @@ const NftSpecimenCard: React.FC<{
                 transition: 'opacity 0.5s ease',
                 maskImage: targetPos.active
                   ? `radial-gradient(circle 68px at ${pos.x.toFixed(1)}% ${pos.y.toFixed(1)}%, transparent 0%, transparent 20%, rgba(0,0,0,0.08) 35%, rgba(0,0,0,0.28) 50%, rgba(0,0,0,0.58) 65%, rgba(0,0,0,0.85) 80%, black 100%)`
-                  : 'radial-gradient(circle 0px at 50% 50%, transparent 0%, black 0%)',
+                  : 'none',
                 WebkitMaskImage: targetPos.active
                   ? `radial-gradient(circle 68px at ${pos.x.toFixed(1)}% ${pos.y.toFixed(1)}%, transparent 0%, transparent 20%, rgba(0,0,0,0.08) 35%, rgba(0,0,0,0.28) 50%, rgba(0,0,0,0.58) 65%, rgba(0,0,0,0.85) 80%, black 100%)`
-                  : 'radial-gradient(circle 0px at 50% 50%, transparent 0%, black 0%)',
+                  : 'none',
               }}
             />
           )}
@@ -1128,6 +1128,9 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
 
           const fetchedAuthor = res.data?.author || res.data?.properties?.AUTHOR || res.data?.properties?.Author || res.data?.properties?.author;
           if (fetchedAuthor) setAuthorName(fetchedAuthor);
+
+          const fetchedPublisher = res.data?.publisher || res.data?.properties?.PUBLISHER || res.data?.properties?.Publisher || res.data?.properties?.publisher || res.data?.properties?.COLLECTION || res.data?.properties?.Collection || res.data?.properties?.collection;
+          if (fetchedPublisher) setPublisherName(fetchedPublisher);
 
           const contentCid = res.data?.properties?.Content || res.data?.properties?.content;
           if (contentCid) setArticleCid(contentCid);

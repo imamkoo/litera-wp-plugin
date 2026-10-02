@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.62 (Fix Frosted Glass Idle State & Metadata Fallback)
+- **Fix Frosted Glass Overlay:** Memperbaiki properti `maskImage` default saat kartu tidak di-hover dari `radial-gradient(circle 0px)` yang memotong penuh seluruh overlay menjadi `none` sehingga lapisan frosted glass berembun (`backdropFilter: blur(14px)`) langsung tampil menutupi gambar sejak awal saat halaman dibuka.
+- **Enhanced Author & Publisher/Collection Resolution:** Menambahkan resolver fallback langsung dari metadata IPFS (`properties.COLLECTION`, `properties.AUTHOR`, `properties.Publisher`) ketika RPC mengalami antrian / lambat, memastikan label nama author dan collection/publisher selalu terisi akurat.
+- **RPC Fallback Resilience:** Mengoptimalkan urutan RPC endpoint Wagmi.
+
 ## v1.4.61 (Fix WordPress In-Dashboard Auto-Updater & Zip Packaging)
 - **Fix PHP Syntax Error in Updater:** Menghapus kurung kurawal berlebih (`unexpected '}'`) pada `includes/class-litera-updater.php` yang sebelumnya membuat file updater crash/gagal di-load oleh PHP WordPress sehingga WordPress tidak dapat mendeteksi update baru dari GitHub Releases.
 - **Enhanced Zip Packaging & Overwrite:** Menyertakan async chunk build ke dalam zip release dan menambahkan flag overwrite pada filesystem mover WordPress agar proses pembaruan 1-klik di dashboard admin berjalan mulus tanpa hambatan.

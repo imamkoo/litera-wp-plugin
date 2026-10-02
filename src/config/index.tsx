@@ -47,10 +47,10 @@ export const config = createConfig({
   ssr: false,
   transports: {
     [polygon.id]: fallback([
-        http(`${LITERA_ORIGIN}/api/v1/rpc/proxy`, { timeout: 8000 }),
         http('https://polygon-bor-rpc.publicnode.com', { timeout: 8000 }),
-        http('https://polygon.gateway.tenderly.co', { timeout: 8000 }),
+        http(`${LITERA_ORIGIN}/api/v1/rpc/proxy`, { timeout: 8000 }),
         http('https://polygon.drpc.org', { timeout: 8000 }),
+        http('https://polygon.gateway.tenderly.co', { timeout: 8000 }),
     ], { rank: false })
   }
 })
