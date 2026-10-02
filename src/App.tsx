@@ -54,7 +54,6 @@ function App() {
           setResolvedData(null);
           setResolveError(null);
           setResolveAttempted(false);
-          setLookupTimedOut(false);
           setPermalinkTimedOut(false);
           return normalized;
         }
@@ -82,7 +81,6 @@ function App() {
         setResolvedData(null);
         setResolveError(null);
         setResolveAttempted(false);
-        setLookupTimedOut(false);
         setPermalinkTimedOut(false);
       } else {
         syncArticle();
@@ -111,28 +109,13 @@ function App() {
     chainId: EXPECTED_CHAIN_ID,
     query: {
       enabled: !!permalink,
-      staleTime: 30_000,
+      staleTime: 60_000,
       gcTime: 5 * 60_000,
-      retry: 1,
+      retry: 3,
+      retryDelay: 1000,
     }
   });
 
-  const [lookupTimedOut, setLookupTimedOut] = useState(false);
-  useEffect(() => {
-    if (!isLoading) {
-      setLookupTimedOut(false);
-      return;
-    }
-    const t = setTimeout(() => setLookupTimedOut(true), 2500);
-    return () => clearTimeout(t);
-  }, [isLoading, permalink]);
-
-  // Escape hatch terpisah: skeleton juga tampil selama `!permalink` (menunggu
-  // injeksi window.myReactPluginData dari loader). Karena `isLoading` di atas
-  // hanya jalan setelah permalink terisi (enabled: !!permalink), kasus di mana
-  // permalink GAGAL terisi (race condition script, extension browser yang
-  // menunda eksekusi, dll) tidak pernah punya batas waktu sendiri -> skeleton
-  // nyangkut abadi. Timer ini menutup gap tersebut.
   const [permalinkTimedOut, setPermalinkTimedOut] = useState(false);
   useEffect(() => {
     if (permalink) {
@@ -143,20 +126,13 @@ function App() {
     return () => clearTimeout(t);
   }, [permalink]);
 
-  console.log("DEBUG WAGMI - URL:", permalink);
-  console.log("DEBUG WAGMI - TokenID Raw:", tokenIdRaw);
-  console.log("DEBUG WAGMI - isError:", isError);
-  console.log("DEBUG WAGMI - ERROR DETAILS:", error);
-
+  // State "Published" jika tokenId on-chain > 0 atau backend resolver berhasil
   const tokenId = tokenIdRaw ? Number(tokenIdRaw) : 0;
-  const lookupFailed = lookupTimedOut || (isError && !tokenIdRaw);
 
-  // 0. Jika Writer V2 tidak menemukan artikel (on-chain lookup selesai dan tokenId === 0),
-  // baru coba endpoint /resolve sebagai fallback sistem legacy.
+  // 0. Fallback ke endpoint /resolve jika on-chain belum menemukan artikel
   useEffect(() => {
     let cancelled = false;
 
-    // Jika tokenId sudah ditemukan on-chain (V2), pastikan resolving dimatikan
     if (tokenId > 0) {
       setIsResolving(false);
       setResolvedData(null);
@@ -164,18 +140,15 @@ function App() {
       return;
     }
 
-    // Jangan panggil resolve jika on-chain lookup masih berlangsung
-    if (isLoading || isFetching || (status as string) === 'pending' || !rawPermalink) {
-      return;
-    }
+    if (!rawPermalink) return;
 
-    // Jika lookup on-chain sudah selesai dan gagal/0, baru fetch backend resolve
-    if (lookupFailed || tokenId === 0) {
+    // Trigger resolve sebagai fallback jika on-chain loading selesai atau menghasilkan 0
+    if ((!isLoading && !isFetching && status !== 'pending' && tokenId === 0) || isError) {
       setIsResolving(true);
       setResolveError(null);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
 
       const fetchResolveEndpoint = async () => {
         try {
@@ -193,7 +166,7 @@ function App() {
             if (data.success && data.data?.tokenId > 0) {
               setResolvedData(data.data);
             } else {
-              setResolveError('Article not found in legacy system');
+              setResolveError('Article not found in Litera registry');
             }
           } else {
             setResolveError(`Backend error: ${response.status}`);
@@ -216,7 +189,7 @@ function App() {
         setIsResolving(false);
       };
     }
-  }, [isLoading, isFetching, status, lookupFailed, tokenId, rawPermalink]);
+  }, [isLoading, isFetching, status, isError, tokenId, rawPermalink]);
 
 
 
@@ -249,10 +222,10 @@ function App() {
   const isChainDone = !isOnChainLoading && (status as string) !== 'pending';
 
   // Jika on-chain selesai dan menghasilkan tokenId === 0, tapi backend fallback /resolve belum selesai mencoba:
-  const isWaitingFallback = isChainDone && tokenId === 0 && !resolveAttempted && !lookupFailed && !resolvedData;
+  const isWaitingFallback = isChainDone && tokenId === 0 && !resolveAttempted && !resolvedData;
 
   // 3. State "Loading Skeleton" — tampil saat on-chain ATAU fallback resolve masih mencari token
-  if ((isOnChainLoading || (!permalink && !permalinkTimedOut) || isResolving || isWaitingFallback) && !lookupFailed && !resolvedData && !resolveError) {
+  if ((isOnChainLoading || (!permalink && !permalinkTimedOut) || isResolving || isWaitingFallback) && !resolvedData) {
     return (
       <div className="App relative flex flex-col justify-center items-center py-12 px-6 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl border border-slate-200 dark:border-white/5 shadow-2xl dark:shadow-[0_0_50px_-15px_rgba(0,0,0,0.5)] my-8 overflow-hidden text-center transition-colors duration-500">
          <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-indigo-500/10 dark:from-blue-500/5 dark:to-indigo-500/5"></div>
@@ -291,7 +264,7 @@ function App() {
   }
 
   // 4. State "Not Published" - HANYA jika on-chain DAN fallback resolve SUDAH selesai dan terbukti tidak ada NFT
-  if (isChainDone && !isResolving && (resolveAttempted || lookupFailed || resolveError) && tokenId === 0 && !resolvedData) {
+  if (isChainDone && !isResolving && resolveAttempted && tokenId === 0 && !resolvedData) {
     return (
       <div className="App flex justify-center items-center p-6 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-300 dark:border-slate-600 my-8 shadow-sm transition-colors duration-500">
          <div className="flex items-center gap-3">

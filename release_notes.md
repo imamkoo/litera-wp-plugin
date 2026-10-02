@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.64 (Fix Premature 'Not Published' State & Race Condition)
+- **Eliminate Premature 'Not Published' Flashing:** Memperbaiki kondisi race logic pada `App.tsx` di mana sebelumnya jika RPC on-chain sempat lambat atau mengembalikan error sesaat, widget tergesa-gesa masuk ke state 'Artikel belum diterbitkan' sebelum fallback resolver backend Litera selesai merespons data token.
+- **Robust Multi-Layer Resolution:** Menghapus flag timeout agresif 2.5s yang memutus query RPC sebelum retry selesai, dan memastikan transisi state menunggu sampai seluruh rangkaian resolusi (on-chain + backend fallback) benar-benar tuntas.
+
 ## v1.4.63 (Direct Litera RPC Proxy Transport & Universal IPFS URL Normalizer)
 - **Direct Litera RPC Proxy Transport:** Menempatkan endpoint RPC Litera (`https://literaa.xyz/api/v1/rpc/proxy`) sebagai transport urutan pertama Wagmi. Hal ini mengeliminasi error `upstream overloaded (-32000)` dari publicnode RPC yang sebelumnya menyebabkan lookup `getIdFromArticleURL` gagal on-chain sehingga widget sempat fallback ke "Artikel belum diterbitkan sebagai NFT".
 - **IPFS Gateway Normalizer:** Menstandarkan URL IPFS publik (ipfs.io & pinata) ke dedicated fast gateway Litera (`ipfs.literaa.xyz:8443`) untuk menjamin gambar NFT langsung render cepat.
