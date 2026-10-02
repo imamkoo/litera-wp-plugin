@@ -36,6 +36,8 @@ const formatIpfsUrl = (url: string | undefined): string => {
   if (!url) return '';
   if (url.startsWith('ipfs://')) return `${IPFS_GATEWAY}/${url.replace('ipfs://', '')}`;
   if (url.startsWith('Qm') || url.startsWith('bafy')) return `${IPFS_GATEWAY}/${url}`;
+  if (url.includes('ipfs.io/ipfs/')) return url.replace('https://ipfs.io/ipfs/', `${IPFS_GATEWAY}/`);
+  if (url.includes('gateway.pinata.cloud/ipfs/')) return url.replace('https://gateway.pinata.cloud/ipfs/', `${IPFS_GATEWAY}/`);
   return url;
 };
 
@@ -117,7 +119,7 @@ const injectThemeCSS = () => {
    Reusable Sub-components
    ═══════════════════════════════════════════════════════ */
 
-const WIDGET_VERSION = '1.4.62';
+const WIDGET_VERSION = '1.4.63';
 
 /** Consistent "Powered by Litera" footer used in ALL states */
 const PoweredByLitera: React.FC = () => (

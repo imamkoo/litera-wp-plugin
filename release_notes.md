@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.63 (Direct Litera RPC Proxy Transport & Universal IPFS URL Normalizer)
+- **Direct Litera RPC Proxy Transport:** Menempatkan endpoint RPC Litera (`https://literaa.xyz/api/v1/rpc/proxy`) sebagai transport urutan pertama Wagmi. Hal ini mengeliminasi error `upstream overloaded (-32000)` dari publicnode RPC yang sebelumnya menyebabkan lookup `getIdFromArticleURL` gagal on-chain sehingga widget sempat fallback ke "Artikel belum diterbitkan sebagai NFT".
+- **IPFS Gateway Normalizer:** Menstandarkan URL IPFS publik (ipfs.io & pinata) ke dedicated fast gateway Litera (`ipfs.literaa.xyz:8443`) untuk menjamin gambar NFT langsung render cepat.
+
 ## v1.4.62 (Fix Frosted Glass Idle State & Metadata Fallback)
 - **Fix Frosted Glass Overlay:** Memperbaiki properti `maskImage` default saat kartu tidak di-hover dari `radial-gradient(circle 0px)` yang memotong penuh seluruh overlay menjadi `none` sehingga lapisan frosted glass berembun (`backdropFilter: blur(14px)`) langsung tampil menutupi gambar sejak awal saat halaman dibuka.
 - **Enhanced Author & Publisher/Collection Resolution:** Menambahkan resolver fallback langsung dari metadata IPFS (`properties.COLLECTION`, `properties.AUTHOR`, `properties.Publisher`) ketika RPC mengalami antrian / lambat, memastikan label nama author dan collection/publisher selalu terisi akurat.
