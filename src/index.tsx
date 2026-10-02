@@ -76,8 +76,9 @@ function renderWidget(container: HTMLElement) {
 }
 
 function findOrCreateContainer(): HTMLElement | null {
-  // 1. Try standard container IDs or attributes
-  let el = document.getElementById('my-react-plugin-root') ||
+  // 1. Try standard container IDs or attributes (including #litera)
+  let el = document.getElementById('litera') ||
+           document.getElementById('my-react-plugin-root') ||
            document.getElementById('root') ||
            document.getElementById('litera-widget-root') ||
            document.querySelector('[data-litera-widget]');

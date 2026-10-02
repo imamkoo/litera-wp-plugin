@@ -128,22 +128,27 @@ function App() {
 
   // State "Published" jika tokenId on-chain > 0 atau backend resolver berhasil
   const tokenId = tokenIdRaw ? Number(tokenIdRaw) : 0;
+  const isOnChainLoading = isLoading || isFetching || (status as string) === 'pending';
+  const isChainDone = !isOnChainLoading && (status as string) !== 'pending';
 
-  // 0. Fallback ke endpoint /resolve jika on-chain belum menemukan artikel
+  // 0. Sinkronkan dan selesaikan data artikel
   useEffect(() => {
     let cancelled = false;
 
+    if (!rawPermalink) return;
+
+    // Jika tokenId sudah ditemukan via on-chain (V2), matikan resolving
     if (tokenId > 0) {
       setIsResolving(false);
       setResolvedData(null);
       setResolveError(null);
+      setResolveAttempted(true);
       return;
     }
 
-    if (!rawPermalink) return;
-
-    // Trigger resolve sebagai fallback jika on-chain loading selesai atau menghasilkan 0
-    if ((!isLoading && !isFetching && status !== 'pending' && tokenId === 0) || isError) {
+    // Jika on-chain lookup sudah selesai dan menghasilkan tokenId === 0 (atau error),
+    // langsung fallback ke backend resolver (/api/v1/articles/resolve)
+    if (!isOnChainLoading && tokenId === 0) {
       setIsResolving(true);
       setResolveError(null);
 
@@ -176,8 +181,10 @@ function App() {
           if (cancelled) return;
           setResolveError(`Network error: ${err.message || 'timeout'}`);
         } finally {
-          setIsResolving(false);
-          setResolveAttempted(true);
+          if (!cancelled) {
+            setIsResolving(false);
+            setResolveAttempted(true);
+          }
         }
       };
 
@@ -186,10 +193,9 @@ function App() {
       return () => {
         cancelled = true;
         controller.abort();
-        setIsResolving(false);
       };
     }
-  }, [isLoading, isFetching, status, isError, tokenId, rawPermalink]);
+  }, [isOnChainLoading, tokenId, rawPermalink]);
 
 
 
@@ -218,14 +224,11 @@ function App() {
     );
   }
 
-  const isOnChainLoading = isLoading || isFetching || (status as string) === 'pending';
-  const isChainDone = !isOnChainLoading && (status as string) !== 'pending';
-
   // Jika on-chain selesai dan menghasilkan tokenId === 0, tapi backend fallback /resolve belum selesai mencoba:
   const isWaitingFallback = isChainDone && tokenId === 0 && !resolveAttempted && !resolvedData;
 
   // 3. State "Loading Skeleton" — tampil saat on-chain ATAU fallback resolve masih mencari token
-  if ((isOnChainLoading || (!permalink && !permalinkTimedOut) || isResolving || isWaitingFallback) && !resolvedData) {
+  if ((isOnChainLoading || isResolving || isWaitingFallback || (!permalink && !permalinkTimedOut)) && tokenId === 0 && !resolvedData) {
     return (
       <div className="App relative flex flex-col justify-center items-center py-12 px-6 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl border border-slate-200 dark:border-white/5 shadow-2xl dark:shadow-[0_0_50px_-15px_rgba(0,0,0,0.5)] my-8 overflow-hidden text-center transition-colors duration-500">
          <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-indigo-500/10 dark:from-blue-500/5 dark:to-indigo-500/5"></div>

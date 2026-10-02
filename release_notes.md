@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.65 (Bulletproof Dual-Pipeline Article Resolution & Skeleton Sync)
+- **Zero Race Condition Fallback:** Mengisolasi `isResolving` dan `resolveAttempted` agar state "Artikel ini belum diterbitkan" tidak pernah dapat terpicu selama proses pengecekan artikel (baik lewat blockchain Polygon maupun fallback backend API Litera) sedang berlangsung.
+- **Immediate Resolution:** Jika on-chain lookup mengembalikan `0` atau delay, backend API `/api/v1/articles/resolve` langsung mengisi token ID secara otomatis tanpa memicu flicker banner not published.
+- **Universal Container Support:** Mendukung ID container `#litera` secara native di level React `index.tsx`.
+
 ## v1.4.64 (Fix Premature 'Not Published' State & Race Condition)
 - **Eliminate Premature 'Not Published' Flashing:** Memperbaiki kondisi race logic pada `App.tsx` di mana sebelumnya jika RPC on-chain sempat lambat atau mengembalikan error sesaat, widget tergesa-gesa masuk ke state 'Artikel belum diterbitkan' sebelum fallback resolver backend Litera selesai merespons data token.
 - **Robust Multi-Layer Resolution:** Menghapus flag timeout agresif 2.5s yang memutus query RPC sebelum retry selesai, dan memastikan transisi state menunggu sampai seluruh rangkaian resolusi (on-chain + backend fallback) benar-benar tuntas.
