@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.67 (Seamless Mobile Wallet Deep-Linking & Direct WalletConnect Handshake)
+- **Direct Mobile WalletConnect Trigger:** Menyelaraskan alur koneksi dompet Web3 di perangkat mobile dengan arsitektur `useSmartConnectModal` yang digunakan pada dashboard `literaa.xyz`. Pada peramban seluler (Chrome/Safari Android & iOS), tombol "Hubungkan Dompet" kini langsung memicu konektor `walletConnect` secara mulus tanpa terhalang siklus async gesture drop dari modal Web3Modal.
+- **Eliminate Mobile Stuck State:** Memperbaiki kondisi loading tak berujung (*stuck connecting*) di browser mobile dengan mengarahkan handshake ke deep link MetaMask / Trust / Bitget, dan mengamankan fallback error handler secara instan.
+
 ## v1.4.66 (Universal Canonical & WWW-Variant Auto-Resolution)
 - **Canonical URL Auto-Detection:** `syncArticle()` kini secara otomatis membaca `<link rel="canonical">` di header HTML dokumen jika URL eksplisit tidak disediakan, menjamin kecocokan 100% dengan URL utama artikel.
 - **Dual WWW / Non-WWW On-Chain Resolution:** Menambahkan lookup on-chain dan resolver sekunder yang otomatis mencoba variasi URL (dengan `www.` dan tanpa `www.`). Artikel yang didaftarkan tanpa `www.` kini tetap terdeteksi secara instan meski pengunjung mengakses melalui subdomain `www.`.

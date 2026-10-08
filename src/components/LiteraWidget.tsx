@@ -730,14 +730,30 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     privyLoginWithError();
   };
 
+  const isMobileDevice = () => {
+    if (typeof window === 'undefined') return false;
+    const userAgent = navigator.userAgent || (navigator as any).vendor || (window as any).opera || '';
+    const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i;
+    const isNarrow = typeof window.innerWidth === 'number' && window.innerWidth <= 768;
+    return mobileRegex.test(userAgent) || isNarrow || ('ontouchstart' in window);
+  };
+
   const handleConnectWallet = async () => {
     setLoginError(null);
     setWeb3ModalError(null);
 
-    // 1. Prioritaskan Injected Connector jika browser memiliki ekstensi Web3 (MetaMask, OKX, Rabby, Brave, Bitget)
-    const injectedConnector = connectors?.find((c) => c.id === 'injected');
+    const isMobile = isMobileDevice();
     const hasInjectedProvider = typeof window !== 'undefined' && Boolean((window as any).ethereum);
+    const injectedConnector = connectors?.find((c) => c.id === 'injected');
+    const wcConnector = connectors?.find(
+      (c) =>
+        c.id === 'walletConnect' ||
+        c.type === 'walletConnect' ||
+        c.name.toLowerCase().includes('walletconnect')
+    );
 
+    // Kasus 1: Desktop dengan Injected Extension (MetaMask, OKX, Rabby, Brave, Bitget)
+    // ATAU Mobile Browser yang memang menginjeksi provider (misal: MetaMask / OKX In-App Browser)
     if (hasInjectedProvider && injectedConnector) {
       try {
         setIsLoginModalOpen(false);
@@ -753,7 +769,25 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       }
     }
 
-    // 2. Fallback ke Web3Modal (WalletConnect QR / Mobile Reown modal)
+    // Kasus 2: Mobile Browser biasa (Chrome/Safari) -> Panggil connectAsync WalletConnect langsung
+    // Pola ini sama persis dengan useSmartConnectModal di dashboard literaa.xyz yang terbukti lancar
+    // membuka dialog WalletConnect & deep-linking langsung ke aplikasi MetaMask / Trust / Bitget
+    if (isMobile && wcConnector) {
+      try {
+        setIsLoginModalOpen(false);
+        setIsConnecting(true);
+        await connectAsync({ connector: wcConnector });
+        return;
+      } catch (err: any) {
+        console.warn('[Litera Widget] Mobile WalletConnect cancelled or failed:', err);
+        setIsConnecting(false);
+        if (err?.name === 'UserRejectedRequestError' || err?.message?.includes('rejected') || err?.message?.includes('denied')) {
+          return;
+        }
+      }
+    }
+
+    // Kasus 3: Fallback ke Web3Modal / Reown Modal jika connectAsync belum selesai
     try {
       setIsLoginModalOpen(false);
       openWeb3ModalSafe();
@@ -761,13 +795,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       console.error('[Litera Widget] Web3Modal open failed:', err);
       setWeb3ModalError('Gagal memuat dialog dompet. Silakan gunakan opsi Email atau Google.');
       setIsLoginModalOpen(true);
+      setIsConnecting(false);
     }
-  };
-
-  const isMobileDevice = () => {
-    if (typeof window === 'undefined') return false;
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      || (window.innerWidth <= 768 && 'ontouchstart' in window);
   };
 
   const buildWidgetAuthUrl = () => {
