@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.68 (Enable Standalone WalletConnect Modal with Mobile Deep-Linking)
+- **Show Native WalletConnect Modal (`showQrModal: true`):** Mengaktifkan modal resmi WalletConnect (`@walletconnect/modal`) dengan `showQrModal: true` dan `--wcm-z-index: 2147483647`. Pada browser mobile, saat `connectAsync({ connector: wcConnector })` dieksekusi, modal "All Wallets" WalletConnect langsung tampil di layar depan dan memicu intent picker Android (*"Choose activity: Chrome / MetaMask"*) persis seperti pada dashboard `literaa.xyz/home`.
+- **Z-Index & Mobile Layering Fix:** Memastikan modal WalletConnect tidak terblokir atau tersembunyi di belakang overlay widget.
+
 ## v1.4.67 (Seamless Mobile Wallet Deep-Linking & Direct WalletConnect Handshake)
 - **Direct Mobile WalletConnect Trigger:** Menyelaraskan alur koneksi dompet Web3 di perangkat mobile dengan arsitektur `useSmartConnectModal` yang digunakan pada dashboard `literaa.xyz`. Pada peramban seluler (Chrome/Safari Android & iOS), tombol "Hubungkan Dompet" kini langsung memicu konektor `walletConnect` secara mulus tanpa terhalang siklus async gesture drop dari modal Web3Modal.
 - **Eliminate Mobile Stuck State:** Memperbaiki kondisi loading tak berujung (*stuck connecting*) di browser mobile dengan mengarahkan handshake ke deep link MetaMask / Trust / Bitget, dan mengamankan fallback error handler secara instan.

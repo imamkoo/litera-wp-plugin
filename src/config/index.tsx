@@ -40,7 +40,18 @@ export const config = createConfig({
   chains,
   multiInjectedProviderDiscovery: true,
   connectors: [
-    walletConnect({ projectId, metadata, showQrModal: false }),
+    walletConnect({
+      projectId,
+      metadata,
+      showQrModal: true,
+      qrModalOptions: {
+        themeMode: 'light',
+        themeVariables: {
+          '--wcm-accent-color': '#d07954',
+          '--wcm-z-index': '2147483647',
+        }
+      }
+    }),
     injected({ shimDisconnect: true }),
     coinbaseWallet({ appName: metadata.name, appLogoUrl: metadata.icons[0] })
   ],
