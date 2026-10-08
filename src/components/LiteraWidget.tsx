@@ -119,7 +119,7 @@ const injectThemeCSS = () => {
    Reusable Sub-components
    ═══════════════════════════════════════════════════════ */
 
-const WIDGET_VERSION = '1.4.68';
+const WIDGET_VERSION = '1.4.69';
 
 /** Consistent "Powered by Litera" footer used in ALL states */
 const PoweredByLitera: React.FC = () => (
@@ -594,10 +594,18 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const wagmiConnectedRef = useRef(false);
   useEffect(() => { wagmiConnectedRef.current = isWagmiConnected; }, [isWagmiConnected]);
 
-  // Watchdog reset isConnecting:
+  // Watchdog & Listener reset isConnecting:
   //   - Saat wagmi.isConnected berubah ke true → user berhasil connect → reset.
-  //   - Setelah 60 detik tanpa connect → diasumsikan user menutup modal tanpa melanjutkan → reset.
-  // Tidak lagi bergantung pada subscribeState Reown yang tidak reliable.
+  //   - Langganan event buka/tutup modal Web3Modal agar tombol tidak stuck di 'Menghubungkan…'
+  useEffect(() => {
+    const unsub = subscribeWeb3ModalOpen((isOpen) => {
+      if (!isOpen && !wagmiConnectedRef.current) {
+        setIsConnecting(false);
+      }
+    });
+    return () => unsub();
+  }, []);
+
   useEffect(() => {
     if (!isConnecting) return;
     let cancelled = false;

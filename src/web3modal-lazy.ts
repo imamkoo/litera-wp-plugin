@@ -98,6 +98,7 @@ export function mountWeb3Modal(): Promise<void> {
         themeVariables: {
           '--w3m-accent': '#d07954',
           '--w3m-border-radius-master': '12px',
+          '--w3m-z-index': 2147483647,
         },
         featuredWalletIds: [
           '3779261cbca0986756cd7e7c9f8072051db27dd7573f3246ebdb998e3b4a2f8b', // Bitget

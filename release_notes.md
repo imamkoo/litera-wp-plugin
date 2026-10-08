@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.69 (Fix Web3Modal Z-Index 2147483647 & Subscribe State Listener)
+- **Web3Modal High Z-Index:** Menambahkan `--w3m-z-index: 2147483647` pada `themeVariables` Web3Modal agar saat modal dompet dibuka, tidak tertutup atau tersembunyi di balik layout halaman mobile atau backdrop login.
+- **Active Modal Close Listener:** Menghubungkan kembali listener `subscribeWeb3ModalOpen` agar tombol `Menghubungkan…` otomatis kembali ke status awal saat dialog dompet ditutup tanpa harus menunggu watchdog timeout.
+
 ## v1.4.68 (Enable Standalone WalletConnect Modal with Mobile Deep-Linking)
 - **Show Native WalletConnect Modal (`showQrModal: true`):** Mengaktifkan modal resmi WalletConnect (`@walletconnect/modal`) dengan `showQrModal: true` dan `--wcm-z-index: 2147483647`. Pada browser mobile, saat `connectAsync({ connector: wcConnector })` dieksekusi, modal "All Wallets" WalletConnect langsung tampil di layar depan dan memicu intent picker Android (*"Choose activity: Chrome / MetaMask"*) persis seperti pada dashboard `literaa.xyz/home`.
 - **Z-Index & Mobile Layering Fix:** Memastikan modal WalletConnect tidak terblokir atau tersembunyi di belakang overlay widget.
