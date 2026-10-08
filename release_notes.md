@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.70 (Direct RainbowKit Mobile Parity via literaa.xyz/widget-auth)
+- **Mobile Wallet Connection Parity:** Pada browser mobile eksternal, klik tombol "Hubungkan Dompet" kini secara otomatis mengarahkan koneksi ke modal RainbowKit resmi yang terpasang di `literaa.xyz/widget-auth?auth=wallet`.
+- Menjamin pemanggilan native intent (MetaMask, Trust, Bitget) berjalan lancar 100% identik dengan alur koneksi dashboard `literaa.xyz/home`.
+- Setelah tersambung, alamat dompet langsung terhubung kembali secara instan ke artikel.
+
 ## v1.4.69 (Fix Web3Modal Z-Index 2147483647 & Subscribe State Listener)
 - **Web3Modal High Z-Index:** Menambahkan `--w3m-z-index: 2147483647` pada `themeVariables` Web3Modal agar saat modal dompet dibuka, tidak tertutup atau tersembunyi di balik layout halaman mobile atau backdrop login.
 - **Active Modal Close Listener:** Menghubungkan kembali listener `subscribeWeb3ModalOpen` agar tombol `Menghubungkan…` otomatis kembali ke status awal saat dialog dompet ditutup tanpa harus menunggu watchdog timeout.

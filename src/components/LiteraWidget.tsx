@@ -119,7 +119,7 @@ const injectThemeCSS = () => {
    Reusable Sub-components
    ═══════════════════════════════════════════════════════ */
 
-const WIDGET_VERSION = '1.4.69';
+const WIDGET_VERSION = '1.4.70';
 
 /** Consistent "Powered by Litera" footer used in ALL states */
 const PoweredByLitera: React.FC = () => (
@@ -777,25 +777,17 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       }
     }
 
-    // Kasus 2: Mobile Browser biasa (Chrome/Safari) -> Panggil connectAsync WalletConnect langsung
-    // Pola ini sama persis dengan useSmartConnectModal di dashboard literaa.xyz yang terbukti lancar
-    // membuka dialog WalletConnect & deep-linking langsung ke aplikasi MetaMask / Trust / Bitget
-    if (isMobile && wcConnector) {
-      try {
-        setIsLoginModalOpen(false);
-        setIsConnecting(true);
-        await connectAsync({ connector: wcConnector });
-        return;
-      } catch (err: any) {
-        console.warn('[Litera Widget] Mobile WalletConnect cancelled or failed:', err);
-        setIsConnecting(false);
-        if (err?.name === 'UserRejectedRequestError' || err?.message?.includes('rejected') || err?.message?.includes('denied')) {
-          return;
-        }
-      }
+    // Kasus 2: Mobile Browser biasa (Chrome/Safari)
+    // Jika ada injected extension/provider, sudah ditangani di atas.
+    // Jika tidak ada injected extension (browser luar seperti Chrome Android / Safari iOS),
+    // Arahkan koneksi melalui alur literaa.xyz/widget-auth?auth=wallet yang sudah terpasang
+    // RainbowKit lengkap dan terbukti 100% worked di HP!
+    if (isMobile) {
+      openCloudWalletPopup('wallet');
+      return;
     }
 
-    // Kasus 3: Fallback ke Web3Modal / Reown Modal jika connectAsync belum selesai
+    // Kasus 3: Fallback ke Web3Modal / Reown Modal di Desktop jika tidak ada Injected Provider
     try {
       setIsLoginModalOpen(false);
       openWeb3ModalSafe();
@@ -807,7 +799,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     }
   };
 
-  const buildWidgetAuthUrl = () => {
+  const buildWidgetAuthUrl = (authType: 'email' | 'wallet' = 'email') => {
     const contract = generation === 'legacy' && legacyContractAddress
       ? legacyContractAddress
       : Erc1155Adress;
@@ -821,14 +813,14 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       article: window.location.href,
       tokenId: String(tokenId ?? ''),
       contract,
-      auth: 'email',
+      auth: authType,
       state: nonce,
       ...(generation === 'legacy' ? { gen: 'legacy' } : {}),
     });
     return `${LITERA_ORIGIN}/widget-auth?${params.toString()}`;
   };
 
-  const openCloudWalletPopup = () => {
+  const openCloudWalletPopup = (authType: 'email' | 'wallet' = 'email') => {
     setLoginError(null);
     setIsLoginModalOpen(false);
     if (isMobileDevice()) {
@@ -836,11 +828,11 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
         sessionStorage.setItem('litera_pending_article', window.location.href);
         sessionStorage.setItem('litera_pending_tokenid', String(tokenId ?? ''));
       } catch (e) {}
-      window.location.href = buildWidgetAuthUrl();
+      window.location.href = buildWidgetAuthUrl(authType);
       return;
     }
     setIsConnecting(true);
-    const authUrl = buildWidgetAuthUrl();
+    const authUrl = buildWidgetAuthUrl(authType);
     const w = Math.max(380, Math.min(460, window.innerWidth - 40));
     const h = Math.max(560, Math.min(760, window.innerHeight - 60));
     const left = window.screenX + (window.outerWidth - w) / 2;
