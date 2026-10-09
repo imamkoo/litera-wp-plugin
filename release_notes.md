@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.71 (Crystal Clear NFT Image on Owned State)
+- **Unblur Owned NFT Media:** Memperbaiki lapisan frosted glass blur overlay pada `NftSpecimenCard` agar otomatis dinonaktifkan ketika kartu dalam status `isOwned = true`. Karya gambar/media NFT dari koleksi yang sudah dimiliki pengguna kini tampil jernih 100% (*crystal clear*) tanpa efek blur atau masking.
+- **Specimen Teaser Preserved:** Mode interactive scratch & frosted blur reveal tetap dipertahankan secara dinamis untuk pengunjung yang belum memiliki NFT (preview state).
+
 ## v1.4.70 (Direct RainbowKit Mobile Parity via literaa.xyz/widget-auth)
 - **Mobile Wallet Connection Parity:** Pada browser mobile eksternal, klik tombol "Hubungkan Dompet" kini secara otomatis mengarahkan koneksi ke modal RainbowKit resmi yang terpasang di `literaa.xyz/widget-auth?auth=wallet`.
 - Menjamin pemanggilan native intent (MetaMask, Trust, Bitget) berjalan lancar 100% identik dengan alur koneksi dashboard `literaa.xyz/home`.

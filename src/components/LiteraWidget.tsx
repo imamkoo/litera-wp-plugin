@@ -357,8 +357,8 @@ const NftSpecimenCard: React.FC<{
             )
           ) : null}
 
-          {/* Top Fluid Frosted Glass Blur Overlay: Organic Water-Droplet Multi-Stop Gradient Mask */}
-          {imageLoaded && (
+          {/* Top Fluid Frosted Glass Blur Overlay: Organic Water-Droplet Multi-Stop Gradient Mask (Only in preview / unowned state) */}
+          {imageLoaded && !isOwned && (
             <div
               style={{
                 position: 'absolute',
