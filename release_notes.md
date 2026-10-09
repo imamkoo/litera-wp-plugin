@@ -1,6 +1,7 @@
 # Litera WordPress Plugin Release Notes
 
-## v1.4.71 (Crystal Clear NFT Image on Owned State)
+## v1.4.71 (Crystal Clear NFT Image on Owned State & Dynamic Versioning)
+- **Dynamic Widget Versioning:** Mengganti string statis `const WIDGET_VERSION = '1.4.70'` menjadi dinamis membaca dari `packageJson.version`, sehingga teks versi di footer widget (`vX.Y.Z • Powered by Litera`) otomatis selalu sinkron dan ter-update dengan rilis versi terbaru.
 - **Unblur Owned NFT Media:** Memperbaiki lapisan frosted glass blur overlay pada `NftSpecimenCard` agar otomatis dinonaktifkan ketika kartu dalam status `isOwned = true`. Karya gambar/media NFT dari koleksi yang sudah dimiliki pengguna kini tampil jernih 100% (*crystal clear*) tanpa efek blur atau masking.
 - **Specimen Teaser Preserved:** Mode interactive scratch & frosted blur reveal tetap dipertahankan secara dinamis untuk pengunjung yang belum memiliki NFT (preview state).
 

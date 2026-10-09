@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import packageJson from '../../package.json';
 import { useAccount, useConnect, useDisconnect, useConnectors, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
 import { usePrivy, useLogout, useLogin, useWallets, useSignMessage as usePrivySignMessage } from '@privy-io/react-auth';
 import { openWeb3ModalSafe, mountWeb3Modal, subscribeWeb3ModalOpen, probeWalletListReachable } from '../web3modal-lazy';
@@ -119,7 +120,7 @@ const injectThemeCSS = () => {
    Reusable Sub-components
    ═══════════════════════════════════════════════════════ */
 
-const WIDGET_VERSION = '1.4.70';
+const WIDGET_VERSION = packageJson.version || '1.4.71';
 
 /** Consistent "Powered by Litera" footer used in ALL states */
 const PoweredByLitera: React.FC = () => (
