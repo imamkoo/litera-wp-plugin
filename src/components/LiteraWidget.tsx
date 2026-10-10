@@ -29,16 +29,18 @@ interface LiteraWidgetProps {
   contractAddress?: string;
 }
 
-// Gateway IPFS Litera sendiri jauh lebih cepat (~0.5s) dibanding ipfs.io (~13s),
-// yang sering membuat <img>/fetch metadata gagal atau timeout.
-const IPFS_GATEWAY = 'https://ipfs.literaa.xyz:8443/ipfs';
+const IPFS_GATEWAYS = [
+  'https://cloudflare-ipfs.com/ipfs',
+  'https://dweb.link/ipfs',
+  'https://gateway.pinata.cloud/ipfs',
+  'https://ipfs.io/ipfs',
+];
 
 const formatIpfsUrl = (url: string | undefined): string => {
   if (!url) return '';
-  if (url.startsWith('ipfs://')) return `${IPFS_GATEWAY}/${url.replace('ipfs://', '')}`;
-  if (url.startsWith('Qm') || url.startsWith('bafy')) return `${IPFS_GATEWAY}/${url}`;
-  if (url.includes('ipfs.io/ipfs/')) return url.replace('https://ipfs.io/ipfs/', `${IPFS_GATEWAY}/`);
-  if (url.includes('gateway.pinata.cloud/ipfs/')) return url.replace('https://gateway.pinata.cloud/ipfs/', `${IPFS_GATEWAY}/`);
+  if (url.startsWith('ipfs://')) return `${IPFS_GATEWAYS[0]}/${url.replace('ipfs://', '')}`;
+  if (url.startsWith('Qm') || url.startsWith('bafy')) return `${IPFS_GATEWAYS[0]}/${url}`;
+  if (url.includes('ipfs.literaa.xyz:8443/ipfs/')) return url.replace('https://ipfs.literaa.xyz:8443/ipfs/', `${IPFS_GATEWAYS[0]}/`);
   return url;
 };
 
@@ -1147,25 +1149,45 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       const fetchMetadata = async () => {
         try {
           const cid = tokenURI.replace('ipfs://', '');
-          const res = await axios.get(`${IPFS_GATEWAY}/${cid}`, { timeout: 8000 });
-          const extUrl = res.data?.properties?.external_url;
-          if (extUrl && extUrl.length > 5) setSponsorUrl(extUrl);
-
-          let mediaUrl = res.data?.animation_url || res.data?.image;
-          if (mediaUrl) {
-            mediaUrl = formatIpfsUrl(mediaUrl);
-            const isVideo = mediaUrl.toLowerCase().endsWith('.mp4') || mediaUrl.toLowerCase().endsWith('.webm') || !!res.data?.animation_url;
-            setNftMedia({ url: mediaUrl, type: isVideo ? 'video' : 'image' });
+          let metadata: any = null;
+          for (const gw of IPFS_GATEWAYS) {
+            try {
+              const res = await axios.get(`${gw}/${cid}`, { timeout: 4000 });
+              if (res.data) {
+                metadata = res.data;
+                break;
+              }
+            } catch {
+              // try next gateway
+            }
           }
 
-          const fetchedAuthor = res.data?.author || res.data?.properties?.AUTHOR || res.data?.properties?.Author || res.data?.properties?.author;
-          if (fetchedAuthor) setAuthorName(fetchedAuthor);
+          if (metadata) {
+            const extUrl = metadata?.properties?.external_url || metadata?.external_url;
+            if (extUrl && extUrl.length > 5) setSponsorUrl(extUrl);
 
-          const fetchedPublisher = res.data?.publisher || res.data?.properties?.PUBLISHER || res.data?.properties?.Publisher || res.data?.properties?.publisher || res.data?.properties?.COLLECTION || res.data?.properties?.Collection || res.data?.properties?.collection;
-          if (fetchedPublisher) setPublisherName(fetchedPublisher);
+            let mediaUrl = metadata?.animation_url || metadata?.image;
+            if (mediaUrl) {
+              mediaUrl = formatIpfsUrl(mediaUrl);
+              const isVideo = mediaUrl.toLowerCase().endsWith('.mp4') || mediaUrl.toLowerCase().endsWith('.webm') || !!metadata?.animation_url;
+              setNftMedia({ url: mediaUrl, type: isVideo ? 'video' : 'image' });
+            }
 
-          const contentCid = res.data?.properties?.Content || res.data?.properties?.content;
-          if (contentCid) setArticleCid(contentCid);
+            const authorAttr = Array.isArray(metadata?.attributes)
+              ? metadata.attributes.find((a: any) => a.trait_type?.toLowerCase() === 'author')?.value
+              : null;
+            const fetchedAuthor = metadata?.author || metadata?.properties?.AUTHOR || metadata?.properties?.Author || metadata?.properties?.author || authorAttr;
+            if (fetchedAuthor) setAuthorName(fetchedAuthor);
+
+            const collectionAttr = Array.isArray(metadata?.attributes)
+              ? metadata.attributes.find((a: any) => a.trait_type?.toLowerCase() === 'collection' || a.trait_type?.toLowerCase() === 'category')?.value
+              : null;
+            const fetchedPublisher = metadata?.publisher || metadata?.properties?.PUBLISHER || metadata?.properties?.Publisher || metadata?.properties?.COLLECTION || collectionAttr;
+            if (fetchedPublisher) setPublisherName(fetchedPublisher);
+
+            const contentCid = metadata?.properties?.Content || metadata?.properties?.content;
+            if (contentCid) setArticleCid(contentCid);
+          }
         } catch (e) {
           console.warn("Failed to fetch NFT metadata", e);
         }

@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.72 (Multi-Gateway IPFS Resiliency & ERC-1155 Attributes Parsing)
+- **Multi-Gateway IPFS Resiliency:** Mengganti single endpoint IPFS gateway dengan strategi fallback multi-gateway publik berkecepatan tinggi (Cloudflare IPFS, DWeb, Pinata, IPFS.io). Mengeliminasi kegagalan pemuatan metadata dan media gambar cover NFT di perangkat pembaca.
+- **ERC-1155 & OpenSea Attributes Support:** Menambahkan parsing dinamis terhadap array `attributes` (seperti `trait_type: "Author"` dan `trait_type: "Collection"`). Label author kartu widget kini menampilkan nama kreator yang sebenarnya (misal `@axaalexxa`) alih-alih fallback teks statis "Author".
+- **Absolute IPFS Asset URL Sanitization:** Memastikan URL gambar cover dengan prefix `ipfs://` maupun CID v0/v1 terformat dengan gateway publik yang cepat dan andal.
+
 ## v1.4.71 (Crystal Clear NFT Image on Owned State & Dynamic Versioning)
 - **Dynamic Widget Versioning:** Mengganti string statis `const WIDGET_VERSION = '1.4.70'` menjadi dinamis membaca dari `packageJson.version`, sehingga teks versi di footer widget (`vX.Y.Z • Powered by Litera`) otomatis selalu sinkron dan ter-update dengan rilis versi terbaru.
 - **Unblur Owned NFT Media:** Memperbaiki lapisan frosted glass blur overlay pada `NftSpecimenCard` agar otomatis dinonaktifkan ketika kartu dalam status `isOwned = true`. Karya gambar/media NFT dari koleksi yang sudah dimiliki pengguna kini tampil jernih 100% (*crystal clear*) tanpa efek blur atau masking.
