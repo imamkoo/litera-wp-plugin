@@ -30,17 +30,21 @@ interface LiteraWidgetProps {
 }
 
 const IPFS_GATEWAYS = [
-  'https://cloudflare-ipfs.com/ipfs',
-  'https://dweb.link/ipfs',
   'https://gateway.pinata.cloud/ipfs',
   'https://ipfs.io/ipfs',
+  'https://dweb.link/ipfs',
 ];
 
 const formatIpfsUrl = (url: string | undefined): string => {
   if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    if (url.includes('ipfs.literaa.xyz:8443/ipfs/')) {
+      return url.replace('https://ipfs.literaa.xyz:8443/ipfs/', `${IPFS_GATEWAYS[0]}/`);
+    }
+    return url;
+  }
   if (url.startsWith('ipfs://')) return `${IPFS_GATEWAYS[0]}/${url.replace('ipfs://', '')}`;
   if (url.startsWith('Qm') || url.startsWith('bafy')) return `${IPFS_GATEWAYS[0]}/${url}`;
-  if (url.includes('ipfs.literaa.xyz:8443/ipfs/')) return url.replace('https://ipfs.literaa.xyz:8443/ipfs/', `${IPFS_GATEWAYS[0]}/`);
   return url;
 };
 

@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.73 (Pinata-First Gateway & HTTP Asset Passthrough)
+- **Pinata-First IPFS Resolution:** Memprioritaskan gateway publik Pinata berkecepatan tinggi (~0.3s) dan menghapus endpoint Cloudflare IPFS yang mengalami resolusi DNS error.
+- **Direct HTTPS Image Passthrough:** Mendukung pembacaan langsung aset visual yang bertipe URL HTTPS absolut dari metadata IPFS.
+
 ## v1.4.72 (Multi-Gateway IPFS Resiliency & ERC-1155 Attributes Parsing)
 - **Multi-Gateway IPFS Resiliency:** Mengganti single endpoint IPFS gateway dengan strategi fallback multi-gateway publik berkecepatan tinggi (Cloudflare IPFS, DWeb, Pinata, IPFS.io). Mengeliminasi kegagalan pemuatan metadata dan media gambar cover NFT di perangkat pembaca.
 - **ERC-1155 & OpenSea Attributes Support:** Menambahkan parsing dinamis terhadap array `attributes` (seperti `trait_type: "Author"` dan `trait_type: "Collection"`). Label author kartu widget kini menampilkan nama kreator yang sebenarnya (misal `@axaalexxa`) alih-alih fallback teks statis "Author".
