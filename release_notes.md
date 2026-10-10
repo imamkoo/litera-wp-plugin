@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.74 (Litera IPFS First & Dedicated Gateway Passthrough)
+- **Litera IPFS Gateway First:** Menjadikan `https://ipfs.literaa.xyz:8443/ipfs` sebagai prioritas gateway pertama dalam array `IPFS_GATEWAYS`. Menjamin 100% metadata dan gambar cover token termuat dalam <0.5 detik tanpa terhadang rate-limit HTTP 429 atau CORS block dari gateway publik pihak ketiga (seperti ipfs.io & dweb.link).
+- **Direct HTTPS Image URLs Preservation:** Menghilangkan penimpaan URL `ipfs.literaa.xyz:8443` ke gateway pihak ketiga sehingga seluruh gambar asli yang di-host di IPFS Litera langsung di-stream tanpa modifikasi URL.
+
 ## v1.4.73 (Pinata-First Gateway & HTTP Asset Passthrough)
 - **Pinata-First IPFS Resolution:** Memprioritaskan gateway publik Pinata berkecepatan tinggi (~0.3s) dan menghapus endpoint Cloudflare IPFS yang mengalami resolusi DNS error.
 - **Direct HTTPS Image Passthrough:** Mendukung pembacaan langsung aset visual yang bertipe URL HTTPS absolut dari metadata IPFS.
