@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.75 (Version Badge on All Widget States)
+- **Version Visibility on Every State:** Menambahkan `PoweredByLitera` dinamis (`v{WIDGET_VERSION} • Powered by Litera`, baca dari `package.json`) ke semua state `App.tsx` — Wrong Network, Loading Skeleton, Gagal Memuat, dan Not Published — sehingga identik dengan Image 2 pada semua kondisi, bukan hanya saat ada NFT. Memudahkan kontrol versi: pembaca/admin dapat langsung melihat di halaman apakah web sudah memakai build terbaru.
+- **Dynamic Versioning:** `WIDGET_VERSION` tetap membaca dari `packageJson.version` (1 sumber kebenaran), jadi sinkron otomatis dengan `litera.php`/`readme.txt`/`release_notes.md` di setiap rilis.
+
 ## v1.4.74 (Litera IPFS First & Dedicated Gateway Passthrough)
 - **Litera IPFS Gateway First:** Menjadikan `https://ipfs.literaa.xyz:8443/ipfs` sebagai prioritas gateway pertama dalam array `IPFS_GATEWAYS`. Menjamin 100% metadata dan gambar cover token termuat dalam <0.5 detik tanpa terhadang rate-limit HTTP 429 atau CORS block dari gateway publik pihak ketiga (seperti ipfs.io & dweb.link).
 - **Direct HTTPS Image URLs Preservation:** Menghilangkan penimpaan URL `ipfs.literaa.xyz:8443` ke gateway pihak ketiga sehingga seluruh gambar asli yang di-host di IPFS Litera langsung di-stream tanpa modifikasi URL.

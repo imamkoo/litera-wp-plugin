@@ -5,6 +5,19 @@ import { useReadContract, useAccount } from 'wagmi';
 import { contractABI, contractAddress, activeChainId, activeNetworkName } from './shared/contracts/ContractConfig';
 import { openWeb3ModalSafe } from './web3modal-lazy';
 import { normalizeUrl } from './shared/utils/urlNormalizer';
+import packageJson from '../package.json';
+
+const WIDGET_VERSION: string = (packageJson as any).version || '1.4.75';
+
+const PoweredByLitera: React.FC = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '14px', opacity: 0.7 }}>
+    <svg viewBox="0 0 200 200" style={{ width: '11px', height: '11px', flexShrink: 0 }}>
+      <circle cx="100" cy="100" r="100" fill="#F04E37" />
+      <text x="100" y="135" fill="#FFFFFF" fontSize="110" fontFamily="Georgia, serif" fontStyle="italic" fontWeight="bold" textAnchor="middle">L</text>
+    </svg>
+    <span style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', letterSpacing: '0.02em' }}>v{WIDGET_VERSION} • Powered by Litera</span>
+  </div>
+);
 
 interface ResolveResult {
   tokenId: number;
@@ -250,25 +263,28 @@ function App() {
 
   if (isConnected && chainId && chainId !== EXPECTED_CHAIN_ID) {
     return (
-      <div className="App relative flex flex-col items-center p-8 bg-red-50/80 dark:bg-slate-900/80 backdrop-blur-xl border border-red-200 dark:border-red-900/50 rounded-3xl shadow-[0_0_40px_-10px_rgba(239,68,68,0.3)] my-8 overflow-hidden transition-colors duration-500">
-        <div className="absolute inset-0 bg-gradient-to-b from-red-500/5 to-transparent dark:from-red-500/10"></div>
-        <div className="relative z-10 flex flex-col items-center">
-          <div className="w-14 h-14 mb-5 bg-red-100 dark:bg-red-950/50 rounded-2xl flex items-center justify-center text-red-600 dark:text-red-400 shadow-inner border border-red-200 dark:border-red-900/30">
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+      <div className="App">
+        <div className="relative flex flex-col items-center p-8 bg-red-50/80 dark:bg-slate-900/80 backdrop-blur-xl border border-red-200 dark:border-red-900/50 rounded-3xl shadow-[0_0_40px_-10px_rgba(239,68,68,0.3)] my-8 overflow-hidden transition-colors duration-500">
+          <div className="absolute inset-0 bg-gradient-to-b from-red-500/5 to-transparent dark:from-red-500/10"></div>
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="w-14 h-14 mb-5 bg-red-100 dark:bg-red-950/50 rounded-2xl flex items-center justify-center text-red-600 dark:text-red-400 shadow-inner border border-red-200 dark:border-red-900/30">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <p className="text-red-600 dark:text-red-400 font-bold mb-2 uppercase tracking-[0.15em] text-sm">Wrong Network Detected</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 text-center max-w-xs leading-relaxed">Please switch to <span className="font-bold text-slate-800 dark:text-slate-200">{activeNetworkName}</span> to use the Litera widget.</p>
+            <button
+              onClick={() => openWeb3ModalSafe({ view: 'Networks' })}
+              className="group relative flex items-center justify-center py-3 px-6 rounded-2xl bg-red-600 dark:bg-red-500/20 text-white dark:text-red-400 font-bold hover:scale-[1.02] transition-all duration-300 shadow-xl overflow-hidden mt-2 z-10 border border-transparent dark:border-red-500/30"
+            >
+              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-red-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <span className="relative z-10 flex items-center gap-2">
+                <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                Switch Network
+              </span>
+            </button>
           </div>
-          <p className="text-red-600 dark:text-red-400 font-bold mb-2 uppercase tracking-[0.15em] text-sm">Wrong Network Detected</p>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 text-center max-w-xs leading-relaxed">Please switch to <span className="font-bold text-slate-800 dark:text-slate-200">{activeNetworkName}</span> to use the Litera widget.</p>
-          <button
-            onClick={() => openWeb3ModalSafe({ view: 'Networks' })}
-            className="group relative flex items-center justify-center py-3 px-6 rounded-2xl bg-red-600 dark:bg-red-500/20 text-white dark:text-red-400 font-bold hover:scale-[1.02] transition-all duration-300 shadow-xl overflow-hidden mt-2 z-10 border border-transparent dark:border-red-500/30"
-          >
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-red-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <span className="relative z-10 flex items-center gap-2">
-              <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-              Switch Network
-            </span>
-          </button>
         </div>
+        <PoweredByLitera />
       </div>
     );
   }
@@ -279,16 +295,19 @@ function App() {
   // 3. State "Loading Skeleton" — tampil saat on-chain ATAU fallback resolve masih mencari token
   if ((isOnChainLoading || isResolving || isWaitingFallback || (!permalink && !permalinkTimedOut)) && tokenId === 0 && !resolvedData) {
     return (
-      <div className="App relative flex flex-col justify-center items-center py-12 px-6 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl border border-slate-200 dark:border-white/5 shadow-2xl dark:shadow-[0_0_50px_-15px_rgba(0,0,0,0.5)] my-8 overflow-hidden text-center transition-colors duration-500">
-         <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-indigo-500/10 dark:from-blue-500/5 dark:to-indigo-500/5"></div>
-         <div className="animate-pulse flex flex-col items-center space-y-6 relative z-10">
-            <div className="relative flex items-center justify-center">
-               <div className="absolute inset-0 bg-blue-500 rounded-full blur-xl opacity-30 animate-pulse"></div>
-               <div className="h-16 w-16 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-center border border-slate-200 dark:border-slate-800 shadow-inner">
-                 <div className="h-6 w-6 bg-blue-500 rounded-full animate-ping"></div>
-               </div>
-            </div>
-         </div>
+      <div className="App">
+        <div className="relative flex flex-col justify-center items-center py-12 px-6 bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl rounded-3xl border border-slate-200 dark:border-white/5 shadow-2xl dark:shadow-[0_0_50px_-15px_rgba(0,0,0,0.5)] my-8 overflow-hidden text-center transition-colors duration-500">
+           <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-indigo-500/10 dark:from-blue-500/5 dark:to-indigo-500/5"></div>
+           <div className="animate-pulse flex flex-col items-center space-y-6 relative z-10">
+              <div className="relative flex items-center justify-center">
+                 <div className="absolute inset-0 bg-blue-500 rounded-full blur-xl opacity-30 animate-pulse"></div>
+                 <div className="h-16 w-16 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-center border border-slate-200 dark:border-slate-800 shadow-inner">
+                   <div className="h-6 w-6 bg-blue-500 rounded-full animate-ping"></div>
+                 </div>
+              </div>
+           </div>
+        </div>
+        <PoweredByLitera />
       </div>
     );
   }
@@ -300,17 +319,20 @@ function App() {
   // menyesatkan pembaca dengan pesan "belum diterbitkan sebagai NFT".
   if (!permalink && permalinkTimedOut) {
     return (
-      <div className="App flex justify-center items-center p-6 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-300 dark:border-slate-600 my-8 shadow-sm transition-colors duration-500">
-         <div className="flex items-center gap-3">
-           <svg className="w-5 h-5 text-slate-500 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-           <p className="text-slate-700 dark:text-slate-200 font-semibold text-sm tracking-wide">Widget Litera gagal memuat halaman ini.</p>
-           <button
-             onClick={() => window.location.reload()}
-             className="ml-2 shrink-0 text-xs font-bold text-[#d07954] hover:underline"
-           >
-             Coba Lagi
-           </button>
-         </div>
+      <div className="App">
+        <div className="flex justify-center items-center p-6 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-300 dark:border-slate-600 my-8 shadow-sm transition-colors duration-500">
+           <div className="flex items-center gap-3">
+             <svg className="w-5 h-5 text-slate-500 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+             <p className="text-slate-700 dark:text-slate-200 font-semibold text-sm tracking-wide">Widget Litera gagal memuat halaman ini.</p>
+             <button
+               onClick={() => window.location.reload()}
+               className="ml-2 shrink-0 text-xs font-bold text-[#d07954] hover:underline"
+             >
+               Coba Lagi
+             </button>
+           </div>
+        </div>
+        <PoweredByLitera />
       </div>
     );
   }
@@ -318,11 +340,14 @@ function App() {
   // 4. State "Not Published" - HANYA jika on-chain DAN fallback resolve SUDAH selesai dan terbukti tidak ada NFT
   if (isChainDone && !isResolving && resolveAttempted && tokenId === 0 && !resolvedData) {
     return (
-      <div className="App flex justify-center items-center p-6 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-300 dark:border-slate-600 my-8 shadow-sm transition-colors duration-500">
-         <div className="flex items-center gap-3">
-           <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
-           <p className="text-slate-700 dark:text-slate-200 font-semibold text-sm tracking-wide">Artikel ini belum diterbitkan sebagai NFT di Litera.</p>
-         </div>
+      <div className="App">
+        <div className="flex justify-center items-center p-6 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-300 dark:border-slate-600 my-8 shadow-sm transition-colors duration-500">
+           <div className="flex items-center gap-3">
+             <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+             <p className="text-slate-700 dark:text-slate-200 font-semibold text-sm tracking-wide">Artikel ini belum diterbitkan sebagai NFT di Litera.</p>
+           </div>
+        </div>
+        <PoweredByLitera />
       </div>
     );
   }
