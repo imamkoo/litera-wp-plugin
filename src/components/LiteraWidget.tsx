@@ -1117,6 +1117,26 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   // Variables fallback
   const cidUnlockable = !isLegacy ? v2CidUnlockable : undefined;
 
+  // Cache restore: jika dompet ini sudah pernah membuka token ini di browser, pulihkan konten tanpa sign ulang
+  useEffect(() => {
+    if (!address || !tokenId) return;
+    try {
+      const cachedStr = localStorage.getItem(`litera_unlocked_${address.toLowerCase()}_${tokenId}`);
+      if (cachedStr) {
+        const cached = JSON.parse(cachedStr);
+        if (cached?.content) {
+          // Invalidate cache jika on-chain CID telah diganti kreator
+          if (cidUnlockable && cached.cid && cached.cid !== cidUnlockable) {
+            localStorage.removeItem(`litera_unlocked_${address.toLowerCase()}_${tokenId}`);
+            return;
+          }
+          setUnlockedContent({ description: cached.description, content: cached.content });
+          setLocalUnlocked(false);
+        }
+      }
+    } catch (e) {}
+  }, [address, tokenId, cidUnlockable]);
+
   useEffect(() => {
     if (!isLegacy && cidUnlockable && typeof cidUnlockable === 'string' && cidUnlockable.length > 0) {
       const fetchHiddenContent = async () => {
@@ -1435,6 +1455,23 @@ Expires: ${expiresAt}`;
   const handleDecrypt = async () => {
     try {
       setIsDecrypting(true);
+      setErrorMessage('');
+
+      // Cek cache lokal: jika dompet ini sudah pernah membuka token ini, langsung buka tanpa sign lagi
+      if (address && tokenId) {
+        try {
+          const cachedStr = localStorage.getItem(`litera_unlocked_${address.toLowerCase()}_${tokenId}`);
+          if (cachedStr) {
+            const cached = JSON.parse(cachedStr);
+            if (cached?.content && (!cidUnlockable || !cached.cid || cached.cid === cidUnlockable)) {
+              setUnlockedContent({ description: cached.description, content: cached.content });
+              setLocalUnlocked(true);
+              setIsDecrypting(false);
+              return;
+            }
+          }
+        } catch (e) {}
+      }
       
       const messagePayload = `Reveal secret content for Token #${tokenId}`;
       const signature = await signIntent(messagePayload);
@@ -1485,8 +1522,14 @@ Expires: ${expiresAt}`;
           }
         }
         
-        setUnlockedContent({ description: parsedData?.description || 'Konten Rahasia', content: parsedData?.content || JSON.stringify(parsedData) });
+        const contentObj = { description: parsedData?.description || 'Konten Rahasia', content: parsedData?.content || JSON.stringify(parsedData) };
+        setUnlockedContent(contentObj);
         setLocalUnlocked(true);
+        if (address && tokenId) {
+          try {
+            localStorage.setItem(`litera_unlocked_${address.toLowerCase()}_${tokenId}`, JSON.stringify({ ...contentObj, cid }));
+          } catch (e) {}
+        }
       } else {
         // --- V2 FLOW ---
         let dataToDecrypt = encryptedData;
@@ -1532,8 +1575,14 @@ Expires: ${expiresAt}`;
         const parsedData = JSON.parse(decryptedString);
 
         // 4. Update UI
-        setUnlockedContent({ description: parsedData.description, content: parsedData.content });
+        const contentObj = { description: parsedData.description, content: parsedData.content };
+        setUnlockedContent(contentObj);
         setLocalUnlocked(true);
+        if (address && tokenId) {
+          try {
+            localStorage.setItem(`litera_unlocked_${address.toLowerCase()}_${tokenId}`, JSON.stringify({ ...contentObj, cid: cidUnlockable }));
+          } catch (e) {}
+        }
       }
     } catch (e: any) {
       console.error(e);
