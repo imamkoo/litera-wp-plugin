@@ -37,6 +37,8 @@ const IPFS_GATEWAYS = [
   'https://dweb.link/ipfs',
 ];
 
+const IPFS_GATEWAY = IPFS_GATEWAYS[0];
+
 const formatIpfsUrl = (url: string | undefined): string => {
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://')) {
@@ -1128,15 +1130,27 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
             setLocalUnlocked(true);
             return;
           }
-          const res = await axios.get(`${IPFS_GATEWAY}/${cidUnlockable}`, { timeout: 8000 });
-          
-          if (typeof res.data === 'string') {
+
+          let fetchedData: any = null;
+          for (const gw of IPFS_GATEWAYS) {
+            try {
+              const res = await axios.get(`${gw}/${cidUnlockable}`, { timeout: 8000 });
+              if (res.data) {
+                fetchedData = res.data;
+                break;
+              }
+            } catch (gwErr) {
+              // coba gateway berikutnya
+            }
+          }
+
+          if (typeof fetchedData === 'string') {
             // It's an encrypted ciphertext!
-            setEncryptedData(res.data);
+            setEncryptedData(fetchedData);
             setLocalUnlocked(false);
-          } else if (res.data && res.data.description) {
+          } else if (fetchedData && fetchedData.description) {
             // Backward compatibility for unencrypted JSON
-            setUnlockedContent({ description: res.data.description, content: res.data.content });
+            setUnlockedContent({ description: fetchedData.description, content: fetchedData.content });
             setLocalUnlocked(false);
           }
         } catch (e) {
@@ -1453,8 +1467,16 @@ Expires: ${expiresAt}`;
           return;
         }
 
-        const ipfsRes = await axios.get(`${IPFS_GATEWAY}/${cid}`, { timeout: 8000 });
-        let parsedData = ipfsRes.data;
+        let parsedData: any = null;
+        for (const gw of IPFS_GATEWAYS) {
+          try {
+            const ipfsRes = await axios.get(`${gw}/${cid}`, { timeout: 8000 });
+            if (ipfsRes.data) {
+              parsedData = ipfsRes.data;
+              break;
+            }
+          } catch (e) {}
+        }
         if (typeof parsedData === 'string') {
           try {
             parsedData = JSON.parse(parsedData);
@@ -1463,11 +1485,25 @@ Expires: ${expiresAt}`;
           }
         }
         
-        setUnlockedContent({ description: parsedData.description || 'Konten Rahasia', content: parsedData.content || JSON.stringify(parsedData) });
+        setUnlockedContent({ description: parsedData?.description || 'Konten Rahasia', content: parsedData?.content || JSON.stringify(parsedData) });
         setLocalUnlocked(true);
       } else {
         // --- V2 FLOW ---
-        if (!encryptedData) {
+        let dataToDecrypt = encryptedData;
+        if (!dataToDecrypt && cidUnlockable && typeof cidUnlockable === 'string') {
+          for (const gw of IPFS_GATEWAYS) {
+            try {
+              const r = await axios.get(`${gw}/${cidUnlockable}`, { timeout: 8000 });
+              if (typeof r.data === 'string') {
+                dataToDecrypt = r.data;
+                setEncryptedData(r.data);
+                break;
+              }
+            } catch (err) {}
+          }
+        }
+
+        if (!dataToDecrypt) {
           throw new Error("Encrypted data not found on IPFS");
         }
 
@@ -1486,7 +1522,7 @@ Expires: ${expiresAt}`;
         }
 
         // 3. Decrypt ciphertext
-        const bytes = CryptoJS.AES.decrypt(encryptedData, aesKey);
+        const bytes = CryptoJS.AES.decrypt(dataToDecrypt, aesKey);
         const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
         
         if (!decryptedString) {
@@ -1965,6 +2001,11 @@ Expires: ${expiresAt}`;
             {articleTitle || 'Digital Collectible'}
           </h3>
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6, zIndex: 1 }}>Sebagai pemilik NFT, kamu berhak membuka materi eksklusif artikel ini. Klik tombol di bawah untuk memverifikasi kepemilikan.</p>
+          {errorMessage && (
+            <div style={{ width: '100%', maxWidth: '320px', padding: '10px 14px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', fontSize: '12px', lineHeight: 1.5, margin: '0 0 14px 0', textAlign: 'center', zIndex: 1 }}>
+              {errorMessage}
+            </div>
+          )}
           <div style={{ zIndex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <LiteraButton onClick={handleDecrypt} disabled={isUnlocking} fullWidth={false}>
               {isUnlocking ? "Membuka Konten…" : "Buka Konten Eksklusif"}
