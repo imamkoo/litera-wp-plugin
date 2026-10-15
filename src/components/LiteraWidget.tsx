@@ -567,6 +567,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const [unlockedContent, setUnlockedContent] = useState<{ description: string; content: string } | null>(null);
   const [localUnlocked, setLocalUnlocked] = useState(false);
   const [sponsorUrl, setSponsorUrl] = useState<string | null>(null);
+  const [sponsorLabel, setSponsorLabel] = useState<string>('Pelajari Lebih Lanjut');
   const [nftMedia, setNftMedia] = useState<{ url: string, type: 'image' | 'video' } | null>(null);
   const [publisherName, setPublisherName] = useState<string | null>(null);
   const [authorName, setAuthorName] = useState<string | null>(null);
@@ -1243,6 +1244,27 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
         .catch(() => { });
     }
   }, [publisherAddress]);
+
+  // Dynamic domain sponsor lookup (configured in /publisher/integration)
+  useEffect(() => {
+    const fetchDomainSponsor = async () => {
+      try {
+        const host = window.location.hostname;
+        if (!host || host === 'localhost' || host === '127.0.0.1') return;
+        const apiUrl = process.env.REACT_APP_BACKEND_URL || LITERA_ORIGIN;
+        const res = await axios.get(`${apiUrl}/api/v1/publisher-request/domain-sponsor`, {
+          params: { domain: host },
+          timeout: 4000,
+        });
+        const d = res.data?.data || res.data;
+        if (d?.sponsorUrl && d.sponsorUrl.length > 5) {
+          setSponsorUrl(d.sponsorUrl);
+          if (d.sponsorLabel) setSponsorLabel(d.sponsorLabel);
+        }
+      } catch {}
+    };
+    fetchDomainSponsor();
+  }, []);
 
   const handleStartAuthorization = async () => {
     if (!tokenId || !address) return;
@@ -2011,7 +2033,7 @@ Expires: ${expiresAt}`;
           <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '10px' }}>
             <LiteraButton variant="outline" href="https://literaa.xyz/mynft">Buka Dashboard</LiteraButton>
             {sponsorUrl && sponsorUrl.length > 5 && (
-              <LiteraButton variant="secondary" href={sponsorUrl}>Pelajari Lebih Lanjut</LiteraButton>
+              <LiteraButton variant="secondary" href={sponsorUrl}>{sponsorLabel || 'Pelajari Lebih Lanjut'}</LiteraButton>
             )}
           </div>
           {renderWalletButton()}
@@ -2091,7 +2113,7 @@ Expires: ${expiresAt}`;
               rel="noopener noreferrer"
               style={{ fontSize: '12px', fontWeight: 700, color: '#d07954', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}
             >
-              Kunjungi Halaman Terkait <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9.2-9.2M17 17V8H8"/></svg>
+              {sponsorLabel || 'Kunjungi Halaman Terkait'} <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9.2-9.2M17 17V8H8"/></svg>
             </a>
           )}
           <a
@@ -2415,6 +2437,18 @@ Expires: ${expiresAt}`;
           <div style={{ fontWeight: 600, marginBottom: '4px' }}>NFT Generasi 1</div>
           <div style={{ fontSize: '11px', opacity: 0.7 }}>Artikel ini tidak lagi tersedia untuk pembelian</div>
         </div>
+      )}
+
+      {/* Sponsor / Campaign Link */}
+      {sponsorUrl && sponsorUrl.length > 5 && (
+        <a
+          href={sponsorUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontSize: '12px', fontWeight: 700, color: '#d07954', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '6px', marginBottom: '8px' }}
+        >
+          {sponsorLabel || 'Pelajari Lebih Lanjut'} <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9.2-9.2M17 17V8H8"/></svg>
+        </a>
       )}
 
       {/* Wallet + Branding */}
