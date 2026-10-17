@@ -54,6 +54,7 @@ function renderWidget(container: HTMLElement) {
           defaultChain: polygon,
           supportedChains: [polygon],
           embeddedWallets: {
+            showWalletUIs: false,
             ethereum: {
               createOnLogin: 'users-without-wallets',
             },

@@ -552,7 +552,7 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     if (isWagmiConnected) return signWagmi({ message });
     if (privyAuthenticated) {
       try {
-        const res = await signPrivy({ message });
+        const res = await signPrivy({ message }, { uiOptions: { showWalletUIs: false } } as any);
         return (res as { signature?: string })?.signature ?? (res as unknown as string);
       } catch (err: any) {
         console.warn('[Litera Widget] In-app Privy sign gagal, beralih ke popup signing:', err);

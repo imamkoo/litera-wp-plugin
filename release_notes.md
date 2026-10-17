@@ -1,5 +1,9 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.79 (Headless Privy Signing — No More Popup-in-Popup Error)
+- **Headless Signing Modal:** `showWalletUIs: false` diaktifkan pada konfigurasi `embeddedWallets` (`src/index.tsx`) dan saat pemanggilan `signPrivy` (`LiteraWidget.tsx`), sehingga modal Privy bawaan tidak lagi muncul ganda di dalam popup `WidgetAuthPage` — menghilangkan error "An error has occurred, please try again" pada signing gasless mint.
+- **Signing Priority:** Signing memprioritaskan Wagmi (`isWagmiConnected`) lalu fallback ke Privy headless + popup signing, dengan timeout 120 detik dan cleanup listener yang ketat.
+
 ## v1.4.75 (Version Badge on All Widget States)
 - **Version Visibility on Every State:** Menambahkan `PoweredByLitera` dinamis (`v{WIDGET_VERSION} • Powered by Litera`, baca dari `package.json`) ke semua state `App.tsx` — Wrong Network, Loading Skeleton, Gagal Memuat, dan Not Published — sehingga identik dengan Image 2 pada semua kondisi, bukan hanya saat ada NFT. Memudahkan kontrol versi: pembaca/admin dapat langsung melihat di halaman apakah web sudah memakai build terbaru.
 - **Dynamic Versioning:** `WIDGET_VERSION` tetap membaca dari `packageJson.version` (1 sumber kebenaran), jadi sinkron otomatis dengan `litera.php`/`readme.txt`/`release_notes.md` di setiap rilis.
