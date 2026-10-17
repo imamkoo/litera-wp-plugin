@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.81 (Version Gate + Kebijakan Versi)
+- **Version Sync Gate:** `npm run version:check` memvalidasi `litera.php`, `package.json`, `readme.txt`, dan `release_notes.md` bernilai sama. Workflow `deploy-cdn.yml` menjalankan gate ini sebelum build sehingga rilis dengan versi tidak sinkron tidak bisa ter-deploy.
+- **Kebijakan Versi:** `docs/VERSIONING.md` menetapkan kriteria PATCH, MINOR, dan MAJOR, termasuk syarat dan checklist rilis `2.0.0`.
+- Tidak ada perubahan perilaku widget pada rilis ini.
+
 ## v1.4.80 (Quiz Gate — Proof of Reading Tidak Bisa Dilewati)
 - **Wallet Switch Reset:** State widget (step, pertanyaan, jawaban, hasil kuis) kini di-reset setiap `address` berubah, bukan hanya saat `tokenId` berubah. Sebelumnya, berganti akun di MetaMask tanpa reload membuat wallet baru mewarisi state `mint_ready` dari wallet sebelumnya sehingga bisa mint tanpa mengerjakan kuis.
 - **Pre-Mint Quiz Check:** Sebelum signing gasless mint, widget memverifikasi ulang status kuis ke server. Jika wallet belum lulus, widget mengarahkan ke `quiz_intro` alih-alih melakukan signing.

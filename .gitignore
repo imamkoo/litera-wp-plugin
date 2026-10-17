@@ -34,11 +34,14 @@ bundle.js.LICENSE.txt
 AGENTS.md
 
 # Documentation & audit reports (workspace-local, tidak boleh ke GitHub)
-/docs/
+/docs/*
+!/docs/VERSIONING.md
+!/docs/PUBLISHER-INTEGRATION.md
 /audit-reports/
 *.md
 !README.md
 !release_notes.md
+!docs/VERSIONING.md
 # Internal direksi (lokal saja; ditaruh setelah !README.md karena pola terakhir yang menang)
 /wp-starter/README.md
 
