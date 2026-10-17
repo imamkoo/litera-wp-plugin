@@ -662,16 +662,17 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     }
   }, [isLoginModalOpen]);
 
-  // Reset state lokal kuis & unlock ketika berpindah artikel (SPA navigation)
+  // Reset state lokal kuis & unlock ketika berpindah artikel (SPA navigation) atau berganti wallet
   useEffect(() => {
     setLocalUnlocked(false);
     setUnlockedContent(null);
     setStep('idle');
     setQuestions([]);
     setAnswers({});
+    setCurrentQuestionIndex(0);
     setQuizResult(null);
     setErrorMessage('');
-  }, [tokenId]);
+  }, [tokenId, address]);
 
   // --- Action Handlers ---
   const handleDisconnect = async () => {
@@ -1417,8 +1418,39 @@ Expires: ${expiresAt}`;
     window.location.reload();
   };
 
+  const verifyQuizGate = async (): Promise<boolean> => {
+    if (!tokenId || !address) return true;
+    try {
+      const apiUrl = process.env.REACT_APP_BACKEND_URL || LITERA_ORIGIN;
+      const quizRes = await axios.get(`${apiUrl}/api/v1/quiz/token/${tokenId}`);
+      const quizData = quizRes.data?.data || quizRes.data;
+      if (!quizData || quizData.status === 'OFF' || !quizData.questions || quizData.questions.length === 0) {
+        return true;
+      }
+
+      const statusRes = await axios.get(`${apiUrl}/api/v1/quiz/token/${tokenId}/status/${address}`);
+      const statusData = statusRes.data?.data || statusRes.data;
+      if (statusData && statusData.hasAttempted && statusData.status === 'PASS') {
+        return true;
+      }
+
+      setQuestions(quizData.questions);
+      setAnswers({});
+      setCurrentQuestionIndex(0);
+      setStep('quiz_intro');
+      return false;
+    } catch (error: any) {
+      if (error.response?.status === 404 || error.response?.data?.code === 'QUIZ_001') {
+        return true;
+      }
+      console.error('[Litera Widget] quiz gate check failed', error);
+      return true;
+    }
+  };
+
   const handleBuy = async () => {
     if (!isLegacy && (!price || BigInt(price) === 0n)) {
+      if (!(await verifyQuizGate())) return;
       try {
         setIsGaslessMinting(true);
         setStep('minting');
@@ -1434,6 +1466,11 @@ Expires: ${expiresAt}`;
           return;
         }
         const status = error?.response?.status;
+        const backendMessage = error?.response?.data?.message;
+        if (status === 403 && typeof backendMessage === 'string' && backendMessage.toLowerCase().includes('quiz')) {
+          await handleStartAuthorization();
+          return;
+        }
         if (status !== 503) {
           setErrorMessage(error?.response?.data?.message || error?.message || 'Mint gratis gagal. Silakan coba lagi.');
           setStep('error');

@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.80 (Quiz Gate — Proof of Reading Tidak Bisa Dilewati)
+- **Wallet Switch Reset:** State widget (step, pertanyaan, jawaban, hasil kuis) kini di-reset setiap `address` berubah, bukan hanya saat `tokenId` berubah. Sebelumnya, berganti akun di MetaMask tanpa reload membuat wallet baru mewarisi state `mint_ready` dari wallet sebelumnya sehingga bisa mint tanpa mengerjakan kuis.
+- **Pre-Mint Quiz Check:** Sebelum signing gasless mint, widget memverifikasi ulang status kuis ke server. Jika wallet belum lulus, widget mengarahkan ke `quiz_intro` alih-alih melakukan signing.
+- **Quiz Rejection Routing:** Respons `403` dari relayer yang menyebut kuis kini membawa pengguna kembali ke alur kuis, bukan layar error.
+
 ## v1.4.79 (Headless Privy Signing — No More Popup-in-Popup Error)
 - **Headless Signing Modal:** `showWalletUIs: false` diaktifkan pada konfigurasi `embeddedWallets` (`src/index.tsx`) dan saat pemanggilan `signPrivy` (`LiteraWidget.tsx`), sehingga modal Privy bawaan tidak lagi muncul ganda di dalam popup `WidgetAuthPage` — menghilangkan error "An error has occurred, please try again" pada signing gasless mint.
 - **Signing Priority:** Signing memprioritaskan Wagmi (`isWagmiConnected`) lalu fallback ke Privy headless + popup signing, dengan timeout 120 detik dan cleanup listener yang ketat.
