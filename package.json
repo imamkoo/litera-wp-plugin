@@ -75,6 +75,13 @@
     "webpack-merge": "^6.0.1"
   },
   "resolutions": {
-    "proxy-addr": "2.0.8"
+    "proxy-addr": "2.0.8",
+    "shell-quote": "1.8.4",
+    "websocket-driver": "0.7.5"
+  },
+  "overrides": {
+    "proxy-addr": "2.0.8",
+    "shell-quote": "1.8.4",
+    "websocket-driver": "0.7.5"
   }
 }
