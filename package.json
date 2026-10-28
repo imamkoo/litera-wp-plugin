@@ -73,5 +73,8 @@
     "rewire": "^9.0.1",
     "tailwindcss": "3.4.15",
     "webpack-merge": "^6.0.1"
+  },
+  "resolutions": {
+    "proxy-addr": "2.0.8"
   }
 }
