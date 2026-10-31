@@ -1,5 +1,11 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.83 (Bahasa tombol widget)
+- Tombol dompet saat belum terhubung kini berbunyi **"Hubungkan Dompet"** (tetap menampilkan harga bila artikel berbayar), bukan lagi "Miliki Edisi Digital".
+- Tombol utama saat siap menyimpan: **"Buka Akses"**; teks progres menjadi "Membuka akses…".
+- Paragraf pendamping ditulis ulang tanpa kata "edisi digital/permanen": "Setujui pembayaran LITE terlebih dahulu, lalu buka akses artikel ini." dan "Verifikasi berhasil. Akses artikel ini akan tersimpan permanen di akunmu."
+- Tidak ada perubahan pada kontrak, alur mint, atau alur unlock.
+
 ## v1.4.82 (Token tidak tampil di widget pembaca)
 - **Saldo token dihapus dari widget.** Chip saldo di tombol dompet diganti status "Terhubung", dan panel "Saldo LITE" di panel akun dihapus. Pembaca tidak lagi melihat saldo maupun satuan token; angka token hanya muncul bila artikel memang punya harga yang harus dibayar (lihat catatan di bawah).
 - Tidak ada perubahan pada kontrak, alur mint, atau alur unlock.

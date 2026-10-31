@@ -1706,7 +1706,7 @@ Expires: ${expiresAt}`;
             <span style={{ fontSize: '11px', opacity: 0.7, fontFamily: 'monospace' }}>{address?.slice(0, 6)}...{address?.slice(-4)}</span>
           </>
         ) : (
-          <span>{isConnecting ? 'Menghubungkan…' : (price && price > BigInt(0) ? `Miliki Edisi Digital · ${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Miliki Edisi Digital')}</span>
+          <span>{isConnecting ? 'Menghubungkan…' : (price && price > BigInt(0) ? `Hubungkan Dompet · ${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Hubungkan Dompet')}</span>
         )}
       </button>
 
@@ -2378,9 +2378,9 @@ Expires: ${expiresAt}`;
       
       let buttonText = '';
       if (isApproving) buttonText = "Menyetujui LITE…";
-      else if (isGaslessMinting || isMintTx) buttonText = "Menyimpan ke Koleksi…";
+      else if (isGaslessMinting || isMintTx) buttonText = "Membuka akses…";
       else if (needsApproval) buttonText = `Setujui LITE · (${priceText})`;
-      else buttonText = `Miliki Edisi Digital`;
+      else buttonText = 'Buka Akses';
 
       return (
         <WidgetShell>
@@ -2391,8 +2391,8 @@ Expires: ${expiresAt}`;
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6, zIndex: 1 }}>
             {needsApproval 
-              ? "Setujui penggunaan token LITE terlebih dahulu, lalu selesaikan penyimpanan edisi digital."
-              : "Verifikasi berhasil. Simpan edisi permanen artikel ini ke akun kamu."}
+              ? "Setujui pembayaran LITE terlebih dahulu, lalu buka akses artikel ini."
+              : "Verifikasi berhasil. Akses artikel ini akan tersimpan permanen di akunmu."}
           </p>
           <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '100%' }}>
             <LiteraButton onClick={handleBuy} disabled={isButtonDisabled} fullWidth={false}>{buttonText}</LiteraButton>
