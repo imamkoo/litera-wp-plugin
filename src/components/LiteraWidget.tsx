@@ -5,7 +5,6 @@ import { useAccount, useConnect, useDisconnect, useConnectors, useReadContract, 
 import { usePrivy, useLogout, useLogin, useWallets, useSignMessage as usePrivySignMessage } from '@privy-io/react-auth';
 import { openWeb3ModalSafe, mountWeb3Modal, subscribeWeb3ModalOpen, probeWalletListReachable } from '../web3modal-lazy';
 import { CheckCircle2Icon, AlertCircleIcon, BookOpenIcon, Loader2Icon, ShieldCheckIcon, CopyIcon, LogOutIcon, CheckIcon } from 'lucide-react';
-import { formatUnits } from 'viem';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import {
@@ -21,6 +20,8 @@ import {
   activeChainId
 } from '../shared/contracts/ContractConfig';
 import { LITERA_ORIGIN, isPrivyOriginAllowed } from '../config';
+import { formatReaderPrice } from '../shared/pricing/readerPrice';
+import { useLiteToIdr } from '../shared/pricing/useLiteToIdr';
 
 interface LiteraWidgetProps {
   tokenId: number;
@@ -433,6 +434,8 @@ const NftSpecimenCard: React.FC<{
 };
 
 const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, generation = 'v2', contractAddress: legacyContractAddress }) => {
+  // Kurs sisi pembaca (IDR). null = belum ditetapkan → label netral, bukan LITE.
+  const liteToIdr = useLiteToIdr();
   // --- Wagmi & Privy Auth Hooks ---
   const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
   const { connectAsync, connectors } = useConnect();
@@ -1028,6 +1031,8 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const creatorAddress = !isLegacy && articleArray ? articleArray[4] : "0x0";
   const publisherAddress = !isLegacy && articleArray ? articleArray[1] : "0x0";
   const price = !isLegacy && articleArray ? articleArray[5] : BigInt(0);
+  // Harga yang boleh dilihat pembaca: rupiah/netral, tidak pernah 'LITE'.
+  const readerPrice = formatReaderPrice(price as bigint, liteToIdr);
   const maxMinted = !isLegacy && articleArray ? Number(articleArray[6]) : 0;
   const totalMinted = !isLegacy && articleArray ? Number(articleArray[7]) : 0;
   const isSoldOut = maxMinted > 0 && totalMinted >= maxMinted;
@@ -1485,7 +1490,8 @@ Expires: ${expiresAt}`;
       const currentUserBalance = userBalance !== undefined ? BigInt(userBalance as any) : 0n;
 
       if (currentUserBalance < needed) {
-        alert("Insufficient LITE Balance!");
+        setErrorMessage('Saldo dompetmu belum cukup untuk membuka akses artikel ini.');
+        setStep('error');
         return;
       }
 
@@ -1506,7 +1512,7 @@ Expires: ${expiresAt}`;
       }
     } catch (error) {
       console.error(error);
-      setErrorMessage("Minting failed. See console.");
+      setErrorMessage("Gagal membuka akses. Silakan coba lagi.");
       setStep('error');
     }
   };
@@ -1706,7 +1712,7 @@ Expires: ${expiresAt}`;
             <span style={{ fontSize: '11px', opacity: 0.7, fontFamily: 'monospace' }}>{address?.slice(0, 6)}...{address?.slice(-4)}</span>
           </>
         ) : (
-          <span>{isConnecting ? 'Menghubungkan…' : (price && price > BigInt(0) ? `Hubungkan Dompet · ${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Hubungkan Dompet')}</span>
+          <span>{isConnecting ? 'Menghubungkan…' : 'Hubungkan Dompet'}</span>
         )}
       </button>
 
@@ -2007,9 +2013,9 @@ Expires: ${expiresAt}`;
     return (
       <WidgetShell>
         <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={false} />
-        <Badge color="orange">{publisherName || 'Official Publisher'}</Badge>
+        <Badge color="orange">{publisherName || 'Penerbit Resmi'}</Badge>
         <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)', maxWidth: '340px', lineHeight: 1.4 }}>
-          {articleTitle || 'Digital Collectible'}
+          {articleTitle || 'Karya ini'}
         </h3>
         <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6 }}>Diterbitkan resmi sebagai aset digital permanen artikel ini.</p>
         {renderWalletButton()}
@@ -2069,9 +2075,9 @@ Expires: ${expiresAt}`;
       return (
         <WidgetShell>
           <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={true} />
-          <Badge color="green">{publisherName || 'Official Publisher'}</Badge>
+          <Badge color="green">{publisherName || 'Penerbit Resmi'}</Badge>
           <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 6px 0', color: 'var(--lw-text)', maxWidth: '340px', lineHeight: 1.4 }}>
-            {articleTitle || 'Digital Collectible'}
+            {articleTitle || 'Karya ini'}
           </h3>
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>Kamu memiliki NFT ini. Klik tombol di bawah untuk membuka materi eksklusif.</p>
           <LiteraButton onClick={() => setLocalUnlocked(true)} fullWidth={false}>
@@ -2089,9 +2095,9 @@ Expires: ${expiresAt}`;
       return (
         <WidgetShell>
           <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={true} />
-          <Badge color="green">{publisherName || 'Official Publisher'}</Badge>
+          <Badge color="green">{publisherName || 'Penerbit Resmi'}</Badge>
           <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 6px 0', color: 'var(--lw-text)', maxWidth: '340px', lineHeight: 1.4, zIndex: 1 }}>
-            {articleTitle || 'Digital Collectible'}
+            {articleTitle || 'Karya ini'}
           </h3>
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6, zIndex: 1 }}>Sebagai pemilik NFT, kamu berhak membuka materi eksklusif artikel ini. Klik tombol di bawah untuk memverifikasi kepemilikan.</p>
           {errorMessage && (
@@ -2116,9 +2122,9 @@ Expires: ${expiresAt}`;
     return (
       <WidgetShell>
         <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={true} />
-        <Badge color="green">{publisherName || 'Official Publisher'}</Badge>
+        <Badge color="green">{publisherName || 'Penerbit Resmi'}</Badge>
         <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)', maxWidth: '340px', lineHeight: 1.4 }}>
-          {articleTitle || 'Digital Collectible'}
+          {articleTitle || 'Karya ini'}
         </h3>
         <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6 }}>
           Sertifikat kepemilikan digital kamu tersimpan aman di blockchain Polygon.
@@ -2353,7 +2359,7 @@ Expires: ${expiresAt}`;
           </p>
 
           {isPassed ? (
-            <LiteraButton onClick={() => setStep('mint_ready')}>Mint Digital Collectible</LiteraButton>
+            <LiteraButton onClick={() => setStep('mint_ready')}>Buka Akses</LiteraButton>
           ) : (
             <LiteraButton variant="secondary" onClick={() => { setStep('quiz_intro'); setAnswers({}); setCurrentQuestionIndex(0); }}>
               Retry Quiz
@@ -2374,24 +2380,25 @@ Expires: ${expiresAt}`;
       const currentAllowance = allowance !== undefined ? BigInt(allowance as any) : 0n;
       const needsApproval = currentAllowance < needed;
       
-      const priceText = price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Gratis';
       
       let buttonText = '';
-      if (isApproving) buttonText = "Menyetujui LITE…";
+      if (isApproving) buttonText = "Menyetujui pembayaran…";
       else if (isGaslessMinting || isMintTx) buttonText = "Membuka akses…";
-      else if (needsApproval) buttonText = `Setujui LITE · (${priceText})`;
+      else if (needsApproval) buttonText = "Setujui pembayaran";
       else buttonText = 'Buka Akses';
 
       return (
         <WidgetShell>
           <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={false} />
-          <Badge color="green">{publisherName || 'Official Publisher'}</Badge>
+          <Badge color="green">{publisherName || 'Penerbit Resmi'}</Badge>
           <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)', maxWidth: '340px', lineHeight: 1.4, zIndex: 1 }}>
-            {articleTitle || 'Digital Collectible'}
+            {articleTitle || 'Karya ini'}
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6, zIndex: 1 }}>
-            {needsApproval 
-              ? "Setujui pembayaran LITE terlebih dahulu, lalu buka akses artikel ini."
+            {needsApproval
+              ? (readerPrice.kind === 'fiat'
+                  ? `Setujui biaya ${readerPrice.label} dari dompetmu, lalu akses artikel ini terbuka permanen.`
+                  : "Setujui pembayaran dari dompetmu, lalu akses artikel ini terbuka permanen.")
               : "Verifikasi berhasil. Akses artikel ini akan tersimpan permanen di akunmu."}
           </p>
           <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '100%' }}>
@@ -2412,9 +2419,9 @@ Expires: ${expiresAt}`;
           <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(239,68,68,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
             <AlertCircleIcon size={24} style={{ color: '#ef4444' }} />
           </div>
-          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>An Error Occurred</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 6px 0', color: 'var(--lw-text)' }}>Terjadi kendala</h2>
           <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 20px 0', maxWidth: '280px', lineHeight: 1.6 }}>{errorMessage}</p>
-          <LiteraButton variant="secondary" onClick={() => setStep('idle')}>Return</LiteraButton>
+          <LiteraButton variant="secondary" onClick={() => setStep('idle')}>Kembali</LiteraButton>
           <PoweredByLitera />
         </WidgetShell>
       );
@@ -2427,9 +2434,9 @@ Expires: ${expiresAt}`;
   return (
     <WidgetShell>
       <NftSpecimenCard media={nftMedia} title={articleTitle} author={authorName || undefined} tokenId={tokenId} isOwned={false} />
-      <Badge color="orange">{publisherName || 'Official Publisher'}</Badge>
+      <Badge color="orange">{publisherName || 'Penerbit Resmi'}</Badge>
       <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '10px 0 4px 0', color: 'var(--lw-text)', maxWidth: '340px', lineHeight: 1.4 }}>
-        {articleTitle || 'Digital Collectible'}
+        {articleTitle || 'Karya ini'}
       </h3>
       <p style={{ fontSize: '13px', color: 'var(--lw-text-secondary)', margin: '0 0 16px 0', maxWidth: '300px', lineHeight: 1.6 }}>Diterbitkan resmi sebagai aset digital permanen artikel ini.</p>
 
@@ -2437,9 +2444,9 @@ Expires: ${expiresAt}`;
       {!isLegacy && (
         <LiteraButton onClick={handleStartAuthorization} fullWidth={false}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            Collect NFT
+            Buka Akses
             <span style={{ opacity: 0.5 }}>·</span>
-            <span style={{ fontWeight: 500, opacity: 0.85 }}>{price && price > BigInt(0) ? `${parseFloat(formatUnits(price, 18)).toLocaleString('en-US')} LITE` : 'Free'}</span>
+            <span style={{ fontWeight: 500, opacity: 0.85 }}>{readerPrice.label}</span>
           </span>
         </LiteraButton>
       )}

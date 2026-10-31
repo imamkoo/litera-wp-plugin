@@ -1,5 +1,14 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.84 (Harga sisi pembaca, tanpa LITE)
+- Pembaca tidak lagi melihat satuan LITE di mana pun: tombol dompet jadi **"Hubungkan Dompet"** (tanpa harga), CTA jadi **"Buka Akses"** dengan harga **rupiah** (mis. "≈ Rp1.500") atau **"Gratis"**.
+- Bila kurs belum ditetapkan backend, widget menampilkan label netral **"Berbayar"** — tidak pernah jatuh kembali ke LITE.
+- Paragraf pembayaran: "Setujui biaya ≈ Rp1.500 dari dompetmu, lalu akses artikel ini terbuka permanen."
+- `alert("Insufficient LITE Balance!")` diganti layar kendala berbahasa Indonesia tanpa satuan token.
+- Sisa teks Inggris diterjemahkan: "Mint Digital Collectible" → "Buka Akses", "An Error Occurred" → "Terjadi kendala", "Return" → "Kembali", "Official Publisher" → "Penerbit Resmi", "Digital Collectible" → "Karya ini".
+- Kurs diambil dari `GET /api/v1/pricing/rate` (cache 5 menit di klien, 60 detik di server).
+- Tidak ada perubahan kontrak, alur mint, atau alur unlock.
+
 ## v1.4.83 (Bahasa tombol widget)
 - Tombol dompet saat belum terhubung kini berbunyi **"Hubungkan Dompet"** (tetap menampilkan harga bila artikel berbayar), bukan lagi "Miliki Edisi Digital".
 - Tombol utama saat siap menyimpan: **"Buka Akses"**; teks progres menjadi "Membuka akses…".
