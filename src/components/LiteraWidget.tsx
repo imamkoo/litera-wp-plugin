@@ -1696,11 +1696,12 @@ Expires: ${expiresAt}`;
       >
         {isConnected ? (
           <>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: 'rgba(240,78,55,0.12)', borderRadius: '8px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F04E37' }} />
-              <span style={{ fontWeight: 800, color: '#F04E37', fontSize: '12px' }}>
-                {userBalance !== undefined && userBalance !== null ? `${parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', { maximumFractionDigits: 2 })} LITE` : '0 LITE'}
-              </span>
+            {/* Status koneksi saja — tanpa saldo/token. Pembaca tidak perlu
+                melihat satuan apa pun di widget; angka hanya muncul bila
+                memang ada harga yang harus dibayar. */}
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 10px', background: 'rgba(22,163,74,0.12)', borderRadius: '8px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a' }} aria-hidden="true" />
+              <span style={{ fontWeight: 800, color: '#15803d', fontSize: '12px' }}>Terhubung</span>
             </span>
             <span style={{ fontSize: '11px', opacity: 0.7, fontFamily: 'monospace' }}>{address?.slice(0, 6)}...{address?.slice(-4)}</span>
           </>
@@ -1835,22 +1836,6 @@ Expires: ${expiresAt}`;
                 {isCopied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
                 {isCopied ? 'Tersalin' : 'Salin'}
               </button>
-            </div>
-
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              backgroundColor: '#fff8f4',
-              borderRadius: '14px',
-              marginBottom: '14px',
-              border: '1px solid rgba(208,121,84,0.2)'
-            }}>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280' }}>Saldo LITE</span>
-              <span style={{ fontSize: '14px', fontWeight: 800, color: '#d07954' }}>
-                {userBalance !== undefined && userBalance !== null ? `${parseFloat(formatUnits(userBalance as bigint, 18)).toLocaleString('en-US', { maximumFractionDigits: 2 })} LITE` : '0 LITE'}
-              </span>
             </div>
 
             <a

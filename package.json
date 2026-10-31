@@ -1,6 +1,6 @@
 {
   "name": "litera-plugin-v2",
-  "version": "1.4.81",
+  "version": "1.4.82",
   "description": "Litera Widget WordPress Plugin",
   "homepage": "https://cdn.literaa.xyz/",
   "dependencies": {
@@ -112,7 +112,8 @@
     "update-browserslist-db": "1.2.3",
     "webpack-dev-middleware": "^7.4.6",
     "websocket-driver": "0.7.5",
-    "ws": "8.21.0"
+    "ws": "8.21.0",
+    "decode-uri-component": "0.5.1"
   },
   "overrides": {
     "proxy-addr": "2.0.8",

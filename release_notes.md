@@ -1,5 +1,10 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.82 (Token tidak tampil di widget pembaca)
+- **Saldo token dihapus dari widget.** Chip saldo di tombol dompet diganti status "Terhubung", dan panel "Saldo LITE" di panel akun dihapus. Pembaca tidak lagi melihat saldo maupun satuan token; angka token hanya muncul bila artikel memang punya harga yang harus dibayar (lihat catatan di bawah).
+- Tidak ada perubahan pada kontrak, alur mint, atau alur unlock.
+- **Catatan tertunda:** harga artikel di atas 0 masih ditampilkan dalam satuan token. Menghapus satuannya tanpa mengganti mekanisme pembayaran akan menyesatkan pembaca; perlu abstraksi kredit di backend sebelum bisa disembunyikan sepenuhnya.
+
 ## v1.4.81 (Version Gate + Kebijakan Versi)
 - **Version Sync Gate:** `npm run version:check` memvalidasi `litera.php`, `package.json`, `readme.txt`, dan `release_notes.md` bernilai sama. Workflow `deploy-cdn.yml` menjalankan gate ini sebelum build sehingga rilis dengan versi tidak sinkron tidak bisa ter-deploy.
 - **Kebijakan Versi:** `docs/VERSIONING.md` menetapkan kriteria PATCH, MINOR, dan MAJOR, termasuk syarat dan checklist rilis `2.0.0`.
