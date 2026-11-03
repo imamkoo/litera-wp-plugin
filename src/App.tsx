@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
 import LiteraWidget from './components/LiteraWidget';
 import { useReadContract, useAccount } from 'wagmi';
@@ -38,10 +38,17 @@ function App() {
   const [isResolving, setIsResolving] = useState(false);
   const [resolveAttempted, setResolveAttempted] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
+  const [hintTokenId, setHintTokenId] = useState(0);
+  const [hintHash, setHintHash] = useState('');
+  const [hintGeneration, setHintGeneration] = useState<'' | 'v2' | 'legacy'>('');
+  const resolvedHintRef = useRef('');
 
   const syncArticle = () => {
     let nextRawUrl = '';
     let nextTitle = '';
+    let nextTokenId = 0;
+    let nextHash = '';
+    let nextGeneration: '' | 'v2' | 'legacy' = '';
 
     if (typeof (window as any).myReactPluginData !== 'undefined') {
       if ((window as any).myReactPluginData.permalink) {
@@ -50,7 +57,15 @@ function App() {
       if ((window as any).myReactPluginData.title) {
         nextTitle = (window as any).myReactPluginData.title;
       }
+      nextTokenId = Number((window as any).myReactPluginData.tokenId) || 0;
+      nextHash = (window as any).myReactPluginData.contentHash || '';
+      const gen = (window as any).myReactPluginData.generation;
+      nextGeneration = gen === 'legacy' ? 'legacy' : gen === 'v2' ? 'v2' : '';
     }
+
+    setHintTokenId(nextTokenId > 0 ? nextTokenId : 0);
+    setHintHash(typeof nextHash === 'string' ? nextHash : '');
+    setHintGeneration(nextGeneration);
 
     if (!nextRawUrl) {
       const canonical = typeof document !== 'undefined'
@@ -88,12 +103,18 @@ function App() {
       const detail = (event as CustomEvent<{
         permalink: string;
         title: string;
+        tokenId?: number;
+        contentHash?: string;
+        generation?: 'v2' | 'legacy';
       }>).detail;
 
       if (detail && detail.permalink) {
         setRawPermalink(detail.permalink);
         setPermalink(normalizeUrl(detail.permalink));
         if (detail.title) setArticleTitle(detail.title);
+        setHintTokenId(Number(detail.tokenId) > 0 ? Number(detail.tokenId) : 0);
+        setHintHash(detail.contentHash || '');
+        setHintGeneration(detail.generation === 'legacy' ? 'legacy' : detail.generation === 'v2' ? 'v2' : '');
         setResolvedData(null);
         setResolveError(null);
         setResolveAttempted(false);
@@ -131,6 +152,9 @@ function App() {
     }
   }, [permalink]);
 
+  // tokenId / content hash dari atribut embed = identitas permanen, URL tidak dipakai.
+  const hasHint = hintTokenId > 0 || !!hintHash;
+
   // 1. On-chain lookup berdasarkan URL yang sudah dinormalisasi
   const { data: tokenIdRaw, isLoading: isPrimaryLoading, isFetching: isPrimaryFetching, status: primaryStatus } = useReadContract({
     address: contractAddress,
@@ -139,7 +163,7 @@ function App() {
     args: [permalink],
     chainId: EXPECTED_CHAIN_ID,
     query: {
-      enabled: !!permalink,
+      enabled: !!permalink && !hasHint,
       staleTime: 60_000,
       gcTime: 5 * 60_000,
       retry: 3,
@@ -155,7 +179,7 @@ function App() {
     args: [altPermalink],
     chainId: EXPECTED_CHAIN_ID,
     query: {
-      enabled: !!altPermalink && (!tokenIdRaw || Number(tokenIdRaw) === 0),
+      enabled: !!altPermalink && !hasHint && (!tokenIdRaw || Number(tokenIdRaw) === 0),
       staleTime: 60_000,
       gcTime: 5 * 60_000,
       retry: 2,
@@ -177,15 +201,80 @@ function App() {
   const altId = altTokenIdRaw ? Number(altTokenIdRaw) : 0;
   const tokenId = primaryId > 0 ? primaryId : altId > 0 ? altId : (resolvedData?.tokenId ? Number(resolvedData.tokenId) : 0);
 
-  const isOnChainLoading = (isPrimaryLoading || isPrimaryFetching || (primaryStatus as string) === 'pending') ||
-    (primaryId === 0 && !!altPermalink && (isAltLoading || isAltFetching || (altStatus as string) === 'pending'));
-  const isChainDone = !isOnChainLoading && (primaryStatus as string) !== 'pending';
+  const isOnChainLoading = !hasHint && (
+    (isPrimaryLoading || isPrimaryFetching || (primaryStatus as string) === 'pending') ||
+    (primaryId === 0 && !!altPermalink && (isAltLoading || isAltFetching || (altStatus as string) === 'pending'))
+  );
+  const isChainDone = hasHint || (!isOnChainLoading && (primaryStatus as string) !== 'pending');
 
   // 0. Sinkronkan dan selesaikan data artikel
   useEffect(() => {
     let cancelled = false;
 
-    if (!rawPermalink) return;
+    if (!rawPermalink && !hasHint) return;
+
+    // Hint permanen (tokenId/hash dari embed): backend resolver jadi satu sumber kebenaran.
+    if (hasHint) {
+      const hintKey = hintTokenId > 0
+        ? `id:${hintTokenId}:${hintGeneration}`
+        : `hash:${hintHash.trim().toLowerCase()}`;
+
+      if (resolvedHintRef.current === hintKey) {
+        setIsResolving(false);
+        setResolveError(null);
+        setResolveAttempted(true);
+        return;
+      }
+      if (hintTokenId > 0 && resolvedData && resolvedData.tokenId !== hintTokenId) {
+        setResolvedData(null);
+        setResolveError(null);
+        setResolveAttempted(false);
+        return;
+      }
+
+      setIsResolving(true);
+      setResolveError(null);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const query = hintTokenId > 0
+        ? `tokenId=${hintTokenId}${hintGeneration ? `&generation=${hintGeneration}` : ''}`
+        : `hash=${encodeURIComponent(hintHash)}`;
+
+      fetch(`https://literaa.xyz/api/v1/articles/resolve?${query}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+      })
+        .then(async (response) => (response.ok ? response.json() : null))
+        .then((data) => {
+          if (cancelled) return;
+          if (data && data.success && data.data?.tokenId > 0) {
+            resolvedHintRef.current = hintKey;
+            setResolvedData(data.data);
+            setResolveError(null);
+          } else {
+            setResolveError('Artikel dengan tokenId/hash ini tidak ditemukan');
+          }
+        })
+        .catch((err: any) => {
+          if (cancelled) return;
+          setResolveError(`Network error: ${err.message || 'timeout'}`);
+        })
+        .finally(() => {
+          clearTimeout(timeoutId);
+          if (!cancelled) {
+            setIsResolving(false);
+            setResolveAttempted(true);
+          }
+        });
+
+      return () => {
+        cancelled = true;
+        clearTimeout(timeoutId);
+        controller.abort();
+      };
+    }
 
     // Jika tokenId sudah ditemukan via on-chain (V2), matikan resolving
     if (tokenId > 0) {
@@ -257,7 +346,7 @@ function App() {
         controller.abort();
       };
     }
-  }, [isOnChainLoading, tokenId, rawPermalink, altPermalink]);
+  }, [isOnChainLoading, tokenId, rawPermalink, altPermalink, hasHint, hintTokenId, hintHash, hintGeneration, resolvedData]);
 
 
 

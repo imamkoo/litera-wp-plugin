@@ -5,6 +5,8 @@
  *   <div id="litera"></div>
  *   <script async src="https://cdn.literaa.xyz/litera-embed.js"
  *           data-article="https://situs-anda.com/artikel"
+ *           data-token-id="42"
+ *           data-content-hash="sha256:…"
  *           data-title="Judul Artikel"></script>
  *
  * Kontrak:
@@ -13,7 +15,9 @@
  *   - URL artikel: data-article di tag script. Fallback:
  *     data-url, data-article-url di script, data-article di container,
  *     tag <link rel="canonical" href="...">, atau window.location.href.
- *   - window.myReactPluginData = { permalink, title } untuk widget.
+ *   - Identitas permanen: data-token-id (utamakan), atau meta
+ *     <meta name="litera:token-id">. URL hanya alias bila tokenId tersedia.
+ *   - window.myReactPluginData = { permalink, title, tokenId, contentHash, generation }.
  *   - manifest.json → bundle.<hash>.js; fallback window.literaLocalBundle bila ada.
  */
 (function () {
@@ -97,6 +101,15 @@
     return '';
   }
 
+  function getMeta(name) {
+    try {
+      var el = document.querySelector('meta[name="' + name + '"]');
+      return (el && el.getAttribute('content')) || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
   function readOptions(scriptEl) {
     var ds = (scriptEl && scriptEl.dataset) || {};
     var root = findRoot();
@@ -105,9 +118,23 @@
       (root && root.getAttribute('data-litera-article')) || '';
     var canonical = getCanonicalUrl();
 
+    var tokenIdRaw = ds.tokenId || ds.tokenid ||
+      (root && root.getAttribute('data-token-id')) ||
+      getMeta('litera:token-id') || '';
+    var tokenId = parseInt(tokenIdRaw, 10) || 0;
+    var contentHash = ds.contentHash || ds.hash ||
+      (root && root.getAttribute('data-content-hash')) ||
+      getMeta('litera:content-hash') || '';
+    var generation = ds.generation ||
+      (root && root.getAttribute('data-generation')) ||
+      getMeta('litera:generation') || '';
+
     return {
       articleUrl: ds.article || ds.url || ds.articleUrl || fromRoot || canonical || window.location.href,
       title: ds.title || (root && root.getAttribute('data-title')) || document.title,
+      tokenId: tokenId > 0 ? tokenId : 0,
+      contentHash: contentHash,
+      generation: generation === 'legacy' ? 'legacy' : (generation === 'v2' ? 'v2' : ''),
     };
   }
 
@@ -224,6 +251,9 @@
     window.myReactPluginData = {
       permalink: opts.articleUrl,
       title: opts.title,
+      tokenId: opts.tokenId || 0,
+      contentHash: opts.contentHash || '',
+      generation: opts.generation || '',
     };
 
     attempt(1);

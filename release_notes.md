@@ -1,5 +1,11 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.85 (Token ID permanen — resolusi tidak bergantung URL)
+- Widget menerima `data-token-id`, `data-content-hash`, dan `data-generation` pada tag embed (atau meta `litera:token-id` / `litera:content-hash`).
+- Bila tokenId/hash tersedia, widget memakai backend resolver `GET /api/v1/articles/resolve` dan tidak lagi bergantung pada pencocokan string URL di `getIdFromArticleURL`.
+- URL artikel tetap didukung sebagai fallback; domain/slug boleh berubah tanpa memutus akses NFT.
+- Tidak ada perubahan kontrak, alur mint, atau alur unlock.
+
 ## v1.4.84 (Harga sisi pembaca, tanpa LITE)
 - Pembaca tidak lagi melihat satuan LITE di mana pun: tombol dompet jadi **"Hubungkan Dompet"** (tanpa harga), CTA jadi **"Buka Akses"** dengan harga **rupiah** (mis. "≈ Rp1.500") atau **"Gratis"**.
 - Bila kurs belum ditetapkan backend, widget menampilkan label netral **"Berbayar"** — tidak pernah jatuh kembali ke LITE.
