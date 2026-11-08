@@ -1,5 +1,11 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.86 (Auto-logout sesi pembaca 24 jam)
+- Sesi pembaca di widget berakhir otomatis setelah **24 jam** untuk wallet Web3, cloud wallet, dan login Privy email/Google.
+- Setelah sesi berakhir, widget memutus koneksi, membersihkan kredensial tersimpan, lalu memuat ulang halaman agar pembaca bisa masuk kembali.
+- Durasi dapat dioverride saat build lewat `REACT_APP_AUTH_SESSION_TTL_MS`; nilai `0` menonaktifkan auto-logout.
+- Tidak ada perubahan kontrak, alur mint, atau alur unlock.
+
 ## v1.4.85 (Token ID permanen — resolusi tidak bergantung URL)
 - Widget menerima `data-token-id`, `data-content-hash`, dan `data-generation` pada tag embed (atau meta `litera:token-id` / `litera:content-hash`).
 - Bila tokenId/hash tersedia, widget memakai backend resolver `GET /api/v1/articles/resolve` dan tidak lagi bergantung pada pencocokan string URL di `getIdFromArticleURL`.

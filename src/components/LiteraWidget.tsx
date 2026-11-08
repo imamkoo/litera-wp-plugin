@@ -20,6 +20,8 @@ import {
   activeChainId
 } from '../shared/contracts/ContractConfig';
 import { LITERA_ORIGIN, isPrivyOriginAllowed } from '../config';
+import { AUTH_SESSION_TTL_ENABLED, AUTH_SESSION_TTL_MS } from '../config/authSession';
+import { useAutoLogout } from '../shared/hooks/useAutoLogout';
 import { formatReaderPrice } from '../shared/pricing/readerPrice';
 import { useLiteToIdr } from '../shared/pricing/useLiteToIdr';
 
@@ -715,12 +717,18 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
       if (typeof localStorage !== 'undefined') {
         const keysToRemove = [
           'litera_cloud_wallet_addr',
+          'litera_widget_pending_auth',
+          'litera_auth_nonce',
           'wagmi.store',
           'wagmi.recentConnectorId',
           'wagmi.connected',
           'wagmi.injected.shimDisconnect',
         ];
         keysToRemove.forEach((key) => localStorage.removeItem(key));
+        try {
+          sessionStorage.removeItem('litera_auth_nonce');
+          sessionStorage.removeItem('litera_widget_pending_auth');
+        } catch (e) {}
       }
     } catch (e) {}
 
@@ -730,6 +738,34 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
     setIsDisconnectModalOpen(false);
     setIsConnecting(false);
   };
+
+  // Auto-logout QA: berlaku untuk wallet, cloud wallet, dan Privy.
+  const autoLogoutStartedRef = useRef(false);
+  const handleAutoLogout = async () => {
+    if (autoLogoutStartedRef.current) return;
+    autoLogoutStartedRef.current = true;
+
+    try {
+      await Promise.race([
+        handleDisconnect(),
+        new Promise<void>((resolve) => {
+          window.setTimeout(resolve, 2500);
+        }),
+      ]);
+    } finally {
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
+    }
+  };
+
+  useAutoLogout({
+    isAuthenticated: isConnected && !isConnecting,
+    identity: address,
+    ttlMs: AUTH_SESSION_TTL_MS,
+    enabled: AUTH_SESSION_TTL_ENABLED,
+    onExpire: handleAutoLogout,
+  });
 
   const handleCopyAddress = () => {
     if (!address) return;

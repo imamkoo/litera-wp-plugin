@@ -4,7 +4,7 @@ Tags: web3, nft, polygon, monetization, content creator
 Requires at least: 5.6
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 1.4.85
+Stable tag: 1.4.86
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,11 @@ Readers minting NFTs will need a small amount of POL (MATIC) for gas fees, unles
 1. The Litera unlock screen shown to readers.
 
 == Changelog ==
+
+= 1.4.86 =
+* Auto-logout sesi pembaca setelah 24 jam untuk wallet, cloud wallet, dan login Privy email/Google.
+* Setelah sesi berakhir, kredensial widget dibersihkan dan halaman dimuat ulang agar pembaca dapat masuk kembali.
+* Tidak ada perubahan kontrak, alur mint, atau alur unlock.
 
 = 1.1.6 =
 * UI: Remove NFT supply stats, add Publisher & Author info, restore LITE balance in connected state
