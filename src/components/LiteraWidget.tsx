@@ -471,58 +471,50 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
   const popupRef = useRef<Window | null>(null);
   const authNonceRef = useRef<string | null>(null);
 
-  const signViaPopup = (message: string): Promise<string> => {
-    const requestId = Math.random().toString(36).slice(2);
-    const signUrl = `${LITERA_ORIGIN}/widget-auth?${new URLSearchParams({
-      article: window.location.href,
-      tokenId: String(tokenId ?? ''),
-      action: 'sign',
-      reqId: requestId,
-      signMsg: encodeURIComponent(message),
-    }).toString()}`;
+  const [signPrompt, setSignPrompt] = useState<{ url: string; blocked: boolean } | null>(null);
+  const signPendingRef = useRef<{ proceed: () => void; proceedViaLink: () => void; cancel: () => void } | null>(null);
 
+  const openSignWindow = (signUrl: string): Window | null => {
     const w = Math.max(380, Math.min(460, window.innerWidth - 40));
     const h = Math.max(560, Math.min(760, window.innerHeight - 60));
     const left = window.screenX + (window.outerWidth - w) / 2;
     const top = window.screenY + (window.outerHeight - h) / 2;
+    const features = `width=${w},height=${h},left=${left},top=${top}`;
 
     let popup = popupRef.current;
-    if (!popup || popup.closed) {
-      popup = window.open(
-        signUrl,
-        'litera-cloud-wallet',
-        `width=${w},height=${h},left=${left},top=${top}`,
-      );
-      popupRef.current = popup;
-    } else {
+    if (popup && !popup.closed) {
       try {
         popup.location.href = signUrl;
-        popup.focus();
       } catch {
-        popup = window.open(
-          signUrl,
-          'litera-cloud-wallet',
-          `width=${w},height=${h},left=${left},top=${top}`,
-        );
-        popupRef.current = popup;
+        popup = null;
+      }
+    } else {
+      popup = null;
+    }
+    if (!popup) {
+      try {
+        popup = window.open(signUrl, 'litera-cloud-wallet', features);
+      } catch {
+        popup = null;
       }
     }
-
-    if (!popup) {
-      return Promise.reject(new Error('Popup diblokir browser. Izinkan popup, lalu coba lagi.'));
+    popupRef.current = popup;
+    if (popup) {
+      try {
+        popup.focus();
+      } catch (e) {}
     }
+    return popup;
+  };
 
-    try {
-      popup.focus();
-    } catch (e) {}
-
-    return new Promise((resolve, reject) => {
+  const waitForSignResult = (popup: Window | null, requestId: string): Promise<string> =>
+    new Promise((resolve, reject) => {
       let cleanedUp = false;
       const cleanup = () => {
         if (cleanedUp) return;
         cleanedUp = true;
         window.clearTimeout(timer);
-        window.clearInterval(pollClosed);
+        if (pollClosed) window.clearInterval(pollClosed);
         window.removeEventListener('message', onResult);
       };
 
@@ -531,14 +523,16 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
         reject(new Error('Waktu tanda tangan habis. Coba lagi.'));
       }, 120000);
 
-      const pollClosed = window.setInterval(() => {
-        try {
-          if (!popup || popup.closed) {
-            cleanup();
-            reject(new Error('Tanda tangan dibatalkan (jendela ditutup).'));
-          }
-        } catch (e) {}
-      }, 500);
+      const pollClosed = popup
+        ? window.setInterval(() => {
+            try {
+              if (popup.closed) {
+                cleanup();
+                reject(new Error('Tanda tangan dibatalkan (jendela ditutup).'));
+              }
+            } catch (e) {}
+          }, 500)
+        : null;
 
       const onResult = (e: MessageEvent) => {
         if (e.origin !== LITERA_ORIGIN) return;
@@ -551,7 +545,61 @@ const LiteraWidget: React.FC<LiteraWidgetProps> = ({ tokenId, articleTitle, gene
 
       window.addEventListener('message', onResult);
     });
+
+  const signViaPopup = (message: string): Promise<string> => {
+    const requestId = Math.random().toString(36).slice(2);
+    const signUrl = `${LITERA_ORIGIN}/widget-auth?${new URLSearchParams({
+      article: window.location.href,
+      tokenId: String(tokenId ?? ''),
+      action: 'sign',
+      reqId: requestId,
+      signMsg: encodeURIComponent(message),
+    }).toString()}`;
+
+    const popup = openSignWindow(signUrl);
+    if (popup) return waitForSignResult(popup, requestId);
+
+    signPendingRef.current?.cancel();
+
+    return new Promise((resolve, reject) => {
+      const finish = () => {
+        signPendingRef.current = null;
+        setSignPrompt(null);
+      };
+      signPendingRef.current = {
+        proceed: () => {
+          const p = openSignWindow(signUrl);
+          if (!p) {
+            setSignPrompt({ url: signUrl, blocked: true });
+            return;
+          }
+          finish();
+          waitForSignResult(p, requestId).then(resolve, reject);
+        },
+        proceedViaLink: () => {
+          signPendingRef.current = null;
+          window.setTimeout(() => setSignPrompt(null), 0);
+          waitForSignResult(null, requestId).then(resolve, reject);
+        },
+        cancel: () => {
+          finish();
+          reject(new Error('Tanda tangan dibatalkan'));
+        },
+      };
+      setSignPrompt({ url: signUrl, blocked: false });
+    });
   };
+
+  useEffect(() => {
+    if (!signPrompt) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') signPendingRef.current?.cancel();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [signPrompt]);
+
+  useEffect(() => () => signPendingRef.current?.cancel(), []);
 
   const signIntent = async (message: string): Promise<string> => {
     if (isWagmiConnected) return signWagmi({ message });
@@ -1408,7 +1456,8 @@ Expires: ${expiresAt}`;
         setQuizResult(responseData);
         setStep('quiz_result');
       } catch (err: any) {
-        if (err?.message?.toLowerCase().includes('reject') || err?.message?.toLowerCase().includes('denied')) {
+        const quizErrMsg = (err?.message || '').toLowerCase();
+        if (quizErrMsg.includes('reject') || quizErrMsg.includes('denied') || quizErrMsg.includes('batal')) {
           setStep('quiz_active');
           return;
         }
@@ -1687,6 +1736,10 @@ Expires: ${expiresAt}`;
       }
     } catch (e: any) {
       console.error(e);
+      const decryptErrMsg = (e?.message || '').toLowerCase();
+      if (!e?.response && (decryptErrMsg.includes('batal') || decryptErrMsg.includes('reject') || decryptErrMsg.includes('denied'))) {
+        return;
+      }
       setErrorMessage(e.response?.data?.message || e.message || "Unlocking failed. See console.");
       setStep('error');
     } finally {
@@ -1758,6 +1811,110 @@ Expires: ${expiresAt}`;
           <span style={{ fontSize: '11px', color: 'var(--lw-text-muted)' }}>Koleksi lengkap di</span>
           <a href="https://literaa.xyz/mynft" target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', fontWeight: 700, color: '#d07954', textDecoration: 'none' }}>Dashboard →</a>
         </div>
+      )}
+
+      {signPrompt && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 2147483647,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(4px)',
+          }}
+          onClick={() => signPendingRef.current?.cancel()}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="litera-sign-title"
+            style={{
+              width: '90%',
+              maxWidth: '360px',
+              borderRadius: '24px',
+              backgroundColor: '#ffffff',
+              boxShadow: '0 30px 100px rgba(15,23,42,0.3)',
+              padding: '24px',
+              color: '#1f2937',
+              textAlign: 'left',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 id="litera-sign-title" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 8px', color: '#111827' }}>
+              {signPrompt.blocked ? 'Jendela belum terbuka' : 'Satu langkah lagi'}
+            </h3>
+            <p style={{ fontSize: '14px', lineHeight: 1.5, margin: '0 0 18px', color: '#4b5563' }}>
+              {signPrompt.blocked
+                ? 'Browser menahan jendela Litera. Tekan tombol di bawah untuk membukanya di tab baru, lalu kembali ke halaman ini setelah selesai.'
+                : 'Tekan Lanjutkan untuk mengonfirmasi dengan akun Litera kamu. Jendela kecil akan terbuka dan menutup sendiri setelah selesai.'}
+            </p>
+            {signPrompt.blocked ? (
+              <a
+                href={signPrompt.url}
+                target="litera-cloud-wallet"
+                rel="opener"
+                autoFocus
+                onClick={() => signPendingRef.current?.proceedViaLink()}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  textAlign: 'center',
+                  padding: '12px 16px',
+                  borderRadius: '14px',
+                  backgroundColor: '#d07954',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                }}
+              >
+                Buka di tab baru
+              </a>
+            ) : (
+              <button
+                type="button"
+                autoFocus
+                onClick={() => signPendingRef.current?.proceed()}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '14px',
+                  backgroundColor: '#d07954',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                Lanjutkan
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => signPendingRef.current?.cancel()}
+              style={{
+                width: '100%',
+                marginTop: '8px',
+                padding: '10px 16px',
+                borderRadius: '14px',
+                backgroundColor: 'transparent',
+                color: '#6b7280',
+                fontSize: '13px',
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Batal
+            </button>
+          </div>
+        </div>,
+        document.body
       )}
 
       {/* Disconnect & Account Modal (via Portal agar tidak terpotong overflow container widget) */}

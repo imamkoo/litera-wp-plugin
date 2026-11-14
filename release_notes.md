@@ -1,5 +1,11 @@
 # Litera WordPress Plugin Release Notes
 
+## v1.4.87 (Tanda tangan tidak lagi diblokir browser)
+- Pesan "Popup diblokir browser. Izinkan popup, lalu coba lagi." dihapus. Bila browser menahan jendela tanda tangan Litera, widget menampilkan kartu **"Satu langkah lagi"** dengan tombol **Lanjutkan**, dan karena tombol itu diklik langsung, browser mengizinkan jendelanya terbuka.
+- Bila jendela masih ditahan (mis. pemblokir popup ketat), kartu menawarkan **"Buka di tab baru"**; setelah selesai pembaca kembali ke artikel dan prosesnya berlanjut otomatis.
+- Membatalkan tanda tangan (tombol Batal, Esc, atau menutup jendela) mengembalikan pembaca ke langkah sebelumnya tanpa layar error.
+- Berlaku untuk mint gratis, kirim kuis, dan buka konten rahasia lewat cloud wallet. Tidak ada perubahan kontrak, protokol tanda tangan, atau dashboard.
+
 ## v1.4.86 (Auto-logout sesi pembaca 24 jam)
 - Sesi pembaca di widget berakhir otomatis setelah **24 jam** untuk wallet Web3, cloud wallet, dan login Privy email/Google.
 - Setelah sesi berakhir, widget memutus koneksi, membersihkan kredensial tersimpan, lalu memuat ulang halaman agar pembaca bisa masuk kembali.

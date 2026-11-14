@@ -4,7 +4,7 @@ Tags: web3, nft, polygon, monetization, content creator
 Requires at least: 5.6
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 1.4.86
+Stable tag: 1.4.87
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,11 @@ Readers minting NFTs will need a small amount of POL (MATIC) for gas fees, unles
 1. The Litera unlock screen shown to readers.
 
 == Changelog ==
+
+= 1.4.87 =
+* Tanda tangan cloud wallet tidak lagi gagal karena popup diblokir: widget menampilkan tombol Lanjutkan yang membuka jendela Litera langsung dari klik.
+* Cadangan "Buka di tab baru" bila browser tetap menahan jendela; membatalkan tanda tangan kembali ke langkah sebelumnya tanpa layar error.
+* Tidak ada perubahan kontrak, protokol tanda tangan, atau dashboard.
 
 = 1.4.86 =
 * Auto-logout sesi pembaca setelah 24 jam untuk wallet, cloud wallet, dan login Privy email/Google.
